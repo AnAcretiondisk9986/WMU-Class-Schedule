@@ -290,6 +290,15 @@
       .course-meta { display: block; margin-top: 3px; font-size: 7px; line-height: 1.15; white-space: normal; overflow: visible; overflow-wrap: anywhere; word-break: break-all; }
     }
     @media (max-aspect-ratio: 1/1) {
+      .content { display: flex; flex-direction: column; }
+      .page-head { order: 0; display: block; }
+      .page-heading { display: none; }
+      .head-actions { margin: 0; }
+      .schedule-shell { order: 1; margin-top: 10px; }
+      .day-strip { order: 2; }
+      .toolbar { order: 3; margin-top: 18px; }
+      .pulse-row { order: 4; margin-top: 18px; }
+      .agenda { order: 5; }
       .course { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; }
       .course-title { order: 0; font-size: 12px; font-weight: 800; line-height: 1.25; text-align: left; }
       .course-room { order: 1; font-size: 11px; font-weight: 700; }
@@ -341,7 +350,7 @@
 
       <div class="content">
         <section class="page-head">
-          <div>
+          <div class="page-heading">
             <div class="eyebrow"><i></i> <span id="todayLabel">今天</span></div>
             <h1 id="pageTitle">我的课表</h1>
             <p class="head-note" id="headNote">这一周有 17 节课，安排得刚刚好。</p>
