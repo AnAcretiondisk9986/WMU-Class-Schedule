@@ -218,6 +218,14 @@
     .field input, .field select { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: var(--ink); font-size: 13px; }
     .settings-note { margin: 2px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
     .data-actions { display: flex; gap: 8px; }
+    .switch-list { display: grid; gap: 8px; margin-top: 18px; max-height: 55vh; overflow: auto; }
+    .switch-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: #fff; cursor: pointer; text-align: left; }
+    .switch-item:hover { border-color: #b9dec8; background: #f4faf6; }
+    .switch-item.active { border-color: #2f8b68; background: #e8f7ee; }
+    .switch-item-copy { min-width: 0; }
+    .switch-item-name { font-size: 13px; font-weight: 700; color: var(--ink); }
+    .switch-item-meta { margin-top: 2px; color: var(--muted); font-size: 11px; }
+    .switch-item-badge { flex: 0 0 auto; padding: 2px 7px; border-radius: 5px; background: #c8ebd6; color: #1e6747; font-size: 10px; font-weight: 700; }
     .help-list { margin: 4px 0 0; padding: 0 0 0 18px; color: var(--ink); font-size: 12px; line-height: 1.7; }
 
     @media (max-width: 1080px) {
@@ -334,6 +342,7 @@
       <div>
         <div class="nav-label">Manage</div>
         <nav class="nav">
+          <button type="button" id="navSwitch"><i data-lucide="repeat"></i><span>切换课表</span></button>
           <button type="button" id="navSettings"><i data-lucide="settings-2"></i><span>偏好设置</span></button>
           <button type="button" id="navHelp"><i data-lucide="circle-help"></i><span>帮助</span></button>
         </nav>
@@ -390,6 +399,8 @@
 
   <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>点击右上角「导入 PDF」，选择教务系统导出的课表文件，即可在浏览器本地解析并生成课表。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>「回到今天」定位到当前周次与星期。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
 
+  <div class="modal-backdrop" id="switchBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="switchTitle"><div class="modal-head"><div><h2 id="switchTitle">切换课表</h2><p>选择要查看的课表。</p></div><button class="icon-btn" id="switchClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="switch-list" id="switchList"></div><div class="modal-foot"><button class="secondary-btn" id="switchImport" type="button">导入新课表</button><button class="import-btn" id="switchDone" type="button">完成</button></div></section></div>
+
   <script type="module">
     import { parseTimetablePdf } from './src/timetable.js';
     import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/build/pdf.mjs';
@@ -426,14 +437,24 @@
       '滨海校区': buildPeriods(8 * 60 + 30),
       '线上': buildPeriods(8 * 60 + 30)
     };
-    let EVENTS = [];
     const STORAGE_KEY = 'wmu-timetable-v1';
-    const state = { week: 1, day: 1, query: '', view: 'schedule', semester: '2026-2027-1', student: { name: '', id: '' }, favorites: [], termStartDate: '', updatedAt: 0 };
+    const state = { timetables: [], activeId: null, week: 1, day: 1, query: '', view: 'schedule', favorites: [], updatedAt: 0 };
     let selectedPdfFile = null;
     let activeEvent = null;
     const $ = (id) => document.getElementById(id);
     const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
-    const termMonday = () => mondayOf(new Date(state.termStartDate || toIso(new Date())));
+    const currentTimetable = () => state.timetables.find((t) => t.id === state.activeId) || null;
+    const currentEvents = () => currentTimetable()?.events || [];
+    const currentTermStart = () => currentTimetable()?.termStartDate || toIso(mondayOf(new Date()));
+    const newTimetableId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const uniqueTimetableName = (base) => {
+      const names = new Set(state.timetables.map((t) => t.name));
+      if (!names.has(base)) return base;
+      let index = 2;
+      while (names.has(`${base}（${index}）`)) index += 1;
+      return `${base}（${index}）`;
+    };
+    const termMonday = () => mondayOf(new Date(currentTermStart()));
     const dayInfo = (week) => {
       const monday = addDays(termMonday(), (week - 1) * 7);
       return DAY_NAMES.map((name, index) => ({ key: index + 1, name, date: formatMD(addDays(monday, index)), fullDate: addDays(monday, index) }));
@@ -442,7 +463,7 @@
       const diff = Math.round((mondayOf(date) - termMonday()) / 86400000);
       return { week: Math.floor(diff / 7) + 1, day: (date.getDay() + 6) % 7 + 1 };
     };
-    const maxWeek = () => Math.max(1, ...EVENTS.flatMap((event) => (event.weeks || []).map((range) => range.end)));
+    const maxWeek = () => Math.max(1, ...currentEvents().flatMap((event) => (event.weeks || []).map((range) => range.end)));
     const eventFromParsed = (event) => ({
       day: event.weekday,
       start: event.periods.start,
@@ -457,7 +478,7 @@
       credit: event.credit == null ? '—' : String(event.credit)
     });
     const visibleEvents = () => {
-      let events = EVENTS;
+      let events = currentEvents();
       if (state.view === 'favorites') events = events.filter((event) => state.favorites.includes(event.title));
       if (state.query) {
         const query = state.query.toLowerCase();
@@ -509,10 +530,10 @@
       const columns = days.map((day) => `<div class="day-column" data-column="${day.key}" style="height:${totalHeight}px">${events.filter((event) => event.day === day.key).map((event) => {
         const top = Math.round((eventStartMinute(event) - axisStart) * pxPerMinute);
         const height = Math.round((eventEndMinute(event) - eventStartMinute(event)) * pxPerMinute);
-        return `<button class="course type-${event.type}" data-event="${EVENTS.indexOf(event)}" style="top:${top}px;height:${height}px" type="button" title="${escapeHtml(event.title)}"><span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room"><i data-lucide="map-pin"></i>${escapeHtml(event.room)}</span><span class="course-meta"><span class="course-campus">${escapeHtml(event.campus)}</span><span class="course-teacher"> · ${escapeHtml(event.teacher)}</span></span></button>`;
+        return `<button class="course type-${event.type}" data-event="${currentEvents().indexOf(event)}" style="top:${top}px;height:${height}px" type="button" title="${escapeHtml(event.title)}"><span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room"><i data-lucide="map-pin"></i>${escapeHtml(event.room)}</span><span class="course-meta"><span class="course-campus">${escapeHtml(event.campus)}</span><span class="course-teacher"> · ${escapeHtml(event.teacher)}</span></span></button>`;
       }).join('')}</div>`).join('');
       $('schedule').innerHTML = `${head}<div class="schedule-body">${axis}${columns}</div>`;
-      if (!EVENTS.length) {
+      if (!currentEvents().length) {
         $('emptyState').innerHTML = '<div class="empty-guide"><i data-lucide="file-up"></i><h3>还没有课表</h3><p>先去教务系统导出课表 PDF，再回到这里导入</p><a class="jwxt-link" href="https://jwxt.wmu.edu.cn/jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&layout=default" target="_blank" rel="noopener">前往教务系统导出 PDF</a><button class="import-btn" id="emptyImportBtn" type="button"><i data-lucide="scan-line"></i><span>导入 PDF</span></button></div>';
         $('emptyState').style.display = 'grid';
       } else {
@@ -521,7 +542,7 @@
       }
       const emptyImport = $('emptyImportBtn');
       if (emptyImport) emptyImport.addEventListener('click', openImportModal);
-      document.querySelectorAll('[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(EVENTS[Number(button.dataset.event)])));
+      document.querySelectorAll('[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(currentEvents()[Number(button.dataset.event)])));
       if (window.lucide) window.lucide.createIcons();
     }
 
@@ -529,8 +550,8 @@
       const days = dayInfo(state.week);
       const events = visibleEvents();
       const isFavorites = state.view === 'favorites';
-      $('agenda').innerHTML = days.filter((day) => events.some((event) => event.day === day.key)).map((day) => `<section class="agenda-day"><div class="agenda-day-title"><span>${isFavorites ? day.name : `${day.name} · ${day.date}`}</span><span>${events.filter((event) => event.day === day.key).length} 节</span></div>${events.filter((event) => event.day === day.key).map((event) => `<button class="agenda-event type-${event.type}" data-event="${EVENTS.indexOf(event)}" type="button"><span class="event-time">${timeLabel(event)}</span><span><span class="event-title">${escapeHtml(truncateTitle(event.title))}</span><span class="event-room">${escapeHtml(event.room)} · ${escapeHtml(event.teacher)}${isFavorites ? ' · ' + weeksLabel(event.weeks) : ''}</span></span></button>`).join('')}</section>`).join('') || '<div class="empty" style="display:grid"><div>没有匹配的课程</div></div>';
-      document.querySelectorAll('.agenda-event[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(EVENTS[Number(button.dataset.event)])));
+      $('agenda').innerHTML = days.filter((day) => events.some((event) => event.day === day.key)).map((day) => `<section class="agenda-day"><div class="agenda-day-title"><span>${isFavorites ? day.name : `${day.name} · ${day.date}`}</span><span>${events.filter((event) => event.day === day.key).length} 节</span></div>${events.filter((event) => event.day === day.key).map((event) => `<button class="agenda-event type-${event.type}" data-event="${currentEvents().indexOf(event)}" type="button"><span class="event-time">${timeLabel(event)}</span><span><span class="event-title">${escapeHtml(truncateTitle(event.title))}</span><span class="event-room">${escapeHtml(event.room)} · ${escapeHtml(event.teacher)}${isFavorites ? ' · ' + weeksLabel(event.weeks) : ''}</span></span></button>`).join('')}</section>`).join('') || '<div class="empty" style="display:grid"><div>没有匹配的课程</div></div>';
+      document.querySelectorAll('.agenda-event[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(currentEvents()[Number(button.dataset.event)])));
     }
 
     function renderStorage() {
@@ -548,11 +569,13 @@
 
     function renderAll() {
       const days = dayInfo(state.week);
-      const semesterParts = state.semester.split('-');
+      const tt = currentTimetable();
+      const semester = tt?.semester || '';
+      const semesterParts = semester.split('-');
       $('semesterLabel').textContent = semesterParts.length === 3
         ? `${semesterParts[0]}–${semesterParts[1]} 学年第 ${semesterParts[2]} 学期`
-        : state.semester;
-      const name = state.student.name || '我的课表';
+        : (semester || '未设置学期');
+      const name = tt?.student?.name || '我的课表';
       $('profileName').textContent = name;
       $('profileAvatar').textContent = name.slice(0, 1);
       $('pageTitle').textContent = state.view === 'favorites' ? '收藏课程' : state.view === 'list' ? '课程清单' : '我的课表';
@@ -565,14 +588,15 @@
         : `第 ${state.week} 周共有 ${weekEvents.length} 节课。`;
       $('weekRangeLabel').textContent = `${formatFull(days[0].fullDate)} — ${formatFull(days[6].fullDate)}`;
       $('viewTitle').textContent = state.view === 'schedule' ? '周视图' : state.view === 'list' ? '课程清单' : '收藏课程';
-      const courseNames = [...new Set(EVENTS.map((event) => event.title))];
+      const events = currentEvents();
+      const courseNames = [...new Set(events.map((event) => event.title))];
       const totalCredit = courseNames.reduce((sum, title) => {
-        const event = EVENTS.find((item) => item.title === title);
+        const event = events.find((item) => item.title === title);
         const credit = Number(event.credit);
         return sum + (Number.isFinite(credit) ? credit : 0);
       }, 0);
-      $('courseCountValue').textContent = `${EVENTS.length} 节课 · ${courseNames.length} 门 · ${totalCredit} 学分`;
-      const campusCounts = EVENTS.reduce((counts, event) => {
+      $('courseCountValue').textContent = `${events.length} 节课 · ${courseNames.length} 门 · ${totalCredit} 学分`;
+      const campusCounts = events.reduce((counts, event) => {
         if (event.campus && event.campus !== '线上') counts[event.campus] = (counts[event.campus] || 0) + 1;
         return counts;
       }, {});
@@ -600,7 +624,7 @@
       const today = weekAndDayForDate(new Date());
       const now = new Date();
       const nowMinutes = now.getHours() * 60 + now.getMinutes();
-      const todayEvents = EVENTS.filter((event) => event.day === today.day && eventInWeek(event, today.week)).sort((a, b) => a.start - b.start);
+      const todayEvents = currentEvents().filter((event) => event.day === today.day && eventInWeek(event, today.week)).sort((a, b) => a.start - b.start);
       const prefix = `今天 ${DAY_NAMES[today.day - 1]}`;
       if (!todayEvents.length) return { label: `${prefix} · 无课`, value: '今天没有课程安排' };
       const next = todayEvents.find((event) => timeToMinutes(timeLabel(event).split('–')[0]) > nowMinutes);
@@ -643,11 +667,34 @@
     function openModal(id) { document.getElementById(id).classList.add('modal-open'); }
     function closeModalById(id) { document.getElementById(id).classList.remove('modal-open'); }
     function openSettings() {
-      $('termStartInput').value = state.termStartDate;
+      $('termStartInput').value = currentTermStart();
       $('themeSelect').value = document.documentElement.classList.contains('warm-mode') ? 'warm' : 'light';
       openModal('settingsBackdrop');
     }
     function openHelp() { openModal('helpBackdrop'); }
+    function renderSwitchList() {
+      $('switchList').innerHTML = state.timetables.length
+        ? state.timetables.map((t) => {
+            const active = t.id === state.activeId;
+            const count = (t.events || []).length;
+            const name = t.student?.name || '';
+            return `<button class="switch-item ${active ? 'active' : ''}" data-timetable="${t.id}" type="button"><span class="switch-item-copy"><span class="switch-item-name">${escapeHtml(t.name)}</span><span class="switch-item-meta">${escapeHtml(t.semester)}${name ? ' · ' + escapeHtml(name) : ''} · ${count} 个课次</span></span>${active ? '<span class="switch-item-badge">当前</span>' : ''}</button>`;
+          }).join('')
+        : '<div class="empty" style="display:grid;min-height:120px"><div>还没有课表，先导入一个</div></div>';
+      document.querySelectorAll('[data-timetable]').forEach((button) => button.addEventListener('click', () => {
+        state.activeId = button.dataset.timetable;
+        state.week = 1;
+        state.day = 1;
+        state.view = 'schedule';
+        persist();
+        renderAll();
+        closeModalById('switchBackdrop');
+      }));
+    }
+    function openSwitch() {
+      renderSwitchList();
+      openModal('switchBackdrop');
+    }
     function applyTheme(theme) {
       document.documentElement.classList.toggle('warm-mode', theme === 'warm');
       const select = $('themeSelect');
@@ -658,11 +705,9 @@
     function persist() {
       state.updatedAt = Date.now();
       const payload = {
-        version: 1,
-        semester: state.semester,
-        student: state.student,
-        termStartDate: state.termStartDate,
-        events: EVENTS,
+        version: 2,
+        timetables: state.timetables,
+        activeId: state.activeId,
         favorites: state.favorites,
         theme: document.documentElement.classList.contains('warm-mode') ? 'warm' : 'light',
         week: state.week,
@@ -674,11 +719,9 @@
     }
     function resetData() {
       try { localStorage.removeItem(STORAGE_KEY); } catch (error) {}
-      EVENTS = [];
-      state.semester = '2026-2027-1';
-      state.student = { name: '', id: '' };
+      state.timetables = [];
+      state.activeId = null;
       state.favorites = [];
-      state.termStartDate = toIso(mondayOf(new Date()));
       state.week = 1;
       state.day = 1;
       state.view = 'schedule';
@@ -689,12 +732,11 @@
       closeModalById('settingsBackdrop');
     }
     function exportData() {
+      const tt = currentTimetable();
       const payload = {
-        version: 1,
-        semester: state.semester,
-        student: state.student,
-        termStartDate: state.termStartDate,
-        events: EVENTS,
+        version: 2,
+        timetables: state.timetables,
+        activeId: state.activeId,
         favorites: state.favorites,
         theme: document.documentElement.classList.contains('warm-mode') ? 'warm' : 'light',
         week: state.week,
@@ -706,18 +748,16 @@
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
       anchor.href = url;
-      anchor.download = `wmu-timetable-${payload.semester || 'backup'}.json`;
+      anchor.download = `wmu-timetable-${tt?.semester || 'backup'}.json`;
       anchor.click();
       URL.revokeObjectURL(url);
     }
     async function importData(file) {
       try {
         const data = JSON.parse(await file.text());
-        if (!data || data.version !== 1 || !Array.isArray(data.events)) return false;
-        EVENTS = data.events;
-        state.semester = data.semester || state.semester;
-        state.student = data.student || state.student;
-        state.termStartDate = data.termStartDate || state.termStartDate;
+        if (!data || data.version !== 2 || !Array.isArray(data.timetables)) return false;
+        state.timetables = data.timetables;
+        state.activeId = data.activeId || data.timetables[0]?.id || null;
         state.favorites = Array.isArray(data.favorites) ? data.favorites : [];
         state.week = Number.isFinite(data.week) ? data.week : 1;
         state.day = Number.isFinite(data.day) ? data.day : 1;
@@ -734,21 +774,39 @@
     function loadState() {
       let saved = null;
       try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (error) {}
-      if (saved && saved.version === 1 && Array.isArray(saved.events) && saved.events.length) {
-        state.semester = saved.semester || '2026-2027-1';
-        state.student = saved.student || { name: '', id: '' };
-        state.termStartDate = saved.termStartDate || toIso(mondayOf(new Date()));
+      if (saved && saved.version === 2 && Array.isArray(saved.timetables) && saved.timetables.length) {
+        state.timetables = saved.timetables;
+        state.activeId = saved.activeId || saved.timetables[0].id;
         state.favorites = Array.isArray(saved.favorites) ? saved.favorites : [];
         state.week = Number.isFinite(saved.week) ? saved.week : 1;
         state.day = Number.isFinite(saved.day) ? saved.day : 1;
         state.view = ['schedule', 'list', 'favorites'].includes(saved.view) ? saved.view : 'schedule';
         state.updatedAt = saved.updatedAt || 0;
-        EVENTS = saved.events;
         if (saved.theme === 'warm') document.documentElement.classList.add('warm-mode');
         return true;
       }
-      EVENTS = [];
-      state.termStartDate = toIso(mondayOf(new Date()));
+      // 兼容旧版单课表格式
+      if (saved && saved.version === 1 && Array.isArray(saved.events) && saved.events.length) {
+        state.timetables = [{
+          id: newTimetableId(),
+          name: saved.semester || '课表 1',
+          semester: saved.semester || '',
+          student: saved.student || { name: '', id: '' },
+          termStartDate: saved.termStartDate || toIso(mondayOf(new Date())),
+          events: saved.events,
+          updatedAt: saved.updatedAt || 0
+        }];
+        state.activeId = state.timetables[0].id;
+        state.favorites = Array.isArray(saved.favorites) ? saved.favorites : [];
+        state.week = Number.isFinite(saved.week) ? saved.week : 1;
+        state.day = Number.isFinite(saved.day) ? saved.day : 1;
+        state.view = ['schedule', 'list', 'favorites'].includes(saved.view) ? saved.view : 'schedule';
+        state.updatedAt = saved.updatedAt || 0;
+        if (saved.theme === 'warm') document.documentElement.classList.add('warm-mode');
+        return true;
+      }
+      state.timetables = [];
+      state.activeId = null;
       state.week = 1;
       state.day = 1;
       return false;
@@ -771,6 +829,11 @@
     $('navFavorites').addEventListener('click', () => { state.view = 'favorites'; persist(); renderAll(); });
     $('navSettings').addEventListener('click', openSettings);
     $('navHelp').addEventListener('click', openHelp);
+    $('navSwitch').addEventListener('click', openSwitch);
+    $('switchClose').addEventListener('click', () => closeModalById('switchBackdrop'));
+    $('switchBackdrop').addEventListener('click', (event) => { if (event.target === event.currentTarget) closeModalById('switchBackdrop'); });
+    $('switchDone').addEventListener('click', () => closeModalById('switchBackdrop'));
+    $('switchImport').addEventListener('click', () => { closeModalById('switchBackdrop'); openImportModal(); });
     $('searchInput').addEventListener('input', (event) => { state.query = event.target.value.trim(); renderAll(); });
     $('drawerClose').addEventListener('click', closeDrawer);
     $('drawerBackdrop').addEventListener('click', closeDrawer);
@@ -785,7 +848,8 @@
     $('helpDone').addEventListener('click', () => closeModalById('helpBackdrop'));
     $('settingsDone').addEventListener('click', () => {
       const value = $('termStartInput').value;
-      if (value) state.termStartDate = value;
+      const tt = currentTimetable();
+      if (value && tt) tt.termStartDate = value;
       applyTheme($('themeSelect').value);
       persist();
       renderAll();
@@ -840,9 +904,19 @@
           setImportStatus(`识别到 ${result.conflicts.length} 个跨校区时间冲突：${result.conflicts.map((conflict) => conflict.message).join('；')}`, 'error');
           return;
         }
-        EVENTS = result.events.map(eventFromParsed);
-        state.semester = result.semester || state.semester;
-        state.student = result.student || { name: '', id: '' };
+        const events = result.events.map(eventFromParsed);
+        const semester = result.semester || '未设置学期';
+        const timetable = {
+          id: newTimetableId(),
+          name: uniqueTimetableName(semester),
+          semester,
+          student: result.student || { name: '', id: '' },
+          termStartDate: toIso(mondayOf(new Date())),
+          events,
+          updatedAt: Date.now()
+        };
+        state.timetables.push(timetable);
+        state.activeId = timetable.id;
         state.week = 1;
         state.day = 1;
         state.view = 'schedule';
@@ -851,7 +925,7 @@
         $('fileName').textContent = file.name;
         persist();
         renderAll();
-        setImportStatus(`已识别 ${EVENTS.length} 个课次，来自 ${state.student.name || '课表'}。`, 'success');
+        setImportStatus(`已识别 ${events.length} 个课次（${semester}），保存为「${timetable.name}」。`, 'success');
         setTimeout(closeImportModal, 900);
       } catch (error) {
         setImportStatus(`解析失败：${error.message || '文件格式无法识别'}`, 'error');
@@ -865,6 +939,7 @@
       closeImportModal();
       closeModalById('settingsBackdrop');
       closeModalById('helpBackdrop');
+      closeModalById('switchBackdrop');
     });
     let resizeTimer;
     window.addEventListener('resize', () => {

@@ -114,13 +114,15 @@ const TEST_EVENTS = [
   { day: 7, start: 1, end: 2, title: "管理学原理", type: "lecture", label: "讲课", room: "线上课堂", campus: "滨海校区", teacher: "叶俊", weeks: [W(3, 3)], credit: "3.0" }
 ];
 
+function TT(id, name, semester, studentName, events) {
+  return { id, name, semester, student: { name: studentName, id: "123456" }, termStartDate: "2026-09-14", events, updatedAt: 123456 };
+}
+
 function SAVED(overrides = {}) {
   return {
-    version: 1,
-    semester: "2026-2027-1",
-    student: { name: "测试同学", id: "123456" },
-    termStartDate: "2026-09-14",
-    events: TEST_EVENTS,
+    version: 2,
+    timetables: [TT("t1", "2026-2027-1", "2026-2027-1", "测试同学", TEST_EVENTS)],
+    activeId: "t1",
     favorites: [],
     theme: "light",
     week: 1,
@@ -184,4 +186,19 @@ test("index.html 从 localStorage 恢复状态", () => {
   assert.equal(s.$("scheduleShell").style.display, "none");
   assert.equal(s.$("agenda").style.display, "grid");
   assert.equal(s.$("updatedLabel").textContent, "本地已保存");
+});
+
+test("index.html 切换课表列表渲染", () => {
+  const s = runScenario(SAVED({
+    timetables: [
+      TT("t1", "2026-2027-1", "2026-2027-1", "甲同学", TEST_EVENTS),
+      TT("t2", "2025-2026-1", "2025-2026-1", "乙同学", [TEST_EVENTS[0]])
+    ],
+    activeId: "t1"
+  }));
+  assert.equal(s.error, null, s.error?.stack);
+  s.trigger("navSwitch");
+  assert.ok(s.$("switchList").innerHTML.includes("2026-2027-1"), "列表含第一个课表");
+  assert.ok(s.$("switchList").innerHTML.includes("2025-2026-1"), "列表含第二个课表");
+  assert.ok(s.$("switchList").innerHTML.includes("当前"), "当前课表有标记");
 });
