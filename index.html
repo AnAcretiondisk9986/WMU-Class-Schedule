@@ -4,6 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#7b182e">
+  <meta name="description" content="温州医科大学课表 PDF 导入与周视图工具">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="温医大课表">
+  <meta property="og:title" content="温医大课表">
+  <meta property="og:description" content="在浏览器本地导入并查看温州医科大学课表">
+  <meta property="og:image" content="https://acretiondisk.top/WMU-Class-Schedule/assets/wmu-preview.png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:image" content="https://acretiondisk.top/WMU-Class-Schedule/assets/wmu-preview.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="assets/wmu-preview.png">
+  <link rel="apple-touch-icon" href="assets/wmu-preview.png">
   <title>温医大课表</title>
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <style>
@@ -535,8 +547,14 @@
 
     @media (max-width: 1080px) {
       .app { grid-template-columns: 78px minmax(0, 1fr); }
-      .brand { min-height: 49px; padding: 0 0 16px; }
-      .brand-mark { width: 42px; background-size: auto 23px; background-position: left center; }
+      .brand { min-height: 70px; padding: 0 0 12px; }
+      .brand-mark {
+        width: 48px;
+        height: 58px;
+        background-image: url("assets/wmu-shield-white.png");
+        background-size: auto 58px;
+        background-position: center;
+      }
       .brand-copy { display: none; }
       .nav button.active { box-shadow: inset 0 -2px 0 var(--gold); }
     }
@@ -560,7 +578,14 @@
       .nav button { width: 46px; height: 46px; min-height: 0; justify-content: center; padding: 0; }
       .nav button.active { background: #fff; color: var(--brand-deep); box-shadow: inset 0 -2px 0 var(--gold); }
       .topbar { min-height: 61px; padding: 0 14px; gap: 9px; }
-      .topbar::before { content: "WMU 课表"; flex: 0 0 auto; color: var(--brand-deep); font-family: Georgia, "Times New Roman", "Songti SC", serif; font-size: 15px; font-weight: 700; }
+      .topbar::before {
+        content: "";
+        width: 36px;
+        height: 36px;
+        flex: 0 0 auto;
+        border-radius: 50%;
+        background: var(--brand-deep) url("assets/wmu-seal-white.png") center / 30px auto no-repeat;
+      }
       .top-context { display: none; }
       .top-spacer { display: none; }
       .search { width: auto; flex: 1; max-width: none; }
@@ -576,7 +601,7 @@
       .sidebar { justify-content: center; }
       .nav { gap: 0; }
       .nav button { width: 43px; }
-      .topbar::before { content: "WMU"; }
+      .topbar::before { width: 34px; height: 34px; background-size: 28px auto; }
       #themeButton { display: none; }
       .search input { font-size: 11px; }
       h1 { font-size: 28px; }
