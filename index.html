@@ -144,6 +144,8 @@
     .schedule-head { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; min-height: 42px; border-bottom: 1px solid var(--line); background: #fafcf9; }
     .head-cell { display: flex; align-items: center; justify-content: center; border-right: 1px solid var(--line); color: var(--muted); font-size: 11px; font-weight: 700; }
     .head-cell:first-child { color: #a0aaa4; font-size: 10px; }
+    .axis-head { display: grid; gap: 1px; place-items: center; line-height: 1.05; }
+    .axis-head small { color: #8d9992; font-size: 7px; font-weight: 650; }
     .head-cell.focus { background: #eff9f2; color: #26724f; }
     .schedule-body { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; position: relative; min-height: calc(19 * var(--slot-h)); }
     .time-axis { display: grid; grid-template-rows: repeat(19, var(--slot-h)); border-right: 1px solid var(--line); background: #fbfcfa; }
@@ -193,11 +195,15 @@
     .modal h2 { margin: 0; font-size: 18px; letter-spacing: -.03em; }
     .modal p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
     .dropzone { display: grid; place-items: center; min-height: 190px; margin-top: 22px; border: 1px dashed #b9c9bd; border-radius: 10px; background: #f7faf7; color: var(--muted); text-align: center; }
+    .dropzone.dragging { border-color: #2f8b68; background: #edf8f1; }
     .dropzone svg { width: 25px; height: 25px; margin-bottom: 8px; color: #3b966d; }
     .dropzone strong { display: block; color: var(--ink); font-size: 13px; }
     .dropzone span { display: block; margin-top: 4px; font-size: 11px; }
     .file-input { display: none; }
     .modal-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+    .import-status { min-height: 18px; margin-top: 13px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .import-status.error { color: #a13d2b; }
+    .import-status.success { color: #287957; }
     .secondary-btn { height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: 7px; background: #fff; cursor: pointer; font-size: 12px; font-weight: 650; }
     .secondary-btn:hover { background: #f5f8f5; }
 
@@ -234,8 +240,8 @@
       .pulse { min-height: 63px; }
       .toolbar { margin-top: 24px; }
       .toolbar .subtle { display: none; }
-      .day-strip { gap: 4px; }
-      .day { min-height: 54px; padding: 7px 6px; }
+      .day-strip { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+      .day { flex-direction: column; gap: 3px; min-width: 0; min-height: 54px; padding: 6px 2px; text-align: center; }
       .day-name span { display: none; }
       .day-count { min-width: 19px; height: 19px; }
       .schedule { grid-template-columns: 48px repeat(7, minmax(0, 1fr)); min-width: 0; }
@@ -264,6 +270,7 @@
       .time { padding-right: 3px; font-size: 8px; }
       .time strong { font-size: 9px; }
       .time span { font-size: 8px; }
+      .time-points span { display: block; }
       .course { left: 2px; right: 2px; padding: 5px 4px; border-left-width: 2px; border-radius: 5px; }
       .course-title { overflow: visible; max-height: 49px; font-size: 8px; line-height: 1.18; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; word-break: break-all; }
       .course-type { position: static; display: block; width: fit-content; margin-top: 3px; padding: 1px 2px; font-size: 7px; line-height: 1.1; }
@@ -300,13 +307,13 @@
       </div>
       <div class="sidebar-foot">
         <div class="storage"><div class="storage-row"><span>本地存储</span><strong>34%</strong></div><div class="meter"><i></i></div></div>
-        <div class="profile"><div class="avatar">黄</div><div class="profile-copy"><div class="profile-name">我的课表</div><div class="profile-sub">本地数据 · 已同步</div></div></div>
+        <div class="profile"><div class="avatar" id="profileAvatar">黄</div><div class="profile-copy"><div class="profile-name" id="profileName">我的课表</div><div class="profile-sub">本地数据 · 已同步</div></div></div>
       </div>
     </aside>
 
     <main class="main">
       <header class="topbar">
-        <div class="top-context"><strong>2026–2027 学年第 1 学期</strong><span>最后更新：今天 09:42</span></div>
+        <div class="top-context"><strong id="semesterLabel">2026–2027 学年第 1 学期</strong><span>最后更新：今天 09:42</span></div>
         <div class="top-spacer"></div>
         <label class="search"><i data-lucide="search"></i><input id="searchInput" type="search" placeholder="搜索课程、教师或教室" aria-label="搜索课程"></label>
         <button class="icon-btn" type="button" title="切换主题" aria-label="切换主题" id="themeButton"><i data-lucide="sun"></i></button>
@@ -318,7 +325,7 @@
           <div>
             <div class="eyebrow"><i></i> Tuesday, August 15</div>
             <h1>我的课表</h1>
-            <p class="head-note">这一周有 17 节课，安排得刚刚好。</p>
+            <p class="head-note" id="headNote">这一周有 17 节课，安排得刚刚好。</p>
           </div>
           <div class="head-actions">
             <button class="today-btn" id="todayButton" type="button">回到今天</button>
@@ -327,9 +334,9 @@
         </section>
 
         <section class="pulse-row" aria-label="今日概览">
-          <div class="pulse primary"><div class="pulse-icon"><i data-lucide="clock-3"></i></div><div class="pulse-copy"><div class="pulse-label">下一节课 · 10:10</div><div class="pulse-value">数据库原理与应用 · 求知楼 204</div></div></div>
-          <div class="pulse"><div class="pulse-icon"><i data-lucide="layers-2"></i></div><div class="pulse-copy"><div class="pulse-label">本周课程</div><div class="pulse-value">17 节 · 26.5 学分</div></div></div>
-          <div class="pulse"><div class="pulse-icon"><i data-lucide="map-pin"></i></div><div class="pulse-copy"><div class="pulse-label">今天最常去</div><div class="pulse-value">滨海校区 · 求知楼</div></div></div>
+          <div class="pulse primary"><div class="pulse-icon"><i data-lucide="clock-3"></i></div><div class="pulse-copy"><div class="pulse-label" id="nextCourseLabel">下一节课 · 10:10</div><div class="pulse-value" id="nextCourseValue">数据库原理与应用 · 求知楼 204</div></div></div>
+          <div class="pulse"><div class="pulse-icon"><i data-lucide="layers-2"></i></div><div class="pulse-copy"><div class="pulse-label">课表课次</div><div class="pulse-value" id="courseCountValue">17 节 · 26.5 学分</div></div></div>
+          <div class="pulse"><div class="pulse-icon"><i data-lucide="map-pin"></i></div><div class="pulse-copy"><div class="pulse-label">主要校区</div><div class="pulse-value" id="campusValue">滨海校区 · 求知楼</div></div></div>
         </section>
 
         <section class="toolbar"><div><h2>周视图</h2><span class="subtle">2026 年 09 月 14 日 — 09 月 20 日</span></div><div class="toolbar-spacer"></div><div class="view-toggle" role="group" aria-label="视图切换"><button class="active" id="weekViewButton" type="button"><i data-lucide="table-2"></i>周视图</button><button id="listViewButton" type="button"><i data-lucide="list"></i>列表</button></div></section>
@@ -344,9 +351,14 @@
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
   <aside class="drawer" id="drawer" aria-label="课程详情" aria-hidden="true"><button class="icon-btn drawer-close" id="drawerClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button><div class="drawer-kicker" id="drawerKicker">课程详情</div><h2 id="drawerTitle">课程名称</h2><p class="drawer-sub" id="drawerSub">周二 · 第 1–2 节</p><dl class="detail-list"><div class="detail-row"><dt>上课时间</dt><dd id="detailTime">08:00–09:25</dd></div><div class="detail-row"><dt>上课地点</dt><dd id="detailRoom">滨海校区 · 求知楼</dd></div><div class="detail-row"><dt>任课教师</dt><dd id="detailTeacher">教师姓名</dd></div><div class="detail-row"><dt>周次</dt><dd id="detailWeeks">第 1–16 周</dd></div><div class="detail-row"><dt>课程类型</dt><dd id="detailType">讲课</dd></div></dl><div class="drawer-note">课程数据保存在本地浏览器中。导入新的 PDF 后，可以继续手动修正课程信息。</div></aside>
 
-  <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>选择教务系统导出的课表文件。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><label class="dropzone" for="fileInput"><i data-lucide="upload-cloud"></i><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button"><i data-lucide="scan-line"></i><span>开始识别</span></button></div></section></div>
+  <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>选择教务系统导出的课表文件。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><label class="dropzone" id="dropZone" for="fileInput"><i data-lucide="upload-cloud"></i><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="import-status" id="importStatus" role="status" aria-live="polite"></div><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button"><i data-lucide="scan-line"></i><span>开始识别</span></button></div></section></div>
 
-  <script>
+  <script type="module">
+    import { parseTimetablePdf } from './src/timetable.js';
+    import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/build/pdf.mjs';
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/build/pdf.worker.mjs';
+
     const DAYS = [
       { key: 1, name: '周一', date: '09/14' }, { key: 2, name: '周二', date: '09/15' },
       { key: 3, name: '周三', date: '09/16' }, { key: 4, name: '周四', date: '09/17' },
@@ -365,8 +377,7 @@
       '滨海校区': buildPeriods(8 * 60 + 30),
       '线上': buildPeriods(8 * 60 + 30)
     };
-    const PERIODS = CAMPUS_PERIODS['滨海校区'];
-    const EVENTS = [
+    let EVENTS = [
       { day: 1, start: 1, end: 2, title: '云计算基础', type: 'lecture', label: '讲课', room: '求知楼 204', campus: '滨海校区', teacher: '冯振', weeks: '第 1–16 周', credit: '2.5' },
       { day: 1, start: 3, end: 4, title: '概率论及数理统计', type: 'lecture', label: '讲课', room: '求知楼 301', campus: '滨海校区', teacher: '韩艳敏', weeks: '第 1–16 周', credit: '2.5' },
       { day: 2, start: 1, end: 2, title: '数据库原理与应用', type: 'lecture', label: '讲课', room: '求知楼 204', campus: '滨海校区', teacher: '刘丽娜', weeks: '第 1–3、5–8 周', credit: '2.5' },
@@ -382,10 +393,28 @@
       { day: 6, start: 2, end: 3, title: '习近平新时代中国特色社会主义思想概论', type: 'discussion', label: '讨论', room: '在线学习', campus: '线上', teacher: '谢海霞', weeks: '第 8 周', credit: '3.0' },
       { day: 7, start: 1, end: 2, title: '管理学原理', type: 'lecture', label: '讲课', room: '线上课堂', campus: '滨海校区', teacher: '叶俊', weeks: '第 3 周', credit: '3.0' }
     ];
-    const state = { week: 3, day: 2, query: '', list: false };
+    const state = { week: 3, day: 2, query: '', list: false, semester: '2026-2027-1', student: { name: '我的课表', id: '' } };
+    let selectedPdfFile = null;
     const $ = (id) => document.getElementById(id);
     const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
     const visibleEvents = () => EVENTS.filter((event) => !state.query || `${event.title} ${event.teacher} ${event.room}`.toLowerCase().includes(state.query.toLowerCase()));
+    const formatWeekRanges = (ranges) => ranges?.map((range) => {
+      const span = range.start === range.end ? `${range.start}` : `${range.start}–${range.end}`;
+      return `${span}${range.parity === 'odd' ? '（单）' : range.parity === 'even' ? '（双）' : ''}`;
+    }).join('、') || '周次未标注';
+    const eventFromParsed = (event) => ({
+      day: event.weekday,
+      start: event.periods.start,
+      end: event.periods.end,
+      title: event.courseName,
+      type: event.activity || 'lecture',
+      label: event.activityLabel || '讲课',
+      room: event.room || '待定',
+      campus: event.campus || '未标注校区',
+      teacher: event.teacher || '待定',
+      weeks: formatWeekRanges(event.weeks),
+      credit: event.credit == null ? '—' : String(event.credit)
+    });
     const timeLabel = (event) => {
       const periods = CAMPUS_PERIODS[event.campus] || CAMPUS_PERIODS['滨海校区'];
       return `${periods[event.start - 1][0]}–${periods[event.end - 1][1]}`;
@@ -402,9 +431,13 @@
     function renderSchedule() {
       const events = visibleEvents();
       const slotHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slot-h')) || 92;
-      const head = `<div class="schedule-head"><div class="head-cell">节次</div>${DAYS.map((day) => `<div class="head-cell ${state.day === day.key ? 'focus' : ''}">${day.name}</div>`).join('')}</div>`;
-      const axis = `<div class="time-axis">${PERIODS.map((period, index) => `<div class="time"><strong>${index + 1}</strong><span>第 ${index + 1} 节</span></div>`).join('')}</div>`;
-      const columns = DAYS.map((day) => `<div class="day-column" data-column="${day.key}">${PERIODS.map(() => '<div class="slot"></div>').join('')}${events.filter((event) => event.day === day.key).map((event) => `<button class="course type-${event.type}" data-event="${EVENTS.indexOf(event)}" style="top:${(event.start - 1) * slotHeight + 7}px;height:${(event.end - event.start + 1) * slotHeight - 14}px" type="button"><span class="course-title">${escapeHtml(event.title)}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-meta"><i data-lucide="map-pin"></i>${escapeHtml(event.room + ' · ' + event.teacher)}</span></button>`).join('')}</div>`).join('');
+      const head = `<div class="schedule-head"><div class="head-cell" title="时间轴上行为茶山/学院路，下行为滨海"><span class="axis-head"><b>节次</b><small>茶山/学院路<br>滨海</small></span></div>${DAYS.map((day) => `<div class="head-cell ${state.day === day.key ? 'focus' : ''}">${day.name}</div>`).join('')}</div>`;
+      const axis = `<div class="time-axis">${Array.from({ length: PERIOD_COUNT }, (_, index) => {
+        const tea = CAMPUS_PERIODS['茶山校区'][index][0];
+        const bin = CAMPUS_PERIODS['滨海校区'][index][0];
+        return `<div class="time" title="茶山/学院路 ${tea}；滨海 ${bin}"><strong>${index + 1}</strong><span>第 ${index + 1} 节</span><span class="time-points"><span>${tea}</span><span>${bin}</span></span></div>`;
+      }).join('')}</div>`;
+      const columns = DAYS.map((day) => `<div class="day-column" data-column="${day.key}">${Array.from({ length: PERIOD_COUNT }, () => '<div class="slot"></div>').join('')}${events.filter((event) => event.day === day.key).map((event) => `<button class="course type-${event.type}" data-event="${EVENTS.indexOf(event)}" style="top:${(event.start - 1) * slotHeight + 7}px;height:${(event.end - event.start + 1) * slotHeight - 14}px" type="button"><span class="course-title">${escapeHtml(event.title)}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-meta"><i data-lucide="map-pin"></i>${escapeHtml(event.campus + ' · ' + event.room + ' · ' + event.teacher)}</span></button>`).join('')}</div>`).join('');
       $('schedule').innerHTML = `${head}<div class="schedule-body">${axis}${columns}</div>`;
       $('emptyState').style.display = events.length ? 'none' : 'grid';
       document.querySelectorAll('[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(EVENTS[Number(button.dataset.event)])));
@@ -418,6 +451,24 @@
     }
 
     function renderAll() {
+      const semesterParts = state.semester.split('-');
+      $('semesterLabel').textContent = semesterParts.length === 3
+        ? `${semesterParts[0]}–${semesterParts[1]} 学年第 ${semesterParts[2]} 学期`
+        : state.semester;
+      $('profileName').textContent = state.student.name || '我的课表';
+      $('profileAvatar').textContent = (state.student.name || '我').slice(0, 1);
+      $('headNote').textContent = `${state.student.name ? `${state.student.name}的` : '当前'}课表，共 ${EVENTS.length} 个课次。`;
+      const courseCount = new Set(EVENTS.map((event) => event.title)).size;
+      $('courseCountValue').textContent = `${EVENTS.length} 个课次 · ${courseCount} 门课程`;
+      const campusCounts = EVENTS.reduce((counts, event) => {
+        if (event.campus && event.campus !== '线上') counts[event.campus] = (counts[event.campus] || 0) + 1;
+        return counts;
+      }, {});
+      const mainCampus = Object.entries(campusCounts).sort((first, second) => second[1] - first[1])[0]?.[0] || '未标注校区';
+      $('campusValue').textContent = mainCampus;
+      const firstDayEvent = EVENTS.filter((event) => event.day === state.day).sort((first, second) => first.start - second.start)[0];
+      $('nextCourseLabel').textContent = firstDayEvent ? `${DAYS[state.day - 1].name}首节 · ${timeLabel(firstDayEvent).split('–')[0]}` : `${DAYS[state.day - 1].name}无课`;
+      $('nextCourseValue').textContent = firstDayEvent ? `${firstDayEvent.title} · ${firstDayEvent.room}` : '暂无课程安排';
       $('weekValue').textContent = `第 ${String(state.week).padStart(2, '0')} 周`;
       renderDays();
       renderSchedule();
@@ -441,8 +492,9 @@
       $('drawer').setAttribute('aria-hidden', 'false');
     }
     function closeDrawer() { document.body.classList.remove('drawer-open'); $('drawer').setAttribute('aria-hidden', 'true'); }
-    function openModal() { document.body.classList.add('modal-open'); }
+    function openModal() { $('importStatus').textContent = ''; $('importStatus').className = 'import-status'; document.body.classList.add('modal-open'); }
     function closeModal() { document.body.classList.remove('modal-open'); }
+    function setImportStatus(message, kind = '') { $('importStatus').textContent = message; $('importStatus').className = `import-status ${kind}`.trim(); }
 
     $('prevWeek').addEventListener('click', () => { state.week = Math.max(1, state.week - 1); renderAll(); });
     $('nextWeek').addEventListener('click', () => { state.week = Math.min(18, state.week + 1); renderAll(); });
@@ -455,8 +507,55 @@
     $('importButton').addEventListener('click', openModal);
     $('modalClose').addEventListener('click', closeModal);
     $('modalCancel').addEventListener('click', closeModal);
-    $('fileInput').addEventListener('change', (event) => { $('fileName').textContent = event.target.files[0]?.name || '支持拖放，文件仅在本地处理'; });
-    $('confirmImport').addEventListener('click', () => { closeModal(); alert('PDF 解析入口已准备好，下一步接入课表解析器。'); });
+    $('fileInput').addEventListener('change', (event) => {
+      selectedPdfFile = event.target.files[0] || null;
+      $('fileName').textContent = selectedPdfFile?.name || '支持拖放，文件仅在本地处理';
+    });
+    ['dragenter', 'dragover'].forEach((type) => $('dropZone').addEventListener(type, (event) => {
+      event.preventDefault();
+      $('dropZone').classList.add('dragging');
+    }));
+    ['dragleave', 'drop'].forEach((type) => $('dropZone').addEventListener(type, (event) => {
+      event.preventDefault();
+      $('dropZone').classList.remove('dragging');
+    }));
+    $('dropZone').addEventListener('drop', (event) => {
+      const file = [...event.dataTransfer.files].find((candidate) => candidate.type === 'application/pdf' || candidate.name.toLowerCase().endsWith('.pdf'));
+      if (!file) { setImportStatus('拖入的文件不是 PDF。', 'error'); return; }
+      selectedPdfFile = file;
+      $('fileName').textContent = file.name;
+      setImportStatus('文件已就绪，可开始识别。');
+    });
+    $('confirmImport').addEventListener('click', async () => {
+      const file = selectedPdfFile || $('fileInput').files[0];
+      if (!file) { setImportStatus('请先选择一个 PDF 文件。', 'error'); return; }
+      const button = $('confirmImport');
+      button.disabled = true;
+      setImportStatus('正在读取 PDF 并识别课程，请稍候……');
+      try {
+        const result = await parseTimetablePdf(file, pdfjsLib, {
+          cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/cmaps/',
+          cMapPacked: true,
+          standardFontDataUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/standard_fonts/'
+        });
+        if (result.conflicts.length) {
+          setImportStatus(`识别到 ${result.conflicts.length} 个跨校区时间冲突：${result.conflicts.map((conflict) => conflict.message).join('；')}`, 'error');
+          return;
+        }
+        EVENTS = result.events.map(eventFromParsed);
+        state.semester = result.semester || state.semester;
+        state.student = result.student || state.student;
+        state.week = 1;
+        $('fileName').textContent = file.name;
+        renderAll();
+        setImportStatus(`已识别 ${EVENTS.length} 个课次，来自 ${state.student.name || '课表'}。`, 'success');
+        setTimeout(closeModal, 900);
+      } catch (error) {
+        setImportStatus(`解析失败：${error.message || '文件格式无法识别'}`, 'error');
+      } finally {
+        button.disabled = false;
+      }
+    });
     $('themeButton').addEventListener('click', () => document.documentElement.classList.toggle('warm-mode'));
     document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { closeDrawer(); closeModal(); } });
     let resizeTimer;

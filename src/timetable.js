@@ -17,6 +17,12 @@ const ACTIVITY_LABELS = Object.freeze({
 });
 
 const DAY_CHARS = Object.freeze(["一", "二", "三", "四", "五", "六", "日"]);
+const PHYSICAL_CAMPUSES = Object.freeze(["茶山校区", "学院路校区", "滨海校区"]);
+const CAMPUS_START_MINUTES = Object.freeze({
+  "茶山校区": 8 * 60,
+  "学院路校区": 8 * 60,
+  "滨海校区": 8 * 60 + 30
+});
 const FIELD_NAMES = Object.freeze([
   "校区",
   "场地",
@@ -310,6 +316,66 @@ function mergeCourses(events) {
   return [...courses.values()];
 }
 
+function rangeHasWeek(range, week) {
+  if (week < range.start || week > range.end) return false;
+  return range.parity === "all"
+    || (range.parity === "odd" && week % 2 === 1)
+    || (range.parity === "even" && week % 2 === 0);
+}
+
+function weeksOverlap(first, second) {
+  if (!first?.length || !second?.length) return false;
+  const start = Math.max(...first.map(range => range.start));
+  const end = Math.min(...first.map(range => range.end), ...second.map(range => range.end));
+  for (let week = start; week <= end; week += 1) {
+    if (first.some(range => rangeHasWeek(range, week)) && second.some(range => rangeHasWeek(range, week))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function eventClockRange(event) {
+  const startMinutes = CAMPUS_START_MINUTES[event.campus];
+  if (startMinutes == null || !event.periods) return null;
+  return {
+    start: startMinutes + (event.periods.start - 1) * 45,
+    end: startMinutes + (event.periods.end - 1) * 45 + 40
+  };
+}
+
+export function detectCampusConflicts(events) {
+  const conflicts = [];
+
+  for (let firstIndex = 0; firstIndex < events.length; firstIndex += 1) {
+    const first = events[firstIndex];
+    if (!PHYSICAL_CAMPUSES.includes(first.campus)) continue;
+    const firstClock = eventClockRange(first);
+    if (!firstClock) continue;
+
+    for (let secondIndex = firstIndex + 1; secondIndex < events.length; secondIndex += 1) {
+      const second = events[secondIndex];
+      if (!PHYSICAL_CAMPUSES.includes(second.campus) || first.campus === second.campus) continue;
+      if (first.weekday !== second.weekday || !weeksOverlap(first.weeks, second.weeks)) continue;
+
+      const secondClock = eventClockRange(second);
+      if (!secondClock || firstClock.start >= secondClock.end || secondClock.start >= firstClock.end) continue;
+
+      conflicts.push({
+        firstIndex,
+        secondIndex,
+        weekday: first.weekday,
+        campuses: [first.campus, second.campus],
+        periods: [first.periods, second.periods],
+        weeks: [first.weeks, second.weeks],
+        message: `周${DAY_CHARS[first.weekday - 1]}第 ${first.periods.start}-${first.periods.end} 节「${first.courseName}」（${first.campus}）与第 ${second.periods.start}-${second.periods.end} 节「${second.courseName}」（${second.campus}）存在跨校区时间冲突`
+      });
+    }
+  }
+
+  return conflicts;
+}
+
 export function parseTimetablePages(pages) {
   if (!Array.isArray(pages) || pages.length === 0) {
     throw new TypeError("pages 必须是非空的 PDF.js 页面文本数组");
@@ -329,11 +395,13 @@ export function parseTimetablePages(pages) {
   }
 
   const identity = parseDocumentIdentity(pages);
+  const conflicts = detectCampusConflicts(events);
   return {
     ...identity,
     courses: mergeCourses(events),
     events,
-    warnings
+    warnings,
+    conflicts
   };
 }
 
@@ -380,3 +448,4 @@ export async function parseTimetablePdf(fileOrData, pdfjsLib, pdfOptions = {}) {
 }
 
 export const activityTypes = ACTIVITY_TYPES;
+export const physicalCampuses = PHYSICAL_CAMPUSES;
