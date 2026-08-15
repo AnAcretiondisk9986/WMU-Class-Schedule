@@ -169,6 +169,11 @@
     .agenda { display: none; }
     .empty { display: none; place-items: center; min-height: 430px; color: var(--muted); text-align: center; }
     .empty svg { width: 26px; height: 26px; margin-bottom: 8px; color: #9aaba1; }
+    .empty-guide { display: grid; justify-items: center; gap: 6px; }
+    .empty-guide > svg { width: 34px; height: 34px; color: #3b966d; }
+    .empty-guide h3 { margin: 4px 0 0; color: var(--ink); font-size: 16px; }
+    .empty-guide p { margin: 0; color: var(--muted); font-size: 12px; }
+    .empty-guide .import-btn { margin-top: 10px; }
 
     .drawer-backdrop { position: fixed; inset: 0; z-index: 10; background: rgba(12,24,18,.26); opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
     .drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 11; width: min(420px, 100vw); padding: 28px; overflow: auto; background: #fff; box-shadow: -15px 0 40px rgba(17,32,24,.12); transform: translateX(100%); transition: transform 260ms var(--ease-out); }
@@ -210,6 +215,7 @@
     .field { display: grid; gap: 6px; font-size: 12px; color: var(--muted); }
     .field input, .field select { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: var(--ink); font-size: 13px; }
     .settings-note { margin: 2px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .data-actions { display: flex; gap: 8px; }
     .help-list { margin: 4px 0 0; padding: 0 0 0 18px; color: var(--ink); font-size: 12px; line-height: 1.7; }
 
     @media (max-width: 1080px) {
@@ -378,7 +384,7 @@
 
   <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>选择教务系统导出的课表文件。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><label class="dropzone" id="dropZone" for="fileInput"><i data-lucide="upload-cloud"></i><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="import-status" id="importStatus" role="status" aria-live="polite"></div><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button"><i data-lucide="scan-line"></i><span>开始识别</span></button></div></section></div>
 
-  <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题与本地数据管理。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option></select></label><p class="settings-note">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。</p></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
+  <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题与本地数据管理。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option></select></label><p class="settings-note">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。</p><div class="data-actions"><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
 
   <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>点击右上角「导入 PDF」，选择教务系统导出的课表文件，即可在浏览器本地解析并生成课表。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>「回到今天」定位到当前周次与星期。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
 
@@ -418,23 +424,6 @@
       '滨海校区': buildPeriods(8 * 60 + 30),
       '线上': buildPeriods(8 * 60 + 30)
     };
-    const W = (start, end, parity = 'all') => ({ start, end, parity });
-    const SAMPLE_EVENTS = [
-      { day: 1, start: 1, end: 2, title: '云计算基础', type: 'lecture', label: '讲课', room: '求知楼 204', campus: '滨海校区', teacher: '冯振', weeks: [W(1, 16)], credit: '2.5' },
-      { day: 1, start: 3, end: 4, title: '概率论及数理统计', type: 'lecture', label: '讲课', room: '求知楼 301', campus: '滨海校区', teacher: '韩艳敏', weeks: [W(1, 16)], credit: '2.5' },
-      { day: 2, start: 1, end: 2, title: '数据库原理与应用', type: 'lecture', label: '讲课', room: '求知楼 204', campus: '滨海校区', teacher: '刘丽娜', weeks: [W(1, 3), W(5, 8)], credit: '2.5' },
-      { day: 2, start: 3, end: 4, title: '管理学原理', type: 'lecture', label: '讲课', room: '求知楼 206', campus: '滨海校区', teacher: '叶俊', weeks: [W(1, 16)], credit: '3.0' },
-      { day: 2, start: 5, end: 6, title: '形势与政策', type: 'online', label: '在线', room: '学习通', campus: '线上', teacher: '陈赛虎', weeks: [W(8, 8)], credit: '2.0' },
-      { day: 3, start: 1, end: 2, title: '计算机网络与应用', type: 'lecture', label: '讲课', room: '求知楼 108', campus: '滨海校区', teacher: '叶晰', weeks: [W(1, 8)], credit: '2.5' },
-      { day: 3, start: 3, end: 5, title: '毛泽东思想和中国特色社会主义理论体系概论', type: 'lecture', label: '讲课', room: '求知楼 105', campus: '滨海校区', teacher: '纪欣农', weeks: [W(1, 17)], credit: '3.0' },
-      { day: 4, start: 1, end: 2, title: '概率论及数理统计', type: 'lab', label: '实验', room: '线上课堂', campus: '滨海校区', teacher: '韩艳敏', weeks: [W(3, 3), W(9, 9), W(12, 12)], credit: '2.5' },
-      { day: 4, start: 3, end: 4, title: '人工智能基础', type: 'lecture', label: '讲课', room: '求知楼 401', campus: '滨海校区', teacher: '纪欣农', weeks: [W(1, 10)], credit: '2.0' },
-      { day: 5, start: 1, end: 2, title: '数据库原理与应用', type: 'lab', label: '实验', room: '6114 计算机机房', campus: '滨海校区', teacher: '刘丽娜', weeks: [W(11, 16)], credit: '2.5' },
-      { day: 5, start: 3, end: 4, title: '课程设计（内部对象应用）', type: 'practice', label: '实践', room: '6114 计算机机房', campus: '滨海校区', teacher: '刘丽娜', weeks: [W(11, 16)], credit: '1.5' },
-      { day: 5, start: 5, end: 6, title: '习近平新时代中国特色社会主义思想概论', type: 'online', label: '在线', room: '在线学习', campus: '线上', teacher: '刘小卫', weeks: [W(7, 7)], credit: '3.0' },
-      { day: 6, start: 2, end: 3, title: '习近平新时代中国特色社会主义思想概论', type: 'discussion', label: '讨论', room: '在线学习', campus: '线上', teacher: '谢海霞', weeks: [W(8, 8)], credit: '3.0' },
-      { day: 7, start: 1, end: 2, title: '管理学原理', type: 'lecture', label: '讲课', room: '线上课堂', campus: '滨海校区', teacher: '叶俊', weeks: [W(3, 3)], credit: '3.0' }
-    ];
     let EVENTS = [];
     const STORAGE_KEY = 'wmu-timetable-v1';
     const state = { week: 1, day: 1, query: '', view: 'schedule', semester: '2026-2027-1', student: { name: '', id: '' }, favorites: [], termStartDate: '', updatedAt: 0 };
@@ -521,7 +510,15 @@
         return `<button class="course type-${event.type}" data-event="${EVENTS.indexOf(event)}" style="top:${top}px;height:${height}px" type="button" title="${escapeHtml(event.title)}"><span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room"><i data-lucide="map-pin"></i>${escapeHtml(event.room)}</span><span class="course-meta"><span class="course-campus">${escapeHtml(event.campus)}</span><span class="course-teacher"> · ${escapeHtml(event.teacher)}</span></span></button>`;
       }).join('')}</div>`).join('');
       $('schedule').innerHTML = `${head}<div class="schedule-body">${axis}${columns}</div>`;
-      $('emptyState').style.display = events.length ? 'none' : 'grid';
+      if (!EVENTS.length) {
+        $('emptyState').innerHTML = '<div class="empty-guide"><i data-lucide="file-up"></i><h3>还没有课表</h3><p>导入教务系统导出的课表 PDF，即可在这里查看你的课表</p><button class="import-btn" id="emptyImportBtn" type="button"><i data-lucide="scan-line"></i><span>导入 PDF</span></button></div>';
+        $('emptyState').style.display = 'grid';
+      } else {
+        $('emptyState').innerHTML = '<div><i data-lucide="calendar-off"></i><div>没有匹配的课程</div></div>';
+        $('emptyState').style.display = events.length ? 'none' : 'grid';
+      }
+      const emptyImport = $('emptyImportBtn');
+      if (emptyImport) emptyImport.addEventListener('click', openImportModal);
       document.querySelectorAll('[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(EVENTS[Number(button.dataset.event)])));
       if (window.lucide) window.lucide.createIcons();
     }
@@ -675,7 +672,7 @@
     }
     function resetData() {
       try { localStorage.removeItem(STORAGE_KEY); } catch (error) {}
-      EVENTS = SAMPLE_EVENTS;
+      EVENTS = [];
       state.semester = '2026-2027-1';
       state.student = { name: '', id: '' };
       state.favorites = [];
@@ -688,6 +685,49 @@
       document.documentElement.classList.remove('warm-mode');
       renderAll();
       closeModalById('settingsBackdrop');
+    }
+    function exportData() {
+      const payload = {
+        version: 1,
+        semester: state.semester,
+        student: state.student,
+        termStartDate: state.termStartDate,
+        events: EVENTS,
+        favorites: state.favorites,
+        theme: document.documentElement.classList.contains('warm-mode') ? 'warm' : 'light',
+        week: state.week,
+        day: state.day,
+        view: state.view,
+        updatedAt: Date.now()
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `wmu-timetable-${payload.semester || 'backup'}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    }
+    async function importData(file) {
+      try {
+        const data = JSON.parse(await file.text());
+        if (!data || data.version !== 1 || !Array.isArray(data.events)) return false;
+        EVENTS = data.events;
+        state.semester = data.semester || state.semester;
+        state.student = data.student || state.student;
+        state.termStartDate = data.termStartDate || state.termStartDate;
+        state.favorites = Array.isArray(data.favorites) ? data.favorites : [];
+        state.week = Number.isFinite(data.week) ? data.week : 1;
+        state.day = Number.isFinite(data.day) ? data.day : 1;
+        state.view = ['schedule', 'list', 'favorites'].includes(data.view) ? data.view : 'schedule';
+        if (data.theme === 'warm') document.documentElement.classList.add('warm-mode');
+        else document.documentElement.classList.remove('warm-mode');
+        persist();
+        renderAll();
+        return true;
+      } catch (error) {
+        return false;
+      }
     }
     function loadState() {
       let saved = null;
@@ -705,7 +745,7 @@
         if (saved.theme === 'warm') document.documentElement.classList.add('warm-mode');
         return true;
       }
-      EVENTS = SAMPLE_EVENTS;
+      EVENTS = [];
       state.termStartDate = toIso(mondayOf(new Date()));
       state.week = 1;
       state.day = 1;
@@ -750,6 +790,15 @@
       closeModalById('settingsBackdrop');
     });
     $('resetData').addEventListener('click', resetData);
+    $('exportData').addEventListener('click', exportData);
+    $('importDataBtn').addEventListener('click', () => $('importDataInput').click());
+    $('importDataInput').addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      const ok = await importData(file);
+      if (ok) closeModalById('settingsBackdrop');
+      else alert('备份文件格式不正确，无法导入。');
+    });
     $('themeButton').addEventListener('click', () => {
       applyTheme(document.documentElement.classList.contains('warm-mode') ? 'light' : 'warm');
       renderAll();
