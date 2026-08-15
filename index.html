@@ -1004,7 +1004,7 @@
       resizeTimer = setTimeout(renderAll, 90);
     });
 
-    setInterval(updateNowIndicator, 15000);
+    if (window.setInterval) window.setInterval(updateNowIndicator, 15000);
     loadState();
     if (window.lucide) window.lucide.createIcons();
     renderAll();
