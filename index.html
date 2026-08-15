@@ -160,6 +160,8 @@
     .course-room svg { width: 12px; height: 12px; flex: 0 0 auto; }
     .course-meta { display: block; margin-top: 3px; margin-bottom: auto; overflow: hidden; color: inherit; font-size: 10px; opacity: .78; white-space: nowrap; text-overflow: ellipsis; }
     .course-type { position: absolute; top: 8px; right: 8px; padding: 2px 5px; border-radius: 4px; background: rgba(255,255,255,.54); font-size: 9px; font-weight: 800; }
+    .now-line { position: absolute; left: 0; right: 0; height: 2px; background: #e5484d; z-index: 5; pointer-events: none; }
+    .now-label { position: absolute; left: 0; top: 50%; transform: translateY(-50%); padding: 0 6px; border-radius: 999px; background: #e5484d; color: #fff; font-size: 10px; font-weight: 700; line-height: 16px; white-space: nowrap; }
     .type-lecture { --course-bg: #e6f5ec; --course-accent: #40a875; --course-text: #22563d; }
     .type-lab { --course-bg: #e5efff; --course-accent: #5285d0; --course-text: #294a7a; }
     .type-online { --course-bg: #f1eaff; --course-accent: #9874d0; --course-text: #563a87; }
@@ -464,6 +466,26 @@
       return { week: Math.floor(diff / 7) + 1, day: (date.getDay() + 6) % 7 + 1 };
     };
     const maxWeek = () => Math.max(1, ...currentEvents().flatMap((event) => (event.weeks || []).map((range) => range.end)));
+    let scheduleAxis = { start: 8 * 60, end: 8 * 60 + 45, pxPerMinute: 72 / 45 };
+    const weekLabel = (week) => {
+      if (week < 1) return `开学前第 ${1 - week} 周`;
+      if (week > maxWeek()) return `放假后第 ${week - maxWeek()} 周`;
+      return `第 ${week} 周`;
+    };
+    const currentWeekInfo = () => weekAndDayForDate(new Date());
+    const minNavigableWeek = () => Math.min(1, currentWeekInfo().week);
+    const maxNavigableWeek = () => Math.max(maxWeek(), currentWeekInfo().week);
+    const todayButtonLabel = () => {
+      const week = currentWeekInfo().week;
+      if (week < 1) return '回到第一周';
+      if (week > maxWeek()) return '回到最后一周';
+      return '回到今天';
+    };
+    const todayEyebrowLabel = () => {
+      const { week, day } = currentWeekInfo();
+      if (week >= 1 && week <= maxWeek()) return `第 ${week} 周 · ${DAY_NAMES[day - 1]}`;
+      return weekLabel(week);
+    };
     const eventFromParsed = (event) => ({
       day: event.weekday,
       start: event.periods.start,
@@ -518,12 +540,20 @@
       const events = visibleEvents();
       const slotHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slot-h')) || 72;
       const pxPerMinute = slotHeight / 45;
+      const now = new Date();
+      const nowWeek = weekAndDayForDate(now).week;
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      const isCurrentWeek = state.week === nowWeek;
       const axisStart = 8 * 60;
       const lastEnd = events.length ? Math.max(...events.map(eventEndMinute)) : axisStart + 45;
-      const axisEnd = Math.ceil(Math.max(axisStart + 45, lastEnd) / 45) * 45;
+      const latestEnd = isCurrentWeek ? Math.max(lastEnd, nowMinutes) : lastEnd;
+      const axisEnd = Math.ceil(Math.max(axisStart + 45, latestEnd) / 45) * 45;
       const totalHeight = Math.round((axisEnd - axisStart) * pxPerMinute);
       const ticks = [];
       for (let minute = axisStart; minute < axisEnd; minute += 45) ticks.push(minute);
+      scheduleAxis = { start: axisStart, end: axisEnd, pxPerMinute };
+      const showNowLine = isCurrentWeek && nowMinutes >= axisStart && nowMinutes <= axisEnd;
+      const nowLine = showNowLine ? `<div class="now-line" id="nowLine" style="top:${Math.round((nowMinutes - axisStart) * pxPerMinute)}px"><span class="now-label">${formatClock(nowMinutes)}</span></div>` : '';
 
       const head = `<div class="schedule-head"><div class="head-cell"><span class="axis-head"><b>时间</b></span></div>${days.map((day) => `<div class="head-cell ${state.day === day.key ? 'focus' : ''}">${day.name}</div>`).join('')}</div>`;
       const axis = `<div class="time-axis" style="height:${totalHeight}px">${ticks.map((minute) => `<div class="time" style="height:${Math.round(45 * pxPerMinute)}px">${formatClock(minute)}</div>`).join('')}</div>`;
@@ -532,7 +562,7 @@
         const height = Math.round((eventEndMinute(event) - eventStartMinute(event)) * pxPerMinute);
         return `<button class="course type-${event.type}" data-event="${currentEvents().indexOf(event)}" style="top:${top}px;height:${height}px" type="button" title="${escapeHtml(event.title)}"><span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room"><i data-lucide="map-pin"></i>${escapeHtml(event.room)}</span><span class="course-meta"><span class="course-campus">${escapeHtml(event.campus)}</span><span class="course-teacher"> · ${escapeHtml(event.teacher)}</span></span></button>`;
       }).join('')}</div>`).join('');
-      $('schedule').innerHTML = `${head}<div class="schedule-body">${axis}${columns}</div>`;
+      $('schedule').innerHTML = `${head}<div class="schedule-body">${axis}${columns}${nowLine}</div>`;
       if (!currentEvents().length) {
         $('emptyState').innerHTML = '<div class="empty-guide"><i data-lucide="file-up"></i><h3>还没有课表</h3><p>先去教务系统导出课表 PDF，再回到这里导入</p><a class="jwxt-link" href="https://jwxt.wmu.edu.cn/jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&layout=default" target="_blank" rel="noopener">前往教务系统导出 PDF</a><button class="import-btn" id="emptyImportBtn" type="button"><i data-lucide="scan-line"></i><span>导入 PDF</span></button></div>';
         $('emptyState').style.display = 'grid';
@@ -552,6 +582,28 @@
       const isFavorites = state.view === 'favorites';
       $('agenda').innerHTML = days.filter((day) => events.some((event) => event.day === day.key)).map((day) => `<section class="agenda-day"><div class="agenda-day-title"><span>${isFavorites ? day.name : `${day.name} · ${day.date}`}</span><span>${events.filter((event) => event.day === day.key).length} 节</span></div>${events.filter((event) => event.day === day.key).map((event) => `<button class="agenda-event type-${event.type}" data-event="${currentEvents().indexOf(event)}" type="button"><span class="event-time">${timeLabel(event)}</span><span><span class="event-title">${escapeHtml(truncateTitle(event.title))}</span><span class="event-room">${escapeHtml(event.room)} · ${escapeHtml(event.teacher)}${isFavorites ? ' · ' + weeksLabel(event.weeks) : ''}</span></span></button>`).join('')}</section>`).join('') || '<div class="empty" style="display:grid"><div>没有匹配的课程</div></div>';
       document.querySelectorAll('.agenda-event[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(currentEvents()[Number(button.dataset.event)])));
+    }
+
+    function updateNowIndicator() {
+      const now = new Date();
+      const today = weekAndDayForDate(now);
+      const button = $('todayButton');
+      if (button) button.textContent = todayButtonLabel();
+      const eyebrow = $('todayLabel');
+      if (eyebrow) eyebrow.textContent = todayEyebrowLabel();
+      if (state.view !== 'schedule') return;
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      const isCurrentWeek = state.week === today.week;
+      if (isCurrentWeek && nowMinutes > scheduleAxis.end) { renderAll(); return; }
+      const line = document.getElementById('nowLine');
+      if (!line) return;
+      const show = isCurrentWeek && nowMinutes >= scheduleAxis.start && nowMinutes <= scheduleAxis.end;
+      line.style.display = show ? '' : 'none';
+      if (show) {
+        line.style.top = `${Math.round((nowMinutes - scheduleAxis.start) * scheduleAxis.pxPerMinute)}px`;
+        const label = line.querySelector('.now-label');
+        if (label) label.textContent = formatClock(nowMinutes);
+      }
     }
 
     function renderStorage() {
@@ -579,13 +631,13 @@
       $('profileName').textContent = name;
       $('profileAvatar').textContent = name.slice(0, 1);
       $('pageTitle').textContent = state.view === 'favorites' ? '收藏课程' : state.view === 'list' ? '课程清单' : '我的课表';
-      const today = weekAndDayForDate(new Date());
-      $('todayLabel').textContent = `第 ${today.week} 周 · ${DAY_NAMES[today.day - 1]}`;
+      $('todayLabel').textContent = todayEyebrowLabel();
+      $('todayButton').textContent = todayButtonLabel();
       $('updatedLabel').textContent = state.updatedAt ? '本地已保存' : '示例数据';
       const weekEvents = visibleEvents();
       $('headNote').textContent = state.view === 'favorites'
         ? `已收藏 ${state.favorites.length} 门课程，共 ${weekEvents.length} 个课次。`
-        : `第 ${state.week} 周共有 ${weekEvents.length} 节课。`;
+        : `${weekLabel(state.week)}共有 ${weekEvents.length} 节课。`;
       $('weekRangeLabel').textContent = `${formatFull(days[0].fullDate)} — ${formatFull(days[6].fullDate)}`;
       $('viewTitle').textContent = state.view === 'schedule' ? '周视图' : state.view === 'list' ? '课程清单' : '收藏课程';
       const events = currentEvents();
@@ -605,7 +657,9 @@
       const next = nextCourseToday();
       $('nextCourseLabel').textContent = next.label;
       $('nextCourseValue').textContent = next.value;
-      $('weekValue').textContent = `第 ${String(state.week).padStart(2, '0')} 周`;
+      $('weekValue').textContent = state.week >= 1 && state.week <= maxWeek()
+        ? `第 ${String(state.week).padStart(2, '0')} 周`
+        : weekLabel(state.week);
       renderStorage();
       renderDays();
       renderSchedule();
@@ -812,11 +866,14 @@
       return false;
     }
 
-    $('prevWeek').addEventListener('click', () => { state.week = Math.max(1, state.week - 1); persist(); renderAll(); });
-    $('nextWeek').addEventListener('click', () => { state.week = Math.min(maxWeek(), state.week + 1); persist(); renderAll(); });
+    $('prevWeek').addEventListener('click', () => { state.week = Math.max(minNavigableWeek(), state.week - 1); persist(); renderAll(); });
+    $('nextWeek').addEventListener('click', () => { state.week = Math.min(maxNavigableWeek(), state.week + 1); persist(); renderAll(); });
     $('todayButton').addEventListener('click', () => {
       const today = weekAndDayForDate(new Date());
-      state.week = Math.max(1, today.week);
+      const last = maxWeek();
+      if (today.week < 1) state.week = 1;
+      else if (today.week > last) state.week = last;
+      else state.week = today.week;
       state.day = today.day;
       state.view = 'schedule';
       persist();
@@ -947,6 +1004,7 @@
       resizeTimer = setTimeout(renderAll, 90);
     });
 
+    setInterval(updateNowIndicator, 15000);
     loadState();
     if (window.lucide) window.lucide.createIcons();
     renderAll();
