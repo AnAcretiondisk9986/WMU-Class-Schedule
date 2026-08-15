@@ -70,7 +70,7 @@
     .storage-row { display: flex; justify-content: space-between; color: #a9bcb3; font-size: 11px; }
     .storage strong { color: #e4f2e9; font-size: 12px; }
     .meter { height: 4px; margin-top: 9px; overflow: hidden; border-radius: 10px; background: rgba(255,255,255,.1); }
-    .meter i { display: block; width: 34%; height: 100%; border-radius: inherit; background: #9cddba; }
+    .meter i { display: block; width: 0%; height: 100%; border-radius: inherit; background: #9cddba; transition: width 300ms ease; }
     .profile { display: flex; align-items: center; gap: 9px; padding: 5px 8px; }
     .avatar { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #f2c7a7; color: #633d2d; font-size: 11px; font-weight: 800; }
     .profile-name { color: #e8f1eb; font-size: 12px; font-weight: 650; }
@@ -325,8 +325,8 @@
         </nav>
       </div>
       <div class="sidebar-foot">
-        <div class="storage"><div class="storage-row"><span>本地存储</span><strong>34%</strong></div><div class="meter"><i></i></div></div>
-        <div class="profile"><div class="avatar" id="profileAvatar">黄</div><div class="profile-copy"><div class="profile-name" id="profileName">我的课表</div><div class="profile-sub">本地数据 · 已同步</div></div></div>
+        <div class="storage"><div class="storage-row"><span>本地存储</span><strong id="storageValue">0%</strong></div><div class="meter"><i id="storageMeter"></i></div></div>
+        <div class="profile"><div class="avatar" id="profileAvatar">黄</div><div class="profile-copy"><div class="profile-name" id="profileName">我的课表</div><div class="profile-sub" id="profileSub">本地数据 · 示例</div></div></div>
       </div>
     </aside>
 
@@ -511,6 +511,19 @@
       document.querySelectorAll('.agenda-event[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(EVENTS[Number(button.dataset.event)])));
     }
 
+    function renderStorage() {
+      let bytes = 0;
+      try {
+        for (const key of Object.keys(localStorage)) {
+          bytes += (key.length + (localStorage.getItem(key) || '').length) * 2;
+        }
+      } catch (error) {}
+      const percent = Math.min(100, Math.round((bytes / (5 * 1024 * 1024)) * 100));
+      $('storageValue').textContent = `${percent}%`;
+      $('storageMeter').style.width = `${percent}%`;
+      $('profileSub').textContent = state.updatedAt ? '本地数据 · 已保存' : '本地数据 · 示例';
+    }
+
     function renderAll() {
       const days = dayInfo(state.week);
       const semesterParts = state.semester.split('-');
@@ -547,6 +560,7 @@
       $('nextCourseLabel').textContent = next.label;
       $('nextCourseValue').textContent = next.value;
       $('weekValue').textContent = `第 ${String(state.week).padStart(2, '0')} 周`;
+      renderStorage();
       renderDays();
       renderSchedule();
       renderAgenda();
