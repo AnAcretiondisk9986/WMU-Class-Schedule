@@ -24,7 +24,7 @@
       --yellow-strong: #a26e09;
       --violet: #ebe2ff;
       --violet-strong: #7655b2;
-      --slot-h: 92px;
+      --slot-h: 72px;
       --ease-out: cubic-bezier(.23, 1, .32, 1);
       --shadow: 0 18px 45px rgba(25, 44, 34, .07), 0 2px 5px rgba(25, 44, 34, .04);
     }
@@ -147,15 +147,11 @@
     .axis-head { display: grid; gap: 1px; place-items: center; line-height: 1.05; }
     .axis-head small { color: #8d9992; font-size: 7px; font-weight: 650; }
     .head-cell.focus { background: #eff9f2; color: #26724f; }
-    .schedule-body { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; position: relative; min-height: calc(19 * var(--slot-h)); }
-    .time-axis { display: grid; grid-template-rows: repeat(19, var(--slot-h)); border-right: 1px solid var(--line); background: #fbfcfa; }
-    .time { position: relative; padding: 10px 10px 0 0; color: #9aa59e; font-size: 10px; text-align: right; }
-    .time strong { display: block; color: #65746c; font-size: 11px; font-weight: 700; }
-    .time span { display: block; margin-top: 1px; }
-    .day-column { display: grid; grid-template-rows: repeat(19, var(--slot-h)); position: relative; border-right: 1px solid var(--line); background: #fff; }
-    .slot { border-bottom: 1px solid var(--line); }
-    .slot:nth-child(2n) { background: rgba(246,249,246,.65); }
-    .course { position: absolute; left: 7px; right: 7px; z-index: 2; min-height: 74px; padding: 10px 10px 9px; overflow: hidden; border: 1px solid transparent; border-left: 3px solid var(--course-accent); border-radius: 8px; background: var(--course-bg); color: var(--course-text); cursor: pointer; text-align: left; transition: transform 170ms var(--ease-out), box-shadow 170ms ease, filter 170ms ease; }
+    .schedule-body { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; position: relative; }
+    .time-axis { position: relative; border-right: 1px solid var(--line); background: #fbfcfa; }
+    .time { position: relative; padding: 4px 8px 0 0; color: #9aa59e; font-size: 10px; text-align: right; border-bottom: 1px solid var(--line); }
+    .day-column { position: relative; border-right: 1px solid var(--line); background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--slot-h) - 1px), var(--line) calc(var(--slot-h) - 1px), var(--line) var(--slot-h)); }
+    .course { position: absolute; left: 7px; right: 7px; z-index: 2; padding: 6px 8px 5px; overflow: hidden; border: 1px solid transparent; border-left: 3px solid var(--course-accent); border-radius: 8px; background: var(--course-bg); color: var(--course-text); cursor: pointer; text-align: left; transition: transform 170ms var(--ease-out), box-shadow 170ms ease, filter 170ms ease; }
     .course:hover { z-index: 4; transform: translateY(-2px); box-shadow: 0 8px 18px rgba(24,43,34,.12); filter: saturate(1.05); }
     .course:active { transform: translateY(0) scale(.985); }
     .course-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 800; }
@@ -228,7 +224,7 @@
       .content { padding-inline: 22px; }
     }
     @media (max-width: 760px) {
-      :root { --slot-h: 112px; }
+      :root { --slot-h: 88px; }
       .app { display: block; }
       .sidebar { display: flex; flex-direction: row; align-items: center; gap: 14px; height: 58px; padding: 0 14px; }
       .brand-copy { display: block; }
@@ -272,7 +268,7 @@
       .course-meta { display: block; margin-top: 4px; font-size: 8px; line-height: 1.15; white-space: normal; overflow: visible; overflow-wrap: anywhere; word-break: break-all; }
     }
     @media (max-width: 520px) {
-      :root { --slot-h: 128px; }
+      :root { --slot-h: 104px; }
       .schedule { grid-template-columns: 38px repeat(7, minmax(0, 1fr)); min-width: 0; }
       .schedule-scroll { overflow-x: hidden; }
       .head-cell { font-size: 9px; }
@@ -299,7 +295,7 @@
       .toolbar { order: 3; margin-top: 18px; }
       .pulse-row { order: 4; margin-top: 18px; }
       .agenda { order: 5; }
-      .course { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; height: auto !important; min-height: calc(var(--slot-h) - 14px); }
+      .course { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; }
       .course-title { order: 0; font-size: 12px; font-weight: 800; line-height: 1.25; text-align: left; }
       .course-room { order: 1; justify-content: center; font-size: 11px; font-weight: 700; }
       .course-time { order: 2; margin-top: 5px; text-align: center; font-size: 9px; font-weight: 600; opacity: .5; }
@@ -483,15 +479,15 @@
       const periods = CAMPUS_PERIODS[event.campus] || CAMPUS_PERIODS['滨海校区'];
       return `${periods[event.start - 1][0]}–${periods[event.end - 1][1]}`;
     };
-    const truncateTitle = (title) => (title.length > 9 ? `${title.slice(0, 9)}..` : title);
-    const timeGroups = () => {
-      const campuses = new Set(EVENTS.map((event) => event.campus));
-      const hasTea = campuses.has('茶山校区') || campuses.has('学院路校区');
-      const hasBin = campuses.has('滨海校区');
-      if (hasTea && hasBin) return [{ label: '茶山/学院路', key: '茶山校区' }, { label: '滨海', key: '滨海校区' }];
-      if (hasBin) return [{ label: '滨海', key: '滨海校区' }];
-      return [{ label: '茶山/学院路', key: '茶山校区' }];
+    const eventStartMinute = (event) => {
+      const periods = CAMPUS_PERIODS[event.campus] || CAMPUS_PERIODS['滨海校区'];
+      return timeToMinutes(periods[event.start - 1][0]);
     };
+    const eventEndMinute = (event) => {
+      const periods = CAMPUS_PERIODS[event.campus] || CAMPUS_PERIODS['滨海校区'];
+      return timeToMinutes(periods[event.end - 1][1]);
+    };
+    const truncateTitle = (title) => (title.length > 9 ? `${title.slice(0, 9)}..` : title);
 
     function renderDays() {
       const days = dayInfo(state.week);
@@ -508,14 +504,22 @@
     function renderSchedule() {
       const days = dayInfo(state.week);
       const events = visibleEvents();
-      const slotHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slot-h')) || 92;
-      const groups = timeGroups();
-      const head = `<div class="schedule-head"><div class="head-cell" title="时间轴单位：${groups.map((g) => g.label).join('、')}"><span class="axis-head"><b>节次</b><small>${groups.map((g) => g.label).join('<br>')}</small></span></div>${days.map((day) => `<div class="head-cell ${state.day === day.key ? 'focus' : ''}">${day.name}</div>`).join('')}</div>`;
-      const axis = `<div class="time-axis">${Array.from({ length: PERIOD_COUNT }, (_, index) => {
-        const points = groups.map((g) => CAMPUS_PERIODS[g.key][index][0]);
-        return `<div class="time" title="${groups.map((g) => `${g.label} ${CAMPUS_PERIODS[g.key][index][0]}`).join('；')}"><strong>${index + 1}</strong><span>第 ${index + 1} 节</span><span class="time-points">${points.map((t) => `<span>${t}</span>`).join('')}</span></div>`;
-      }).join('')}</div>`;
-      const columns = days.map((day) => `<div class="day-column" data-column="${day.key}">${Array.from({ length: PERIOD_COUNT }, () => '<div class="slot"></div>').join('')}${events.filter((event) => event.day === day.key).map((event) => `<button class="course type-${event.type}" data-event="${EVENTS.indexOf(event)}" style="top:${(event.start - 1) * slotHeight + 7}px;height:${(event.end - event.start + 1) * slotHeight - 14}px" type="button" title="${escapeHtml(event.title)}"><span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room"><i data-lucide="map-pin"></i>${escapeHtml(event.room)}</span><span class="course-meta"><span class="course-campus">${escapeHtml(event.campus)}</span><span class="course-teacher"> · ${escapeHtml(event.teacher)}</span></span></button>`).join('')}</div>`).join('');
+      const slotHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slot-h')) || 72;
+      const pxPerMinute = slotHeight / 45;
+      const axisStart = 8 * 60;
+      const lastEnd = events.length ? Math.max(...events.map(eventEndMinute)) : axisStart + 45;
+      const axisEnd = Math.ceil(Math.max(axisStart + 45, lastEnd) / 45) * 45;
+      const totalHeight = Math.round((axisEnd - axisStart) * pxPerMinute);
+      const ticks = [];
+      for (let minute = axisStart; minute < axisEnd; minute += 45) ticks.push(minute);
+
+      const head = `<div class="schedule-head"><div class="head-cell"><span class="axis-head"><b>时间</b></span></div>${days.map((day) => `<div class="head-cell ${state.day === day.key ? 'focus' : ''}">${day.name}</div>`).join('')}</div>`;
+      const axis = `<div class="time-axis" style="height:${totalHeight}px">${ticks.map((minute) => `<div class="time" style="height:${Math.round(45 * pxPerMinute)}px">${formatClock(minute)}</div>`).join('')}</div>`;
+      const columns = days.map((day) => `<div class="day-column" data-column="${day.key}" style="height:${totalHeight}px">${events.filter((event) => event.day === day.key).map((event) => {
+        const top = Math.round((eventStartMinute(event) - axisStart) * pxPerMinute);
+        const height = Math.round((eventEndMinute(event) - eventStartMinute(event)) * pxPerMinute);
+        return `<button class="course type-${event.type}" data-event="${EVENTS.indexOf(event)}" style="top:${top}px;height:${height}px" type="button" title="${escapeHtml(event.title)}"><span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room"><i data-lucide="map-pin"></i>${escapeHtml(event.room)}</span><span class="course-meta"><span class="course-campus">${escapeHtml(event.campus)}</span><span class="course-teacher"> · ${escapeHtml(event.teacher)}</span></span></button>`;
+      }).join('')}</div>`).join('');
       $('schedule').innerHTML = `${head}<div class="schedule-body">${axis}${columns}</div>`;
       $('emptyState').style.display = events.length ? 'none' : 'grid';
       document.querySelectorAll('[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(EVENTS[Number(button.dataset.event)])));

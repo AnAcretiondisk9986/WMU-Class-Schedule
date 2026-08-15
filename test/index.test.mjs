@@ -135,13 +135,14 @@ test("index.html 从 localStorage 恢复状态", () => {
   assert.equal(s.$("updatedLabel").textContent, "本地已保存");
 });
 
-test("index.html 课程名超九字截断、Y 轴按校区显示时间", () => {
+test("index.html 课程名超九字截断、Y 轴为严格时间标尺", () => {
   const s = runScenario(null);
   const scheduleHtml = s.$("schedule").innerHTML;
   // 课程名截断为 9 字 + ".."，完整名保留在悬停 title 里
   assert.ok(scheduleHtml.includes('class="course-title">毛泽东思想和中国特..</span>'), "超长课程名截断为 9 字 + ..");
   assert.ok(scheduleHtml.includes('title="毛泽东思想和中国特色社会主义理论体系概论"'), "完整名保留在悬停 title");
-  // 示例课表为滨海校区，Y 轴只显示滨海时间，不显示茶山时间
-  assert.ok(scheduleHtml.includes("08:30"), "Y 轴显示滨海起始时间 08:30");
-  assert.ok(!scheduleHtml.includes("08:00"), "Y 轴不再显示茶山时间 08:00");
+  // Y 轴是绝对时间标尺，从 08:00 开始
+  assert.ok(scheduleHtml.includes(">08:00<"), "Y 轴时间标尺起点 08:00");
+  // 滨海课程卡片按实际时间定位，时间标签为 08:30 起
+  assert.ok(scheduleHtml.includes("08:30–09:55"), "滨海课程卡片时间标签 08:30–09:55");
 });
