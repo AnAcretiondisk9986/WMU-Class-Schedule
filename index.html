@@ -190,8 +190,8 @@
 
     .modal-backdrop { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 20px; background: rgba(12,24,18,.32); opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
     .modal { width: min(500px, 100%); padding: 23px; border-radius: 12px; background: #fff; box-shadow: 0 24px 60px rgba(14,29,21,.22); transform: scale(.96); opacity: 0; transition: transform 200ms var(--ease-out), opacity 160ms ease; }
-    .modal-open .modal-backdrop { opacity: 1; pointer-events: auto; }
-    .modal-open .modal { transform: scale(1); opacity: 1; }
+    .modal-backdrop.modal-open { opacity: 1; pointer-events: auto; }
+    .modal-backdrop.modal-open .modal { transform: scale(1); opacity: 1; }
     .modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
     .modal h2 { margin: 0; font-size: 18px; letter-spacing: -.03em; }
     .modal p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
@@ -207,6 +207,14 @@
     .import-status.success { color: #287957; }
     .secondary-btn { height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: 7px; background: #fff; cursor: pointer; font-size: 12px; font-weight: 650; }
     .secondary-btn:hover { background: #f5f8f5; }
+    .drawer-favorite { float: right; margin-right: 8px; }
+    .drawer-favorite.active { color: #a26e09; background: #fff0bf; border-color: #e6cf95; }
+    .drawer-favorite.active svg { fill: #d69527; }
+    .settings-body { margin-top: 18px; display: grid; gap: 14px; }
+    .field { display: grid; gap: 6px; font-size: 12px; color: var(--muted); }
+    .field input, .field select { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: var(--ink); font-size: 13px; }
+    .settings-note { margin: 2px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .help-list { margin: 4px 0 0; padding: 0 0 0 18px; color: var(--ink); font-size: 12px; line-height: 1.7; }
 
     @media (max-width: 1080px) {
       .app { grid-template-columns: 74px minmax(0, 1fr); }
@@ -304,16 +312,16 @@
       <div>
         <div class="nav-label">Workspace</div>
         <nav class="nav">
-          <button class="active" type="button"><i data-lucide="calendar-days"></i><span>我的课表</span></button>
-          <button type="button"><i data-lucide="list-todo"></i><span>课程清单</span></button>
-          <button type="button"><i data-lucide="bookmark"></i><span>收藏课程</span></button>
+          <button class="active" type="button" id="navSchedule"><i data-lucide="calendar-days"></i><span>我的课表</span></button>
+          <button type="button" id="navList"><i data-lucide="list-todo"></i><span>课程清单</span></button>
+          <button type="button" id="navFavorites"><i data-lucide="bookmark"></i><span>收藏课程</span></button>
         </nav>
       </div>
       <div>
         <div class="nav-label">Manage</div>
         <nav class="nav">
-          <button type="button"><i data-lucide="settings-2"></i><span>偏好设置</span></button>
-          <button type="button"><i data-lucide="circle-help"></i><span>帮助</span></button>
+          <button type="button" id="navSettings"><i data-lucide="settings-2"></i><span>偏好设置</span></button>
+          <button type="button" id="navHelp"><i data-lucide="circle-help"></i><span>帮助</span></button>
         </nav>
       </div>
       <div class="sidebar-foot">
@@ -324,7 +332,7 @@
 
     <main class="main">
       <header class="topbar">
-        <div class="top-context"><strong id="semesterLabel">2026–2027 学年第 1 学期</strong><span>最后更新：今天 09:42</span></div>
+        <div class="top-context"><strong id="semesterLabel">2026–2027 学年第 1 学期</strong><span id="updatedLabel">本地已保存</span></div>
         <div class="top-spacer"></div>
         <label class="search"><i data-lucide="search"></i><input id="searchInput" type="search" placeholder="搜索课程、教师或教室" aria-label="搜索课程"></label>
         <button class="icon-btn" type="button" title="切换主题" aria-label="切换主题" id="themeButton"><i data-lucide="sun"></i></button>
@@ -334,8 +342,8 @@
       <div class="content">
         <section class="page-head">
           <div>
-            <div class="eyebrow"><i></i> Tuesday, August 15</div>
-            <h1>我的课表</h1>
+            <div class="eyebrow"><i></i> <span id="todayLabel">今天</span></div>
+            <h1 id="pageTitle">我的课表</h1>
             <p class="head-note" id="headNote">这一周有 17 节课，安排得刚刚好。</p>
           </div>
           <div class="head-actions">
@@ -350,7 +358,7 @@
           <div class="pulse"><div class="pulse-icon"><i data-lucide="map-pin"></i></div><div class="pulse-copy"><div class="pulse-label">主要校区</div><div class="pulse-value" id="campusValue">滨海校区 · 求知楼</div></div></div>
         </section>
 
-        <section class="toolbar"><div><h2>周视图</h2><span class="subtle">2026 年 09 月 14 日 — 09 月 20 日</span></div><div class="toolbar-spacer"></div><div class="view-toggle" role="group" aria-label="视图切换"><button class="active" id="weekViewButton" type="button"><i data-lucide="table-2"></i>周视图</button><button id="listViewButton" type="button"><i data-lucide="list"></i>列表</button></div></section>
+        <section class="toolbar"><div><h2 id="viewTitle">周视图</h2><span class="subtle" id="weekRangeLabel">…</span></div><div class="toolbar-spacer"></div><div class="view-toggle" role="group" aria-label="视图切换"><button class="active" id="weekViewButton" type="button"><i data-lucide="table-2"></i>周视图</button><button id="listViewButton" type="button"><i data-lucide="list"></i>列表</button></div></section>
 
         <section class="day-strip" id="dayStrip" aria-label="选择日期"></section>
         <section class="schedule-shell" id="scheduleShell"><div class="schedule-scroll"><div class="schedule" id="schedule"></div></div><div class="empty" id="emptyState"><div><i data-lucide="calendar-off"></i><div>没有匹配的课程</div></div></div></section>
@@ -360,9 +368,13 @@
   </div>
 
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
-  <aside class="drawer" id="drawer" aria-label="课程详情" aria-hidden="true"><button class="icon-btn drawer-close" id="drawerClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button><div class="drawer-kicker" id="drawerKicker">课程详情</div><h2 id="drawerTitle">课程名称</h2><p class="drawer-sub" id="drawerSub">周二 · 第 1–2 节</p><dl class="detail-list"><div class="detail-row"><dt>上课时间</dt><dd id="detailTime">08:00–09:25</dd></div><div class="detail-row"><dt>上课地点</dt><dd id="detailRoom">滨海校区 · 求知楼</dd></div><div class="detail-row"><dt>任课教师</dt><dd id="detailTeacher">教师姓名</dd></div><div class="detail-row"><dt>周次</dt><dd id="detailWeeks">第 1–16 周</dd></div><div class="detail-row"><dt>课程类型</dt><dd id="detailType">讲课</dd></div></dl><div class="drawer-note">课程数据保存在本地浏览器中。导入新的 PDF 后，可以继续手动修正课程信息。</div></aside>
+  <aside class="drawer" id="drawer" aria-label="课程详情" aria-hidden="true"><button class="icon-btn drawer-favorite" id="drawerFavorite" type="button" title="收藏课程" aria-label="收藏课程"><i data-lucide="bookmark"></i></button><button class="icon-btn drawer-close" id="drawerClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button><div class="drawer-kicker" id="drawerKicker">课程详情</div><h2 id="drawerTitle">课程名称</h2><p class="drawer-sub" id="drawerSub">周二 · 第 1–2 节</p><dl class="detail-list"><div class="detail-row"><dt>上课时间</dt><dd id="detailTime">08:00–09:25</dd></div><div class="detail-row"><dt>上课地点</dt><dd id="detailRoom">滨海校区 · 求知楼</dd></div><div class="detail-row"><dt>任课教师</dt><dd id="detailTeacher">教师姓名</dd></div><div class="detail-row"><dt>周次</dt><dd id="detailWeeks">第 1–16 周</dd></div><div class="detail-row"><dt>课程类型</dt><dd id="detailType">讲课</dd></div></dl><div class="drawer-note">课程数据保存在本地浏览器中。导入新的 PDF 后，可以继续手动修正课程信息。</div></aside>
 
   <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>选择教务系统导出的课表文件。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><label class="dropzone" id="dropZone" for="fileInput"><i data-lucide="upload-cloud"></i><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="import-status" id="importStatus" role="status" aria-live="polite"></div><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button"><i data-lucide="scan-line"></i><span>开始识别</span></button></div></section></div>
+
+  <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题与本地数据管理。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option></select></label><p class="settings-note">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。</p></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
+
+  <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>点击右上角「导入 PDF」，选择教务系统导出的课表文件，即可在浏览器本地解析并生成课表。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>「回到今天」定位到当前周次与星期。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
 
   <script type="module">
     import { parseTimetablePdf } from './src/timetable.js';
@@ -370,12 +382,24 @@
 
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/build/pdf.worker.mjs';
 
-    const DAYS = [
-      { key: 1, name: '周一', date: '09/14' }, { key: 2, name: '周二', date: '09/15' },
-      { key: 3, name: '周三', date: '09/16' }, { key: 4, name: '周四', date: '09/17' },
-      { key: 5, name: '周五', date: '09/18' }, { key: 6, name: '周六', date: '09/19' },
-      { key: 7, name: '周日', date: '09/20' }
-    ];
+    const DAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    const pad2 = (value) => String(value).padStart(2, '0');
+    const mondayOf = (date) => { const d = new Date(date); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d; };
+    const addDays = (date, count) => { const d = new Date(date); d.setDate(d.getDate() + count); return d; };
+    const toIso = (date) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+    const formatMD = (date) => `${pad2(date.getMonth() + 1)}/${pad2(date.getDate())}`;
+    const formatFull = (date) => `${date.getFullYear()} 年 ${pad2(date.getMonth() + 1)} 月 ${pad2(date.getDate())} 日`;
+    const timeToMinutes = (hhmm) => { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m; };
+    const weeksLabel = (weeks) => (Array.isArray(weeks) && weeks.length)
+      ? weeks.map((range) => {
+          const span = range.start === range.end ? `${range.start}` : `${range.start}–${range.end}`;
+          return `${span}${range.parity === 'odd' ? '（单）' : range.parity === 'even' ? '（双）' : ''}`;
+        }).join('、') + ' 周'
+      : '周次未标注';
+    const eventInWeek = (event, week) => (event.weeks || []).some((range) =>
+      week >= range.start && week <= range.end &&
+      (range.parity === 'all' || (range.parity === 'odd' && week % 2 === 1) || (range.parity === 'even' && week % 2 === 0))
+    );
     const PERIOD_COUNT = 19;
     const formatClock = (minutes) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
     const buildPeriods = (startMinutes) => Array.from({ length: PERIOD_COUNT }, (_, index) => {
@@ -388,31 +412,40 @@
       '滨海校区': buildPeriods(8 * 60 + 30),
       '线上': buildPeriods(8 * 60 + 30)
     };
-    let EVENTS = [
-      { day: 1, start: 1, end: 2, title: '云计算基础', type: 'lecture', label: '讲课', room: '求知楼 204', campus: '滨海校区', teacher: '冯振', weeks: '第 1–16 周', credit: '2.5' },
-      { day: 1, start: 3, end: 4, title: '概率论及数理统计', type: 'lecture', label: '讲课', room: '求知楼 301', campus: '滨海校区', teacher: '韩艳敏', weeks: '第 1–16 周', credit: '2.5' },
-      { day: 2, start: 1, end: 2, title: '数据库原理与应用', type: 'lecture', label: '讲课', room: '求知楼 204', campus: '滨海校区', teacher: '刘丽娜', weeks: '第 1–3、5–8 周', credit: '2.5' },
-      { day: 2, start: 3, end: 4, title: '管理学原理', type: 'lecture', label: '讲课', room: '求知楼 206', campus: '滨海校区', teacher: '叶俊', weeks: '第 1–16 周', credit: '3.0' },
-      { day: 2, start: 5, end: 6, title: '形势与政策', type: 'online', label: '在线', room: '学习通', campus: '线上', teacher: '陈赛虎', weeks: '第 8 周', credit: '2.0' },
-      { day: 3, start: 1, end: 2, title: '计算机网络与应用', type: 'lecture', label: '讲课', room: '求知楼 108', campus: '滨海校区', teacher: '叶晰', weeks: '第 1–8 周', credit: '2.5' },
-      { day: 3, start: 3, end: 5, title: '毛泽东思想和中国特色社会主义理论体系概论', type: 'lecture', label: '讲课', room: '求知楼 105', campus: '滨海校区', teacher: '纪欣农', weeks: '第 1–17 周', credit: '3.0' },
-      { day: 4, start: 1, end: 2, title: '概率论及数理统计', type: 'lab', label: '实验', room: '线上课堂', campus: '滨海校区', teacher: '韩艳敏', weeks: '第 3、9、12 周', credit: '2.5' },
-      { day: 4, start: 3, end: 4, title: '人工智能基础', type: 'lecture', label: '讲课', room: '求知楼 401', campus: '滨海校区', teacher: '纪欣农', weeks: '第 1–10 周', credit: '2.0' },
-      { day: 5, start: 1, end: 2, title: '数据库原理与应用', type: 'lab', label: '实验', room: '6114 计算机机房', campus: '滨海校区', teacher: '刘丽娜', weeks: '第 11–16 周', credit: '2.5' },
-      { day: 5, start: 3, end: 4, title: '课程设计（内部对象应用）', type: 'practice', label: '实践', room: '6114 计算机机房', campus: '滨海校区', teacher: '刘丽娜', weeks: '第 11–16 周', credit: '1.5' },
-      { day: 5, start: 5, end: 6, title: '习近平新时代中国特色社会主义思想概论', type: 'online', label: '在线', room: '在线学习', campus: '线上', teacher: '刘小卫', weeks: '第 7 周', credit: '3.0' },
-      { day: 6, start: 2, end: 3, title: '习近平新时代中国特色社会主义思想概论', type: 'discussion', label: '讨论', room: '在线学习', campus: '线上', teacher: '谢海霞', weeks: '第 8 周', credit: '3.0' },
-      { day: 7, start: 1, end: 2, title: '管理学原理', type: 'lecture', label: '讲课', room: '线上课堂', campus: '滨海校区', teacher: '叶俊', weeks: '第 3 周', credit: '3.0' }
+    const W = (start, end, parity = 'all') => ({ start, end, parity });
+    const SAMPLE_EVENTS = [
+      { day: 1, start: 1, end: 2, title: '云计算基础', type: 'lecture', label: '讲课', room: '求知楼 204', campus: '滨海校区', teacher: '冯振', weeks: [W(1, 16)], credit: '2.5' },
+      { day: 1, start: 3, end: 4, title: '概率论及数理统计', type: 'lecture', label: '讲课', room: '求知楼 301', campus: '滨海校区', teacher: '韩艳敏', weeks: [W(1, 16)], credit: '2.5' },
+      { day: 2, start: 1, end: 2, title: '数据库原理与应用', type: 'lecture', label: '讲课', room: '求知楼 204', campus: '滨海校区', teacher: '刘丽娜', weeks: [W(1, 3), W(5, 8)], credit: '2.5' },
+      { day: 2, start: 3, end: 4, title: '管理学原理', type: 'lecture', label: '讲课', room: '求知楼 206', campus: '滨海校区', teacher: '叶俊', weeks: [W(1, 16)], credit: '3.0' },
+      { day: 2, start: 5, end: 6, title: '形势与政策', type: 'online', label: '在线', room: '学习通', campus: '线上', teacher: '陈赛虎', weeks: [W(8, 8)], credit: '2.0' },
+      { day: 3, start: 1, end: 2, title: '计算机网络与应用', type: 'lecture', label: '讲课', room: '求知楼 108', campus: '滨海校区', teacher: '叶晰', weeks: [W(1, 8)], credit: '2.5' },
+      { day: 3, start: 3, end: 5, title: '毛泽东思想和中国特色社会主义理论体系概论', type: 'lecture', label: '讲课', room: '求知楼 105', campus: '滨海校区', teacher: '纪欣农', weeks: [W(1, 17)], credit: '3.0' },
+      { day: 4, start: 1, end: 2, title: '概率论及数理统计', type: 'lab', label: '实验', room: '线上课堂', campus: '滨海校区', teacher: '韩艳敏', weeks: [W(3, 3), W(9, 9), W(12, 12)], credit: '2.5' },
+      { day: 4, start: 3, end: 4, title: '人工智能基础', type: 'lecture', label: '讲课', room: '求知楼 401', campus: '滨海校区', teacher: '纪欣农', weeks: [W(1, 10)], credit: '2.0' },
+      { day: 5, start: 1, end: 2, title: '数据库原理与应用', type: 'lab', label: '实验', room: '6114 计算机机房', campus: '滨海校区', teacher: '刘丽娜', weeks: [W(11, 16)], credit: '2.5' },
+      { day: 5, start: 3, end: 4, title: '课程设计（内部对象应用）', type: 'practice', label: '实践', room: '6114 计算机机房', campus: '滨海校区', teacher: '刘丽娜', weeks: [W(11, 16)], credit: '1.5' },
+      { day: 5, start: 5, end: 6, title: '习近平新时代中国特色社会主义思想概论', type: 'online', label: '在线', room: '在线学习', campus: '线上', teacher: '刘小卫', weeks: [W(7, 7)], credit: '3.0' },
+      { day: 6, start: 2, end: 3, title: '习近平新时代中国特色社会主义思想概论', type: 'discussion', label: '讨论', room: '在线学习', campus: '线上', teacher: '谢海霞', weeks: [W(8, 8)], credit: '3.0' },
+      { day: 7, start: 1, end: 2, title: '管理学原理', type: 'lecture', label: '讲课', room: '线上课堂', campus: '滨海校区', teacher: '叶俊', weeks: [W(3, 3)], credit: '3.0' }
     ];
-    const state = { week: 3, day: 2, query: '', list: false, semester: '2026-2027-1', student: { name: '我的课表', id: '' } };
+    let EVENTS = [];
+    const STORAGE_KEY = 'wmu-timetable-v1';
+    const state = { week: 1, day: 1, query: '', view: 'schedule', semester: '2026-2027-1', student: { name: '', id: '' }, favorites: [], termStartDate: '', updatedAt: 0 };
     let selectedPdfFile = null;
+    let activeEvent = null;
     const $ = (id) => document.getElementById(id);
     const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
-    const visibleEvents = () => EVENTS.filter((event) => !state.query || `${event.title} ${event.teacher} ${event.room}`.toLowerCase().includes(state.query.toLowerCase()));
-    const formatWeekRanges = (ranges) => ranges?.map((range) => {
-      const span = range.start === range.end ? `${range.start}` : `${range.start}–${range.end}`;
-      return `${span}${range.parity === 'odd' ? '（单）' : range.parity === 'even' ? '（双）' : ''}`;
-    }).join('、') || '周次未标注';
+    const termMonday = () => mondayOf(new Date(state.termStartDate || toIso(new Date())));
+    const dayInfo = (week) => {
+      const monday = addDays(termMonday(), (week - 1) * 7);
+      return DAY_NAMES.map((name, index) => ({ key: index + 1, name, date: formatMD(addDays(monday, index)), fullDate: addDays(monday, index) }));
+    };
+    const weekAndDayForDate = (date) => {
+      const diff = Math.round((mondayOf(date) - termMonday()) / 86400000);
+      return { week: Math.floor(diff / 7) + 1, day: (date.getDay() + 6) % 7 + 1 };
+    };
+    const maxWeek = () => Math.max(1, ...EVENTS.flatMap((event) => (event.weeks || []).map((range) => range.end)));
     const eventFromParsed = (event) => ({
       day: event.weekday,
       start: event.periods.start,
@@ -423,101 +456,267 @@
       room: event.room || '待定',
       campus: event.campus || '未标注校区',
       teacher: event.teacher || '待定',
-      weeks: formatWeekRanges(event.weeks),
+      weeks: event.weeks || [],
       credit: event.credit == null ? '—' : String(event.credit)
     });
+    const visibleEvents = () => {
+      let events = EVENTS;
+      if (state.view === 'favorites') events = events.filter((event) => state.favorites.includes(event.title));
+      if (state.query) {
+        const query = state.query.toLowerCase();
+        events = events.filter((event) => `${event.title} ${event.teacher} ${event.room} ${event.campus}`.toLowerCase().includes(query));
+      }
+      if (state.view !== 'favorites') events = events.filter((event) => eventInWeek(event, state.week));
+      return events;
+    };
     const timeLabel = (event) => {
       const periods = CAMPUS_PERIODS[event.campus] || CAMPUS_PERIODS['滨海校区'];
       return `${periods[event.start - 1][0]}–${periods[event.end - 1][1]}`;
     };
 
     function renderDays() {
-      $('dayStrip').innerHTML = DAYS.map((day) => {
+      const days = dayInfo(state.week);
+      const today = weekAndDayForDate(new Date());
+      const isTodayWeek = state.week === today.week;
+      $('dayStrip').innerHTML = days.map((day) => {
         const count = visibleEvents().filter((event) => event.day === day.key).length;
-        return `<button class="day ${state.day === day.key ? 'active' : ''} ${day.key === 2 ? 'today' : ''}" data-day="${day.key}" type="button"><span class="day-name"><b>${day.name}</b><span>${day.date}</span></span><span class="day-count">${count}</span></button>`;
+        const isToday = isTodayWeek && day.key === today.day;
+        return `<button class="day ${state.day === day.key ? 'active' : ''} ${isToday ? 'today' : ''}" data-day="${day.key}" type="button"><span class="day-name"><b>${day.name}</b><span>${day.date}</span></span><span class="day-count">${count}</span></button>`;
       }).join('');
       document.querySelectorAll('[data-day]').forEach((button) => button.addEventListener('click', () => { state.day = Number(button.dataset.day); renderAll(); }));
     }
 
     function renderSchedule() {
+      const days = dayInfo(state.week);
       const events = visibleEvents();
       const slotHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slot-h')) || 92;
-      const head = `<div class="schedule-head"><div class="head-cell" title="时间轴上行为茶山/学院路，下行为滨海"><span class="axis-head"><b>节次</b><small>茶山/学院路<br>滨海</small></span></div>${DAYS.map((day) => `<div class="head-cell ${state.day === day.key ? 'focus' : ''}">${day.name}</div>`).join('')}</div>`;
+      const head = `<div class="schedule-head"><div class="head-cell" title="时间轴上行为茶山/学院路，下行为滨海"><span class="axis-head"><b>节次</b><small>茶山/学院路<br>滨海</small></span></div>${days.map((day) => `<div class="head-cell ${state.day === day.key ? 'focus' : ''}">${day.name}</div>`).join('')}</div>`;
       const axis = `<div class="time-axis">${Array.from({ length: PERIOD_COUNT }, (_, index) => {
         const tea = CAMPUS_PERIODS['茶山校区'][index][0];
         const bin = CAMPUS_PERIODS['滨海校区'][index][0];
         return `<div class="time" title="茶山/学院路 ${tea}；滨海 ${bin}"><strong>${index + 1}</strong><span>第 ${index + 1} 节</span><span class="time-points"><span>${tea}</span><span>${bin}</span></span></div>`;
       }).join('')}</div>`;
-      const columns = DAYS.map((day) => `<div class="day-column" data-column="${day.key}">${Array.from({ length: PERIOD_COUNT }, () => '<div class="slot"></div>').join('')}${events.filter((event) => event.day === day.key).map((event) => `<button class="course type-${event.type}" data-event="${EVENTS.indexOf(event)}" style="top:${(event.start - 1) * slotHeight + 7}px;height:${(event.end - event.start + 1) * slotHeight - 14}px" type="button"><span class="course-title">${escapeHtml(event.title)}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room"><i data-lucide="map-pin"></i>${escapeHtml(event.room)}</span><span class="course-meta">${escapeHtml(event.campus)} · ${escapeHtml(event.teacher)}</span></button>`).join('')}</div>`).join('');
+      const columns = days.map((day) => `<div class="day-column" data-column="${day.key}">${Array.from({ length: PERIOD_COUNT }, () => '<div class="slot"></div>').join('')}${events.filter((event) => event.day === day.key).map((event) => `<button class="course type-${event.type}" data-event="${EVENTS.indexOf(event)}" style="top:${(event.start - 1) * slotHeight + 7}px;height:${(event.end - event.start + 1) * slotHeight - 14}px" type="button"><span class="course-title">${escapeHtml(event.title)}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room"><i data-lucide="map-pin"></i>${escapeHtml(event.room)}</span><span class="course-meta">${escapeHtml(event.campus)} · ${escapeHtml(event.teacher)}</span></button>`).join('')}</div>`).join('');
       $('schedule').innerHTML = `${head}<div class="schedule-body">${axis}${columns}</div>`;
       $('emptyState').style.display = events.length ? 'none' : 'grid';
       document.querySelectorAll('[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(EVENTS[Number(button.dataset.event)])));
-      if (window.lucide) lucide.createIcons();
+      if (window.lucide) window.lucide.createIcons();
     }
 
     function renderAgenda() {
+      const days = dayInfo(state.week);
       const events = visibleEvents();
-      $('agenda').innerHTML = DAYS.filter((day) => events.some((event) => event.day === day.key)).map((day) => `<section class="agenda-day"><div class="agenda-day-title"><span>${day.name} · ${day.date}</span><span>${events.filter((event) => event.day === day.key).length} 节</span></div>${events.filter((event) => event.day === day.key).map((event) => `<button class="agenda-event type-${event.type}" data-event="${EVENTS.indexOf(event)}" type="button"><span class="event-time">${timeLabel(event)}</span><span><span class="event-title">${escapeHtml(event.title)}</span><span class="event-room">${escapeHtml(event.room)} · ${escapeHtml(event.teacher)}</span></span></button>`).join('')}</section>`).join('') || '<div class="empty" style="display:grid"><div>没有匹配的课程</div></div>';
+      const isFavorites = state.view === 'favorites';
+      $('agenda').innerHTML = days.filter((day) => events.some((event) => event.day === day.key)).map((day) => `<section class="agenda-day"><div class="agenda-day-title"><span>${isFavorites ? day.name : `${day.name} · ${day.date}`}</span><span>${events.filter((event) => event.day === day.key).length} 节</span></div>${events.filter((event) => event.day === day.key).map((event) => `<button class="agenda-event type-${event.type}" data-event="${EVENTS.indexOf(event)}" type="button"><span class="event-time">${timeLabel(event)}</span><span><span class="event-title">${escapeHtml(event.title)}</span><span class="event-room">${escapeHtml(event.room)} · ${escapeHtml(event.teacher)}${isFavorites ? ' · ' + weeksLabel(event.weeks) : ''}</span></span></button>`).join('')}</section>`).join('') || '<div class="empty" style="display:grid"><div>没有匹配的课程</div></div>';
       document.querySelectorAll('.agenda-event[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(EVENTS[Number(button.dataset.event)])));
     }
 
     function renderAll() {
+      const days = dayInfo(state.week);
       const semesterParts = state.semester.split('-');
       $('semesterLabel').textContent = semesterParts.length === 3
         ? `${semesterParts[0]}–${semesterParts[1]} 学年第 ${semesterParts[2]} 学期`
         : state.semester;
-      $('profileName').textContent = state.student.name || '我的课表';
-      $('profileAvatar').textContent = (state.student.name || '我').slice(0, 1);
-      $('headNote').textContent = `${state.student.name ? `${state.student.name}的` : '当前'}课表，共 ${EVENTS.length} 个课次。`;
-      const courseCount = new Set(EVENTS.map((event) => event.title)).size;
-      $('courseCountValue').textContent = `${EVENTS.length} 个课次 · ${courseCount} 门课程`;
+      const name = state.student.name || '我的课表';
+      $('profileName').textContent = name;
+      $('profileAvatar').textContent = name.slice(0, 1);
+      $('pageTitle').textContent = state.view === 'favorites' ? '收藏课程' : state.view === 'list' ? '课程清单' : '我的课表';
+      const today = weekAndDayForDate(new Date());
+      $('todayLabel').textContent = `第 ${today.week} 周 · ${DAY_NAMES[today.day - 1]}`;
+      $('updatedLabel').textContent = state.updatedAt ? '本地已保存' : '示例数据';
+      const weekEvents = visibleEvents();
+      $('headNote').textContent = state.view === 'favorites'
+        ? `已收藏 ${state.favorites.length} 门课程，共 ${weekEvents.length} 个课次。`
+        : `第 ${state.week} 周共有 ${weekEvents.length} 节课。`;
+      $('weekRangeLabel').textContent = `${formatFull(days[0].fullDate)} — ${formatFull(days[6].fullDate)}`;
+      $('viewTitle').textContent = state.view === 'schedule' ? '周视图' : state.view === 'list' ? '课程清单' : '收藏课程';
+      const courseNames = [...new Set(EVENTS.map((event) => event.title))];
+      const totalCredit = courseNames.reduce((sum, title) => {
+        const event = EVENTS.find((item) => item.title === title);
+        const credit = Number(event.credit);
+        return sum + (Number.isFinite(credit) ? credit : 0);
+      }, 0);
+      $('courseCountValue').textContent = `${EVENTS.length} 节课 · ${courseNames.length} 门 · ${totalCredit} 学分`;
       const campusCounts = EVENTS.reduce((counts, event) => {
         if (event.campus && event.campus !== '线上') counts[event.campus] = (counts[event.campus] || 0) + 1;
         return counts;
       }, {});
       const mainCampus = Object.entries(campusCounts).sort((first, second) => second[1] - first[1])[0]?.[0] || '未标注校区';
       $('campusValue').textContent = mainCampus;
-      const firstDayEvent = EVENTS.filter((event) => event.day === state.day).sort((first, second) => first.start - second.start)[0];
-      $('nextCourseLabel').textContent = firstDayEvent ? `${DAYS[state.day - 1].name}首节 · ${timeLabel(firstDayEvent).split('–')[0]}` : `${DAYS[state.day - 1].name}无课`;
-      $('nextCourseValue').textContent = firstDayEvent ? `${firstDayEvent.title} · ${firstDayEvent.room}` : '暂无课程安排';
+      const next = nextCourseToday();
+      $('nextCourseLabel').textContent = next.label;
+      $('nextCourseValue').textContent = next.value;
       $('weekValue').textContent = `第 ${String(state.week).padStart(2, '0')} 周`;
       renderDays();
       renderSchedule();
       renderAgenda();
-      document.body.classList.toggle('list-mode', state.list);
-      $('scheduleShell').style.display = state.list ? 'none' : '';
-      $('agenda').style.display = state.list ? 'grid' : '';
-      $('weekViewButton').classList.toggle('active', !state.list);
-      $('listViewButton').classList.toggle('active', state.list);
+      document.body.classList.toggle('list-mode', state.view !== 'schedule');
+      $('scheduleShell').style.display = state.view === 'schedule' ? '' : 'none';
+      $('agenda').style.display = state.view === 'schedule' ? '' : 'grid';
+      $('weekViewButton').classList.toggle('active', state.view === 'schedule');
+      $('listViewButton').classList.toggle('active', state.view !== 'schedule');
+      $('navSchedule').classList.toggle('active', state.view === 'schedule');
+      $('navList').classList.toggle('active', state.view === 'list');
+      $('navFavorites').classList.toggle('active', state.view === 'favorites');
+    }
+
+    function nextCourseToday() {
+      const today = weekAndDayForDate(new Date());
+      const now = new Date();
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      const todayEvents = EVENTS.filter((event) => event.day === today.day && eventInWeek(event, today.week)).sort((a, b) => a.start - b.start);
+      const prefix = `今天 ${DAY_NAMES[today.day - 1]}`;
+      if (!todayEvents.length) return { label: `${prefix} · 无课`, value: '今天没有课程安排' };
+      const next = todayEvents.find((event) => timeToMinutes(timeLabel(event).split('–')[0]) > nowMinutes);
+      if (next) return { label: `${prefix} · 下一节 ${timeLabel(next).split('–')[0]}`, value: `${next.title} · ${next.room}` };
+      return { label: `${prefix} · 已结束`, value: `${todayEvents[todayEvents.length - 1].title} 已下课` };
     }
 
     function openDrawer(event) {
+      activeEvent = event;
       $('drawerTitle').textContent = event.title;
-      $('drawerSub').textContent = `${DAYS[event.day - 1].name} · 第 ${event.start}–${event.end} 节`;
+      $('drawerSub').textContent = `${DAY_NAMES[event.day - 1]} · 第 ${event.start}–${event.end} 节`;
       $('detailTime').textContent = timeLabel(event);
       $('detailRoom').textContent = `${event.campus} · ${event.room}`;
       $('detailTeacher').textContent = event.teacher;
-      $('detailWeeks').textContent = event.weeks;
+      $('detailWeeks').textContent = weeksLabel(event.weeks);
       $('detailType').textContent = `${event.label} · ${event.credit} 学分`;
+      renderFavoriteButton();
       document.body.classList.add('drawer-open');
       $('drawer').setAttribute('aria-hidden', 'false');
     }
+    function renderFavoriteButton() {
+      if (!activeEvent) return;
+      const active = state.favorites.includes(activeEvent.title);
+      $('drawerFavorite').classList.toggle('active', active);
+      $('drawerFavorite').setAttribute('title', active ? '取消收藏' : '收藏课程');
+    }
+    function toggleFavorite() {
+      if (!activeEvent) return;
+      const index = state.favorites.indexOf(activeEvent.title);
+      if (index >= 0) state.favorites.splice(index, 1);
+      else state.favorites.push(activeEvent.title);
+      renderFavoriteButton();
+      persist();
+      renderAll();
+    }
     function closeDrawer() { document.body.classList.remove('drawer-open'); $('drawer').setAttribute('aria-hidden', 'true'); }
-    function openModal() { $('importStatus').textContent = ''; $('importStatus').className = 'import-status'; document.body.classList.add('modal-open'); }
-    function closeModal() { document.body.classList.remove('modal-open'); }
+    function openImportModal() { $('importStatus').textContent = ''; $('importStatus').className = 'import-status'; openModal('modalBackdrop'); }
+    function closeImportModal() { closeModalById('modalBackdrop'); }
     function setImportStatus(message, kind = '') { $('importStatus').textContent = message; $('importStatus').className = `import-status ${kind}`.trim(); }
+    function openModal(id) { document.getElementById(id).classList.add('modal-open'); }
+    function closeModalById(id) { document.getElementById(id).classList.remove('modal-open'); }
+    function openSettings() {
+      $('termStartInput').value = state.termStartDate;
+      $('themeSelect').value = document.documentElement.classList.contains('warm-mode') ? 'warm' : 'light';
+      openModal('settingsBackdrop');
+    }
+    function openHelp() { openModal('helpBackdrop'); }
+    function applyTheme(theme) {
+      document.documentElement.classList.toggle('warm-mode', theme === 'warm');
+      const select = $('themeSelect');
+      if (select) select.value = theme;
+      persist();
+    }
 
-    $('prevWeek').addEventListener('click', () => { state.week = Math.max(1, state.week - 1); renderAll(); });
-    $('nextWeek').addEventListener('click', () => { state.week = Math.min(18, state.week + 1); renderAll(); });
-    $('todayButton').addEventListener('click', () => { state.week = 3; state.day = 2; renderAll(); });
-    $('weekViewButton').addEventListener('click', () => { state.list = false; renderAll(); });
-    $('listViewButton').addEventListener('click', () => { state.list = true; renderAll(); });
+    function persist() {
+      state.updatedAt = Date.now();
+      const payload = {
+        version: 1,
+        semester: state.semester,
+        student: state.student,
+        termStartDate: state.termStartDate,
+        events: EVENTS,
+        favorites: state.favorites,
+        theme: document.documentElement.classList.contains('warm-mode') ? 'warm' : 'light',
+        week: state.week,
+        day: state.day,
+        view: state.view,
+        updatedAt: state.updatedAt
+      };
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); } catch (error) { console.warn('保存失败', error); }
+    }
+    function resetData() {
+      try { localStorage.removeItem(STORAGE_KEY); } catch (error) {}
+      EVENTS = SAMPLE_EVENTS;
+      state.semester = '2026-2027-1';
+      state.student = { name: '', id: '' };
+      state.favorites = [];
+      state.termStartDate = toIso(mondayOf(new Date()));
+      state.week = 1;
+      state.day = 1;
+      state.view = 'schedule';
+      state.query = '';
+      state.updatedAt = 0;
+      document.documentElement.classList.remove('warm-mode');
+      renderAll();
+      closeModalById('settingsBackdrop');
+    }
+    function loadState() {
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (error) {}
+      if (saved && saved.version === 1 && Array.isArray(saved.events) && saved.events.length) {
+        state.semester = saved.semester || '2026-2027-1';
+        state.student = saved.student || { name: '', id: '' };
+        state.termStartDate = saved.termStartDate || toIso(mondayOf(new Date()));
+        state.favorites = Array.isArray(saved.favorites) ? saved.favorites : [];
+        state.week = Number.isFinite(saved.week) ? saved.week : 1;
+        state.day = Number.isFinite(saved.day) ? saved.day : 1;
+        state.view = ['schedule', 'list', 'favorites'].includes(saved.view) ? saved.view : 'schedule';
+        state.updatedAt = saved.updatedAt || 0;
+        EVENTS = saved.events;
+        if (saved.theme === 'warm') document.documentElement.classList.add('warm-mode');
+        return true;
+      }
+      EVENTS = SAMPLE_EVENTS;
+      state.termStartDate = toIso(mondayOf(new Date()));
+      state.week = 1;
+      state.day = 1;
+      return false;
+    }
+
+    $('prevWeek').addEventListener('click', () => { state.week = Math.max(1, state.week - 1); persist(); renderAll(); });
+    $('nextWeek').addEventListener('click', () => { state.week = Math.min(maxWeek(), state.week + 1); persist(); renderAll(); });
+    $('todayButton').addEventListener('click', () => {
+      const today = weekAndDayForDate(new Date());
+      state.week = Math.max(1, today.week);
+      state.day = today.day;
+      state.view = 'schedule';
+      persist();
+      renderAll();
+    });
+    $('weekViewButton').addEventListener('click', () => { state.view = 'schedule'; persist(); renderAll(); });
+    $('listViewButton').addEventListener('click', () => { state.view = 'list'; persist(); renderAll(); });
+    $('navSchedule').addEventListener('click', () => { state.view = 'schedule'; persist(); renderAll(); });
+    $('navList').addEventListener('click', () => { state.view = 'list'; persist(); renderAll(); });
+    $('navFavorites').addEventListener('click', () => { state.view = 'favorites'; persist(); renderAll(); });
+    $('navSettings').addEventListener('click', openSettings);
+    $('navHelp').addEventListener('click', openHelp);
     $('searchInput').addEventListener('input', (event) => { state.query = event.target.value.trim(); renderAll(); });
     $('drawerClose').addEventListener('click', closeDrawer);
     $('drawerBackdrop').addEventListener('click', closeDrawer);
-    $('importButton').addEventListener('click', openModal);
-    $('modalClose').addEventListener('click', closeModal);
-    $('modalCancel').addEventListener('click', closeModal);
+    $('drawerFavorite').addEventListener('click', toggleFavorite);
+    $('importButton').addEventListener('click', openImportModal);
+    $('modalClose').addEventListener('click', closeImportModal);
+    $('modalCancel').addEventListener('click', closeImportModal);
+    $('settingsClose').addEventListener('click', () => closeModalById('settingsBackdrop'));
+    $('settingsBackdrop').addEventListener('click', (event) => { if (event.target === event.currentTarget) closeModalById('settingsBackdrop'); });
+    $('helpClose').addEventListener('click', () => closeModalById('helpBackdrop'));
+    $('helpBackdrop').addEventListener('click', (event) => { if (event.target === event.currentTarget) closeModalById('helpBackdrop'); });
+    $('helpDone').addEventListener('click', () => closeModalById('helpBackdrop'));
+    $('settingsDone').addEventListener('click', () => {
+      const value = $('termStartInput').value;
+      if (value) state.termStartDate = value;
+      applyTheme($('themeSelect').value);
+      persist();
+      renderAll();
+      closeModalById('settingsBackdrop');
+    });
+    $('resetData').addEventListener('click', resetData);
+    $('themeButton').addEventListener('click', () => {
+      applyTheme(document.documentElement.classList.contains('warm-mode') ? 'light' : 'warm');
+      renderAll();
+    });
     $('fileInput').addEventListener('change', (event) => {
       selectedPdfFile = event.target.files[0] || null;
       $('fileName').textContent = selectedPdfFile?.name || '支持拖放，文件仅在本地处理';
@@ -555,27 +754,38 @@
         }
         EVENTS = result.events.map(eventFromParsed);
         state.semester = result.semester || state.semester;
-        state.student = result.student || state.student;
+        state.student = result.student || { name: '', id: '' };
         state.week = 1;
+        state.day = 1;
+        state.view = 'schedule';
+        state.favorites = [];
+        state.query = '';
         $('fileName').textContent = file.name;
+        persist();
         renderAll();
         setImportStatus(`已识别 ${EVENTS.length} 个课次，来自 ${state.student.name || '课表'}。`, 'success');
-        setTimeout(closeModal, 900);
+        setTimeout(closeImportModal, 900);
       } catch (error) {
         setImportStatus(`解析失败：${error.message || '文件格式无法识别'}`, 'error');
       } finally {
         button.disabled = false;
       }
     });
-    $('themeButton').addEventListener('click', () => document.documentElement.classList.toggle('warm-mode'));
-    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { closeDrawer(); closeModal(); } });
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      closeDrawer();
+      closeImportModal();
+      closeModalById('settingsBackdrop');
+      closeModalById('helpBackdrop');
+    });
     let resizeTimer;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(renderAll, 90);
     });
 
-    if (window.lucide) lucide.createIcons();
+    loadState();
+    if (window.lucide) window.lucide.createIcons();
     renderAll();
   </script>
 </body>
