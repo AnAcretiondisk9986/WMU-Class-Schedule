@@ -27,9 +27,9 @@ console.log(result.events);
 
 ## 测试
 
-真实样本默认放在 `test/fixtures/黄映焜(2026-2027-1)课表.pdf`。由于含有个人信息，PDF 已被 `.gitignore` 排除。
+真实样本默认放在 `test/fixtures/黄映焜(2026-2027-1)课表.pdf`（滨海校区）和 `test/fixtures/崔艺鑫(2026-2027-1)课表.pdf`（茶山校区）。由于含有个人信息，PDF 已被 `.gitignore` 排除。
 
 ```powershell
-npm install
-npm test
+pnpm install
+pnpm test
 ```
