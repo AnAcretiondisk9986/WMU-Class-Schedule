@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#14231f">
+  <title>WMU Schedule</title>
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      --ink: #17231f;
+      --muted: #73807b;
+      --line: #e4e8e4;
+      --paper: #fbfcfa;
+      --panel: #ffffff;
+      --canvas: #f1f4f0;
+      --mint: #d8f3e5;
+      --mint-strong: #2f8b68;
+      --blue: #dcecff;
+      --blue-strong: #3972bc;
+      --coral: #ffe0d5;
+      --coral-strong: #c95c3c;
+      --yellow: #fff0bf;
+      --yellow-strong: #a26e09;
+      --violet: #ebe2ff;
+      --violet-strong: #7655b2;
+      --slot-h: 92px;
+      --ease-out: cubic-bezier(.23, 1, .32, 1);
+      --shadow: 0 18px 45px rgba(25, 44, 34, .07), 0 2px 5px rgba(25, 44, 34, .04);
+    }
+    html.warm-mode {
+      --ink: #292820;
+      --paper: #fffdfa;
+      --canvas: #f5efe7;
+      --line: #e9dfd4;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font: 14px/1.45 Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      letter-spacing: 0;
+    }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible { outline: 3px solid rgba(63, 138, 103, .26); outline-offset: 2px; }
+    button:active { transform: scale(.975); }
+    .app { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: 100vh; }
+
+    .sidebar {
+      display: flex; flex-direction: column; gap: 30px;
+      padding: 25px 16px 18px;
+      background: var(--ink); color: #f3f7f3;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 10px; }
+    .brand-mark { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 9px; background: #bce9d2; color: #17342a; font-weight: 800; font-size: 12px; }
+    .brand-name { font-size: 15px; font-weight: 750; letter-spacing: -.02em; }
+    .brand-caption { margin-top: 1px; color: #94aaa0; font-size: 10px; }
+    .nav-label { padding: 0 11px; color: #778d83; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .nav { display: grid; gap: 5px; }
+    .nav button { display: flex; align-items: center; gap: 11px; width: 100%; padding: 10px 11px; border: 0; border-radius: 8px; background: transparent; color: #9bb0a7; cursor: pointer; text-align: left; transition: background 160ms ease, color 160ms ease, transform 120ms ease-out; }
+    .nav button:hover { background: rgba(255,255,255,.06); color: #eff7f2; }
+    .nav button.active { background: #d8f3e5; color: #18372a; font-weight: 700; }
+    .nav svg { width: 17px; height: 17px; stroke-width: 1.8; }
+    .sidebar-foot { margin-top: auto; display: grid; gap: 12px; }
+    .storage { padding: 12px; border: 1px solid rgba(216,243,229,.14); border-radius: 10px; background: rgba(255,255,255,.035); }
+    .storage-row { display: flex; justify-content: space-between; color: #a9bcb3; font-size: 11px; }
+    .storage strong { color: #e4f2e9; font-size: 12px; }
+    .meter { height: 4px; margin-top: 9px; overflow: hidden; border-radius: 10px; background: rgba(255,255,255,.1); }
+    .meter i { display: block; width: 34%; height: 100%; border-radius: inherit; background: #9cddba; }
+    .profile { display: flex; align-items: center; gap: 9px; padding: 5px 8px; }
+    .avatar { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #f2c7a7; color: #633d2d; font-size: 11px; font-weight: 800; }
+    .profile-name { color: #e8f1eb; font-size: 12px; font-weight: 650; }
+    .profile-sub { color: #7e968a; font-size: 10px; }
+
+    .main { min-width: 0; background: var(--paper); }
+    .topbar { display: flex; align-items: center; gap: 16px; min-height: 69px; padding: 0 32px; border-bottom: 1px solid var(--line); background: rgba(251,252,250,.92); }
+    .top-context { display: grid; gap: 1px; }
+    .top-context strong { font-size: 13px; font-weight: 700; }
+    .top-context span { color: var(--muted); font-size: 11px; }
+    .top-spacer { flex: 1; }
+    .search { position: relative; display: flex; align-items: center; width: 205px; }
+    .search svg { position: absolute; left: 10px; width: 15px; color: #93a099; }
+    .search input { width: 100%; height: 34px; padding: 0 10px 0 32px; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: var(--ink); font-size: 12px; }
+    .icon-btn { display: inline-grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 1px solid var(--line); border-radius: 7px; background: #fff; cursor: pointer; transition: border-color 150ms ease, background 150ms ease, transform 120ms ease-out; }
+    .icon-btn:hover { border-color: #c3d0c7; background: #f6faf7; }
+    .icon-btn svg { width: 16px; height: 16px; }
+    .import-btn { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border: 1px solid #246f51; border-radius: 7px; background: #246f51; color: #fff; cursor: pointer; font-size: 12px; font-weight: 700; transition: background 150ms ease, transform 120ms ease-out; }
+    .import-btn:hover { background: #1d6045; }
+    .import-btn svg { width: 15px; height: 15px; }
+
+    .content { max-width: 1540px; margin: 0 auto; padding: 28px 32px 40px; }
+    .page-head { display: flex; align-items: flex-end; gap: 20px; }
+    .eyebrow { display: flex; align-items: center; gap: 8px; color: var(--mint-strong); font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .eyebrow i { width: 6px; height: 6px; border-radius: 50%; background: #4ca878; }
+    h1 { margin: 5px 0 0; font-size: clamp(25px, 3vw, 34px); line-height: 1.08; letter-spacing: -.045em; }
+    .head-note { margin: 7px 0 0; color: var(--muted); font-size: 12px; }
+    .head-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .week-switch { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 5px 0 7px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+    .week-switch button { display: grid; place-items: center; width: 25px; height: 25px; padding: 0; border: 0; border-radius: 5px; background: transparent; cursor: pointer; }
+    .week-switch button:hover { background: #f0f5f1; }
+    .week-switch svg { width: 14px; height: 14px; }
+    .week-value { min-width: 87px; text-align: center; font-size: 12px; font-weight: 750; }
+    .today-btn { height: 36px; padding: 0 11px; border: 1px solid var(--line); border-radius: 8px; background: #fff; cursor: pointer; font-size: 12px; font-weight: 650; }
+    .today-btn:hover { background: #f6faf7; }
+
+    .pulse-row { display: grid; grid-template-columns: 1.35fr 1fr 1fr; gap: 12px; margin-top: 26px; }
+    .pulse { display: flex; align-items: center; gap: 13px; min-height: 74px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+    .pulse.primary { border-color: #c5e5d2; background: #effaf3; }
+    .pulse-icon { display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 auto; border-radius: 9px; background: var(--mint); color: #287957; }
+    .pulse:nth-child(2) .pulse-icon { background: var(--blue); color: var(--blue-strong); }
+    .pulse:nth-child(3) .pulse-icon { background: var(--yellow); color: var(--yellow-strong); }
+    .pulse-icon svg { width: 17px; height: 17px; }
+    .pulse-copy { min-width: 0; }
+    .pulse-label { color: var(--muted); font-size: 11px; }
+    .pulse-value { margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 750; }
+
+    .toolbar { display: flex; align-items: center; gap: 10px; margin-top: 30px; }
+    .toolbar h2 { margin: 0; font-size: 15px; letter-spacing: -.02em; }
+    .toolbar .subtle { color: var(--muted); font-size: 11px; }
+    .toolbar-spacer { flex: 1; }
+    .view-toggle { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 7px; background: #f5f7f4; }
+    .view-toggle button { display: inline-flex; align-items: center; gap: 6px; height: 27px; padding: 0 9px; border: 0; border-radius: 5px; background: transparent; color: var(--muted); cursor: pointer; font-size: 11px; font-weight: 650; }
+    .view-toggle button.active { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(26,43,33,.08); }
+    .view-toggle svg { width: 13px; height: 13px; }
+
+    .day-strip { display: grid; grid-template-columns: repeat(7, minmax(80px, 1fr)); gap: 7px; margin-top: 13px; }
+    .day { display: flex; align-items: center; justify-content: space-between; min-height: 51px; padding: 8px 11px; border: 1px solid transparent; border-radius: 9px; background: #f4f6f3; color: var(--muted); cursor: pointer; text-align: left; transition: background 150ms ease, border-color 150ms ease, transform 120ms ease-out; }
+    .day:hover { border-color: #d2ddd4; background: #f9fbf9; }
+    .day.active { border-color: #b9dec8; background: #e8f7ee; color: #1f6749; }
+    .day.today { box-shadow: inset 0 -2px 0 #2f8b68; }
+    .day-name { display: grid; gap: 1px; }
+    .day-name b { font-size: 12px; }
+    .day-name span { font-size: 10px; }
+    .day-count { display: grid; place-items: center; min-width: 22px; height: 22px; border-radius: 6px; background: #fff; color: var(--ink); font-size: 10px; font-weight: 750; }
+    .day.active .day-count { background: #c8ebd6; color: #1e6747; }
+
+    .schedule-shell { margin-top: 10px; overflow: hidden; border: 1px solid var(--line); border-radius: 11px; background: #fff; box-shadow: var(--shadow); }
+    .schedule-scroll { overflow-x: hidden; }
+    .schedule { display: grid; grid-template-columns: 68px repeat(7, minmax(0, 1fr)); min-width: 0; }
+    .schedule-head { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; min-height: 42px; border-bottom: 1px solid var(--line); background: #fafcf9; }
+    .head-cell { display: flex; align-items: center; justify-content: center; border-right: 1px solid var(--line); color: var(--muted); font-size: 11px; font-weight: 700; }
+    .head-cell:first-child { color: #a0aaa4; font-size: 10px; }
+    .head-cell.focus { background: #eff9f2; color: #26724f; }
+    .schedule-body { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; position: relative; min-height: calc(19 * var(--slot-h)); }
+    .time-axis { display: grid; grid-template-rows: repeat(19, var(--slot-h)); border-right: 1px solid var(--line); background: #fbfcfa; }
+    .time { position: relative; padding: 10px 10px 0 0; color: #9aa59e; font-size: 10px; text-align: right; }
+    .time strong { display: block; color: #65746c; font-size: 11px; font-weight: 700; }
+    .time span { display: block; margin-top: 1px; }
+    .day-column { display: grid; grid-template-rows: repeat(19, var(--slot-h)); position: relative; border-right: 1px solid var(--line); background: #fff; }
+    .slot { border-bottom: 1px solid var(--line); }
+    .slot:nth-child(2n) { background: rgba(246,249,246,.65); }
+    .course { position: absolute; left: 7px; right: 7px; z-index: 2; min-height: 74px; padding: 10px 10px 9px; overflow: hidden; border: 1px solid transparent; border-left: 3px solid var(--course-accent); border-radius: 8px; background: var(--course-bg); color: var(--course-text); cursor: pointer; text-align: left; transition: transform 170ms var(--ease-out), box-shadow 170ms ease, filter 170ms ease; }
+    .course:hover { z-index: 4; transform: translateY(-2px); box-shadow: 0 8px 18px rgba(24,43,34,.12); filter: saturate(1.05); }
+    .course:active { transform: translateY(0) scale(.985); }
+    .course-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 800; }
+    .course-time { margin-top: 3px; font-size: 10px; font-weight: 650; opacity: .8; }
+    .course-meta { display: flex; gap: 5px; margin-top: 6px; overflow: hidden; color: inherit; font-size: 10px; opacity: .78; white-space: nowrap; text-overflow: ellipsis; }
+    .course-meta svg { width: 12px; height: 12px; flex: 0 0 auto; }
+    .course-type { position: absolute; top: 8px; right: 8px; padding: 2px 5px; border-radius: 4px; background: rgba(255,255,255,.54); font-size: 9px; font-weight: 800; }
+    .type-lecture { --course-bg: #e6f5ec; --course-accent: #40a875; --course-text: #22563d; }
+    .type-lab { --course-bg: #e5efff; --course-accent: #5285d0; --course-text: #294a7a; }
+    .type-online { --course-bg: #f1eaff; --course-accent: #9874d0; --course-text: #563a87; }
+    .type-practice { --course-bg: #fff0c8; --course-accent: #d69527; --course-text: #705018; }
+    .type-discussion { --course-bg: #ffe5dd; --course-accent: #d97658; --course-text: #793c2a; }
+
+    .agenda { display: none; }
+    .empty { display: none; place-items: center; min-height: 430px; color: var(--muted); text-align: center; }
+    .empty svg { width: 26px; height: 26px; margin-bottom: 8px; color: #9aaba1; }
+
+    .drawer-backdrop { position: fixed; inset: 0; z-index: 10; background: rgba(12,24,18,.26); opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
+    .drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 11; width: min(420px, 100vw); padding: 28px; overflow: auto; background: #fff; box-shadow: -15px 0 40px rgba(17,32,24,.12); transform: translateX(100%); transition: transform 260ms var(--ease-out); }
+    .drawer-open .drawer-backdrop { opacity: 1; pointer-events: auto; }
+    .drawer-open .drawer { transform: translateX(0); }
+    .drawer-close { float: right; }
+    .drawer-kicker { clear: both; padding-top: 28px; color: var(--mint-strong); font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .drawer h2 { max-width: 330px; margin: 7px 0 0; font-size: 25px; line-height: 1.15; letter-spacing: -.04em; }
+    .drawer-sub { margin-top: 8px; color: var(--muted); font-size: 12px; }
+    .detail-list { display: grid; gap: 0; margin: 27px 0 0; border-top: 1px solid var(--line); }
+    .detail-row { display: grid; grid-template-columns: 90px 1fr; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
+    .detail-row dt { color: var(--muted); }
+    .detail-row dd { margin: 0; font-weight: 650; }
+    .drawer-note { margin-top: 22px; padding: 12px; border-radius: 8px; background: #f3f7f3; color: #587166; font-size: 11px; }
+
+    .modal-backdrop { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 20px; background: rgba(12,24,18,.32); opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
+    .modal { width: min(500px, 100%); padding: 23px; border-radius: 12px; background: #fff; box-shadow: 0 24px 60px rgba(14,29,21,.22); transform: scale(.96); opacity: 0; transition: transform 200ms var(--ease-out), opacity 160ms ease; }
+    .modal-open .modal-backdrop { opacity: 1; pointer-events: auto; }
+    .modal-open .modal { transform: scale(1); opacity: 1; }
+    .modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+    .modal h2 { margin: 0; font-size: 18px; letter-spacing: -.03em; }
+    .modal p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
+    .dropzone { display: grid; place-items: center; min-height: 190px; margin-top: 22px; border: 1px dashed #b9c9bd; border-radius: 10px; background: #f7faf7; color: var(--muted); text-align: center; }
+    .dropzone svg { width: 25px; height: 25px; margin-bottom: 8px; color: #3b966d; }
+    .dropzone strong { display: block; color: var(--ink); font-size: 13px; }
+    .dropzone span { display: block; margin-top: 4px; font-size: 11px; }
+    .file-input { display: none; }
+    .modal-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+    .secondary-btn { height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: 7px; background: #fff; cursor: pointer; font-size: 12px; font-weight: 650; }
+    .secondary-btn:hover { background: #f5f8f5; }
+
+    @media (max-width: 1080px) {
+      .app { grid-template-columns: 74px minmax(0, 1fr); }
+      .sidebar { align-items: center; padding-inline: 10px; }
+      .brand { padding: 0; }
+      .brand-copy, .nav-label, .nav button span, .storage, .profile-copy { display: none; }
+      .nav { width: 100%; }
+      .nav button { justify-content: center; padding: 12px 0; }
+      .profile { padding: 0; }
+      .topbar { padding-inline: 22px; }
+      .content { padding-inline: 22px; }
+    }
+    @media (max-width: 760px) {
+      :root { --slot-h: 112px; }
+      .app { display: block; }
+      .sidebar { display: flex; flex-direction: row; align-items: center; gap: 14px; height: 58px; padding: 0 14px; }
+      .brand-copy { display: block; }
+      .brand { margin-right: auto; }
+      .nav { display: flex; width: auto; gap: 2px; }
+      .nav button { width: 34px; height: 34px; padding: 0; }
+      .nav button.active { background: rgba(216,243,229,.18); color: #c9f0d9; }
+      .sidebar-foot { display: none; }
+      .topbar { min-height: 58px; padding-inline: 14px; }
+      .top-context { display: none; }
+      .search { width: 100%; max-width: 230px; margin-left: auto; }
+      .import-btn span { display: none; }
+      .import-btn { width: 34px; justify-content: center; padding: 0; }
+      .content { padding: 22px 14px 32px; }
+      .page-head { display: block; }
+      .head-actions { margin-top: 18px; }
+      .pulse-row { grid-template-columns: 1fr; gap: 8px; margin-top: 21px; }
+      .pulse { min-height: 63px; }
+      .toolbar { margin-top: 24px; }
+      .toolbar .subtle { display: none; }
+      .day-strip { gap: 4px; }
+      .day { min-height: 54px; padding: 7px 6px; }
+      .day-name span { display: none; }
+      .day-count { min-width: 19px; height: 19px; }
+      .schedule { grid-template-columns: 48px repeat(7, minmax(0, 1fr)); min-width: 0; }
+      .schedule-scroll { overflow-x: hidden; }
+      .schedule-shell { display: block; }
+      .agenda { display: none; gap: 9px; margin-top: 10px; }
+      .agenda-day { display: grid; gap: 7px; }
+      .agenda-day-title { display: flex; align-items: center; justify-content: space-between; padding: 8px 2px 2px; color: var(--muted); font-size: 11px; font-weight: 750; }
+      .agenda-event { display: grid; grid-template-columns: 58px 1fr; gap: 10px; padding: 12px; border: 1px solid var(--line); border-left: 3px solid var(--course-accent); border-radius: 8px; background: var(--course-bg); cursor: pointer; }
+      .agenda-event .event-time { color: var(--course-text); font-size: 11px; font-weight: 750; }
+      .agenda-event .event-title { color: var(--course-text); font-size: 12px; font-weight: 800; }
+      .agenda-event .event-room { margin-top: 3px; color: var(--course-text); font-size: 10px; opacity: .75; }
+      .course { left: 3px; right: 3px; padding: 7px 6px; }
+      .course-title { overflow: visible; max-height: 62px; font-size: 10px; line-height: 1.2; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; word-break: break-all; }
+      .course-type { position: static; display: block; width: fit-content; margin-top: 4px; padding: 1px 3px; font-size: 8px; line-height: 1.1; }
+      .course-time { margin-top: 4px; font-size: 8px; line-height: 1.15; white-space: normal; overflow-wrap: anywhere; }
+      .course-meta { display: block; margin-top: 4px; font-size: 8px; line-height: 1.15; white-space: normal; overflow: visible; overflow-wrap: anywhere; word-break: break-all; }
+      .course-meta svg { display: inline-block; width: 10px; height: 10px; margin-right: 1px; vertical-align: -1px; }
+    }
+    @media (max-width: 520px) {
+      :root { --slot-h: 128px; }
+      .schedule { grid-template-columns: 38px repeat(7, minmax(0, 1fr)); min-width: 0; }
+      .schedule-scroll { overflow-x: hidden; }
+      .head-cell { font-size: 9px; }
+      .head-cell:first-child { font-size: 8px; }
+      .time { padding-right: 3px; font-size: 8px; }
+      .time strong { font-size: 9px; }
+      .time span { font-size: 8px; }
+      .course { left: 2px; right: 2px; padding: 5px 4px; border-left-width: 2px; border-radius: 5px; }
+      .course-title { overflow: visible; max-height: 49px; font-size: 8px; line-height: 1.18; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; word-break: break-all; }
+      .course-type { position: static; display: block; width: fit-content; margin-top: 3px; padding: 1px 2px; font-size: 7px; line-height: 1.1; }
+      .course-time { margin-top: 3px; font-size: 7px; line-height: 1.15; white-space: normal; overflow-wrap: anywhere; }
+      .course-meta { display: block; margin-top: 3px; font-size: 7px; line-height: 1.15; white-space: normal; overflow: visible; overflow-wrap: anywhere; word-break: break-all; }
+      .course-meta svg { display: inline-block; width: 8px; height: 8px; margin-right: 1px; vertical-align: -1px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="主导航">
+      <div class="brand">
+        <div class="brand-mark">WMU</div>
+        <div class="brand-copy"><div class="brand-name">WMU Schedule</div><div class="brand-caption">你的校园时间表</div></div>
+      </div>
+      <div>
+        <div class="nav-label">Workspace</div>
+        <nav class="nav">
+          <button class="active" type="button"><i data-lucide="calendar-days"></i><span>我的课表</span></button>
+          <button type="button"><i data-lucide="list-todo"></i><span>课程清单</span></button>
+          <button type="button"><i data-lucide="bookmark"></i><span>收藏课程</span></button>
+        </nav>
+      </div>
+      <div>
+        <div class="nav-label">Manage</div>
+        <nav class="nav">
+          <button type="button"><i data-lucide="settings-2"></i><span>偏好设置</span></button>
+          <button type="button"><i data-lucide="circle-help"></i><span>帮助</span></button>
+        </nav>
+      </div>
+      <div class="sidebar-foot">
+        <div class="storage"><div class="storage-row"><span>本地存储</span><strong>34%</strong></div><div class="meter"><i></i></div></div>
+        <div class="profile"><div class="avatar">黄</div><div class="profile-copy"><div class="profile-name">我的课表</div><div class="profile-sub">本地数据 · 已同步</div></div></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="top-context"><strong>2026–2027 学年第 1 学期</strong><span>最后更新：今天 09:42</span></div>
+        <div class="top-spacer"></div>
+        <label class="search"><i data-lucide="search"></i><input id="searchInput" type="search" placeholder="搜索课程、教师或教室" aria-label="搜索课程"></label>
+        <button class="icon-btn" type="button" title="切换主题" aria-label="切换主题" id="themeButton"><i data-lucide="sun"></i></button>
+        <button class="import-btn" type="button" id="importButton"><i data-lucide="file-up"></i><span>导入 PDF</span></button>
+      </header>
+
+      <div class="content">
+        <section class="page-head">
+          <div>
+            <div class="eyebrow"><i></i> Tuesday, August 15</div>
+            <h1>我的课表</h1>
+            <p class="head-note">这一周有 17 节课，安排得刚刚好。</p>
+          </div>
+          <div class="head-actions">
+            <button class="today-btn" id="todayButton" type="button">回到今天</button>
+            <div class="week-switch" aria-label="切换周次"><button id="prevWeek" type="button" title="上一周" aria-label="上一周"><i data-lucide="chevron-left"></i></button><span class="week-value" id="weekValue">第 03 周</span><button id="nextWeek" type="button" title="下一周" aria-label="下一周"><i data-lucide="chevron-right"></i></button></div>
+          </div>
+        </section>
+
+        <section class="pulse-row" aria-label="今日概览">
+          <div class="pulse primary"><div class="pulse-icon"><i data-lucide="clock-3"></i></div><div class="pulse-copy"><div class="pulse-label">下一节课 · 10:10</div><div class="pulse-value">数据库原理与应用 · 求知楼 204</div></div></div>
+          <div class="pulse"><div class="pulse-icon"><i data-lucide="layers-2"></i></div><div class="pulse-copy"><div class="pulse-label">本周课程</div><div class="pulse-value">17 节 · 26.5 学分</div></div></div>
+          <div class="pulse"><div class="pulse-icon"><i data-lucide="map-pin"></i></div><div class="pulse-copy"><div class="pulse-label">今天最常去</div><div class="pulse-value">滨海校区 · 求知楼</div></div></div>
+        </section>
+
+        <section class="toolbar"><div><h2>周视图</h2><span class="subtle">2026 年 09 月 14 日 — 09 月 20 日</span></div><div class="toolbar-spacer"></div><div class="view-toggle" role="group" aria-label="视图切换"><button class="active" id="weekViewButton" type="button"><i data-lucide="table-2"></i>周视图</button><button id="listViewButton" type="button"><i data-lucide="list"></i>列表</button></div></section>
+
+        <section class="day-strip" id="dayStrip" aria-label="选择日期"></section>
+        <section class="schedule-shell" id="scheduleShell"><div class="schedule-scroll"><div class="schedule" id="schedule"></div></div><div class="empty" id="emptyState"><div><i data-lucide="calendar-off"></i><div>没有匹配的课程</div></div></div></section>
+        <section class="agenda" id="agenda" aria-label="课程列表"></section>
+      </div>
+    </main>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="drawer" id="drawer" aria-label="课程详情" aria-hidden="true"><button class="icon-btn drawer-close" id="drawerClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button><div class="drawer-kicker" id="drawerKicker">课程详情</div><h2 id="drawerTitle">课程名称</h2><p class="drawer-sub" id="drawerSub">周二 · 第 1–2 节</p><dl class="detail-list"><div class="detail-row"><dt>上课时间</dt><dd id="detailTime">08:00–09:25</dd></div><div class="detail-row"><dt>上课地点</dt><dd id="detailRoom">滨海校区 · 求知楼</dd></div><div class="detail-row"><dt>任课教师</dt><dd id="detailTeacher">教师姓名</dd></div><div class="detail-row"><dt>周次</dt><dd id="detailWeeks">第 1–16 周</dd></div><div class="detail-row"><dt>课程类型</dt><dd id="detailType">讲课</dd></div></dl><div class="drawer-note">课程数据保存在本地浏览器中。导入新的 PDF 后，可以继续手动修正课程信息。</div></aside>
+
+  <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>选择教务系统导出的课表文件。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><label class="dropzone" for="fileInput"><i data-lucide="upload-cloud"></i><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button"><i data-lucide="scan-line"></i><span>开始识别</span></button></div></section></div>
+
+  <script>
+    const DAYS = [
+      { key: 1, name: '周一', date: '09/14' }, { key: 2, name: '周二', date: '09/15' },
+      { key: 3, name: '周三', date: '09/16' }, { key: 4, name: '周四', date: '09/17' },
+      { key: 5, name: '周五', date: '09/18' }, { key: 6, name: '周六', date: '09/19' },
+      { key: 7, name: '周日', date: '09/20' }
+    ];
+    const PERIOD_COUNT = 19;
+    const formatClock = (minutes) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+    const buildPeriods = (startMinutes) => Array.from({ length: PERIOD_COUNT }, (_, index) => {
+      const start = startMinutes + index * 45;
+      return [formatClock(start), formatClock(start + 40)];
+    });
+    const CAMPUS_PERIODS = {
+      '茶山校区': buildPeriods(8 * 60),
+      '学院路校区': buildPeriods(8 * 60),
+      '滨海校区': buildPeriods(8 * 60 + 30),
+      '线上': buildPeriods(8 * 60 + 30)
+    };
+    const PERIODS = CAMPUS_PERIODS['滨海校区'];
+    const EVENTS = [
+      { day: 1, start: 1, end: 2, title: '云计算基础', type: 'lecture', label: '讲课', room: '求知楼 204', campus: '滨海校区', teacher: '冯振', weeks: '第 1–16 周', credit: '2.5' },
+      { day: 1, start: 3, end: 4, title: '概率论及数理统计', type: 'lecture', label: '讲课', room: '求知楼 301', campus: '滨海校区', teacher: '韩艳敏', weeks: '第 1–16 周', credit: '2.5' },
+      { day: 2, start: 1, end: 2, title: '数据库原理与应用', type: 'lecture', label: '讲课', room: '求知楼 204', campus: '滨海校区', teacher: '刘丽娜', weeks: '第 1–3、5–8 周', credit: '2.5' },
+      { day: 2, start: 3, end: 4, title: '管理学原理', type: 'lecture', label: '讲课', room: '求知楼 206', campus: '滨海校区', teacher: '叶俊', weeks: '第 1–16 周', credit: '3.0' },
+      { day: 2, start: 5, end: 6, title: '形势与政策', type: 'online', label: '在线', room: '学习通', campus: '线上', teacher: '陈赛虎', weeks: '第 8 周', credit: '2.0' },
+      { day: 3, start: 1, end: 2, title: '计算机网络与应用', type: 'lecture', label: '讲课', room: '求知楼 108', campus: '滨海校区', teacher: '叶晰', weeks: '第 1–8 周', credit: '2.5' },
+      { day: 3, start: 3, end: 5, title: '毛泽东思想和中国特色社会主义理论体系概论', type: 'lecture', label: '讲课', room: '求知楼 105', campus: '滨海校区', teacher: '纪欣农', weeks: '第 1–17 周', credit: '3.0' },
+      { day: 4, start: 1, end: 2, title: '概率论及数理统计', type: 'lab', label: '实验', room: '线上课堂', campus: '滨海校区', teacher: '韩艳敏', weeks: '第 3、9、12 周', credit: '2.5' },
+      { day: 4, start: 3, end: 4, title: '人工智能基础', type: 'lecture', label: '讲课', room: '求知楼 401', campus: '滨海校区', teacher: '纪欣农', weeks: '第 1–10 周', credit: '2.0' },
+      { day: 5, start: 1, end: 2, title: '数据库原理与应用', type: 'lab', label: '实验', room: '6114 计算机机房', campus: '滨海校区', teacher: '刘丽娜', weeks: '第 11–16 周', credit: '2.5' },
+      { day: 5, start: 3, end: 4, title: '课程设计（内部对象应用）', type: 'practice', label: '实践', room: '6114 计算机机房', campus: '滨海校区', teacher: '刘丽娜', weeks: '第 11–16 周', credit: '1.5' },
+      { day: 5, start: 5, end: 6, title: '习近平新时代中国特色社会主义思想概论', type: 'online', label: '在线', room: '在线学习', campus: '线上', teacher: '刘小卫', weeks: '第 7 周', credit: '3.0' },
+      { day: 6, start: 2, end: 3, title: '习近平新时代中国特色社会主义思想概论', type: 'discussion', label: '讨论', room: '在线学习', campus: '线上', teacher: '谢海霞', weeks: '第 8 周', credit: '3.0' },
+      { day: 7, start: 1, end: 2, title: '管理学原理', type: 'lecture', label: '讲课', room: '线上课堂', campus: '滨海校区', teacher: '叶俊', weeks: '第 3 周', credit: '3.0' }
+    ];
+    const state = { week: 3, day: 2, query: '', list: false };
+    const $ = (id) => document.getElementById(id);
+    const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    const visibleEvents = () => EVENTS.filter((event) => !state.query || `${event.title} ${event.teacher} ${event.room}`.toLowerCase().includes(state.query.toLowerCase()));
+    const timeLabel = (event) => {
+      const periods = CAMPUS_PERIODS[event.campus] || CAMPUS_PERIODS['滨海校区'];
+      return `${periods[event.start - 1][0]}–${periods[event.end - 1][1]}`;
+    };
+
+    function renderDays() {
+      $('dayStrip').innerHTML = DAYS.map((day) => {
+        const count = visibleEvents().filter((event) => event.day === day.key).length;
+        return `<button class="day ${state.day === day.key ? 'active' : ''} ${day.key === 2 ? 'today' : ''}" data-day="${day.key}" type="button"><span class="day-name"><b>${day.name}</b><span>${day.date}</span></span><span class="day-count">${count}</span></button>`;
+      }).join('');
+      document.querySelectorAll('[data-day]').forEach((button) => button.addEventListener('click', () => { state.day = Number(button.dataset.day); renderAll(); }));
+    }
+
+    function renderSchedule() {
+      const events = visibleEvents();
+      const slotHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slot-h')) || 92;
+      const head = `<div class="schedule-head"><div class="head-cell">节次</div>${DAYS.map((day) => `<div class="head-cell ${state.day === day.key ? 'focus' : ''}">${day.name}</div>`).join('')}</div>`;
+      const axis = `<div class="time-axis">${PERIODS.map((period, index) => `<div class="time"><strong>${index + 1}</strong><span>第 ${index + 1} 节</span></div>`).join('')}</div>`;
+      const columns = DAYS.map((day) => `<div class="day-column" data-column="${day.key}">${PERIODS.map(() => '<div class="slot"></div>').join('')}${events.filter((event) => event.day === day.key).map((event) => `<button class="course type-${event.type}" data-event="${EVENTS.indexOf(event)}" style="top:${(event.start - 1) * slotHeight + 7}px;height:${(event.end - event.start + 1) * slotHeight - 14}px" type="button"><span class="course-title">${escapeHtml(event.title)}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-meta"><i data-lucide="map-pin"></i>${escapeHtml(event.room + ' · ' + event.teacher)}</span></button>`).join('')}</div>`).join('');
+      $('schedule').innerHTML = `${head}<div class="schedule-body">${axis}${columns}</div>`;
+      $('emptyState').style.display = events.length ? 'none' : 'grid';
+      document.querySelectorAll('[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(EVENTS[Number(button.dataset.event)])));
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function renderAgenda() {
+      const events = visibleEvents();
+      $('agenda').innerHTML = DAYS.filter((day) => events.some((event) => event.day === day.key)).map((day) => `<section class="agenda-day"><div class="agenda-day-title"><span>${day.name} · ${day.date}</span><span>${events.filter((event) => event.day === day.key).length} 节</span></div>${events.filter((event) => event.day === day.key).map((event) => `<button class="agenda-event type-${event.type}" data-event="${EVENTS.indexOf(event)}" type="button"><span class="event-time">${timeLabel(event)}</span><span><span class="event-title">${escapeHtml(event.title)}</span><span class="event-room">${escapeHtml(event.room)} · ${escapeHtml(event.teacher)}</span></span></button>`).join('')}</section>`).join('') || '<div class="empty" style="display:grid"><div>没有匹配的课程</div></div>';
+      document.querySelectorAll('.agenda-event[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(EVENTS[Number(button.dataset.event)])));
+    }
+
+    function renderAll() {
+      $('weekValue').textContent = `第 ${String(state.week).padStart(2, '0')} 周`;
+      renderDays();
+      renderSchedule();
+      renderAgenda();
+      document.body.classList.toggle('list-mode', state.list);
+      $('scheduleShell').style.display = state.list ? 'none' : '';
+      $('agenda').style.display = state.list ? 'grid' : '';
+      $('weekViewButton').classList.toggle('active', !state.list);
+      $('listViewButton').classList.toggle('active', state.list);
+    }
+
+    function openDrawer(event) {
+      $('drawerTitle').textContent = event.title;
+      $('drawerSub').textContent = `${DAYS[event.day - 1].name} · 第 ${event.start}–${event.end} 节`;
+      $('detailTime').textContent = timeLabel(event);
+      $('detailRoom').textContent = `${event.campus} · ${event.room}`;
+      $('detailTeacher').textContent = event.teacher;
+      $('detailWeeks').textContent = event.weeks;
+      $('detailType').textContent = `${event.label} · ${event.credit} 学分`;
+      document.body.classList.add('drawer-open');
+      $('drawer').setAttribute('aria-hidden', 'false');
+    }
+    function closeDrawer() { document.body.classList.remove('drawer-open'); $('drawer').setAttribute('aria-hidden', 'true'); }
+    function openModal() { document.body.classList.add('modal-open'); }
+    function closeModal() { document.body.classList.remove('modal-open'); }
+
+    $('prevWeek').addEventListener('click', () => { state.week = Math.max(1, state.week - 1); renderAll(); });
+    $('nextWeek').addEventListener('click', () => { state.week = Math.min(18, state.week + 1); renderAll(); });
+    $('todayButton').addEventListener('click', () => { state.week = 3; state.day = 2; renderAll(); });
+    $('weekViewButton').addEventListener('click', () => { state.list = false; renderAll(); });
+    $('listViewButton').addEventListener('click', () => { state.list = true; renderAll(); });
+    $('searchInput').addEventListener('input', (event) => { state.query = event.target.value.trim(); renderAll(); });
+    $('drawerClose').addEventListener('click', closeDrawer);
+    $('drawerBackdrop').addEventListener('click', closeDrawer);
+    $('importButton').addEventListener('click', openModal);
+    $('modalClose').addEventListener('click', closeModal);
+    $('modalCancel').addEventListener('click', closeModal);
+    $('fileInput').addEventListener('change', (event) => { $('fileName').textContent = event.target.files[0]?.name || '支持拖放，文件仅在本地处理'; });
+    $('confirmImport').addEventListener('click', () => { closeModal(); alert('PDF 解析入口已准备好，下一步接入课表解析器。'); });
+    $('themeButton').addEventListener('click', () => document.documentElement.classList.toggle('warm-mode'));
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { closeDrawer(); closeModal(); } });
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(renderAll, 90);
+    });
+
+    if (window.lucide) lucide.createIcons();
+    renderAll();
+  </script>
+</body>
+</html>

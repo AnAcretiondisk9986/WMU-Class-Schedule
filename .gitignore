@@ -1,0 +1,5 @@
+node_modules/
+.pnpm-store/
+.reasonix/
+test/fixtures/*.pdf
+!test/fixtures/.gitkeep

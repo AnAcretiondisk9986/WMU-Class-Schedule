@@ -1,0 +1,382 @@
+const ACTIVITY_TYPES = Object.freeze({
+  "□": "independent",
+  "▲": "online",
+  "◆": "lecture",
+  "◇": "lab",
+  "●": "discussion",
+  "#": "practice"
+});
+
+const ACTIVITY_LABELS = Object.freeze({
+  independent: "自主学习",
+  online: "在线",
+  lecture: "讲课",
+  lab: "实验",
+  discussion: "讨论",
+  practice: "实践"
+});
+
+const DAY_CHARS = Object.freeze(["一", "二", "三", "四", "五", "六", "日"]);
+const FIELD_NAMES = Object.freeze([
+  "校区",
+  "场地",
+  "教师",
+  "教学班",
+  "教学班组成",
+  "考核方式",
+  "选课备注",
+  "课程学时组成",
+  "周学时",
+  "总学时",
+  "学分"
+]);
+
+function asText(value) {
+  return String(value ?? "")
+    .replace(/\u00a0/g, " ")
+    .replace(/\r\n?/g, "\n");
+}
+
+function compact(value) {
+  return asText(value)
+    .replace(/[\u3000\t ]+/g, " ")
+    .replace(/\s*\n\s*/g, "")
+    .trim();
+}
+
+function unique(values) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function toFiniteNumber(value) {
+  if (value === "" || value == null) return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+export function parseWeekRanges(value) {
+  const ranges = [];
+  const source = compact(value).replace(/[，；;]/g, ",");
+  const pattern = /(\d{1,2})(?:\s*-\s*(\d{1,2}))?周(?:\((单|双)\))?/g;
+
+  for (const match of source.matchAll(pattern)) {
+    ranges.push({
+      start: Number(match[1]),
+      end: Number(match[2] ?? match[1]),
+      parity: match[3] === "单" ? "odd" : match[3] === "双" ? "even" : "all"
+    });
+  }
+
+  return ranges;
+}
+
+function parseFields(value) {
+  const source = compact(value);
+  const fields = {};
+  const labelPattern = FIELD_NAMES.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+  const pattern = new RegExp(`(?:^|/)(${labelPattern})\\s*[:：]`, "g");
+  const matches = [...source.matchAll(pattern)];
+
+  matches.forEach((match, index) => {
+    const start = match.index + match[0].length;
+    const end = index + 1 < matches.length ? matches[index + 1].index : source.length;
+    fields[match[1]] = source.slice(start, end).replace(/^\/+|\/+$/g, "").trim();
+  });
+
+  return fields;
+}
+
+function courseCodeFromClassName(className) {
+  const match = /\b(NN\d{6}-\d{6}-\d+)\b/i.exec(className ?? "");
+  return match ? match[1].toUpperCase() : "";
+}
+
+function cleanCourseName(value) {
+  return compact(value)
+    .replace(/^星期[一二三四五六日天]/, "")
+    .replace(/^(?:上午|中午|下午|晚上)/, "")
+    .replace(/^\d{1,2}/, "")
+    .trim();
+}
+
+function scheduleMatchAfter(source, markerEnd) {
+  const tail = source.slice(markerEnd);
+  return /^\s*\((\d{1,2})(?:\s*-\s*(\d{1,2}))?节\)\s*([^/]+)/.exec(tail);
+}
+
+function parseColumn(source, weekday, warnings) {
+  const text = asText(source);
+  const markers = [...text.matchAll(/[□▲◆◇●#]/g)];
+  const events = [];
+  let previousEventEnd = 0;
+
+  for (let index = 0; index < markers.length; index += 1) {
+    const marker = markers[index];
+    const schedule = scheduleMatchAfter(text, marker.index + marker[0].length);
+    if (!schedule) continue;
+
+    const nextMarkerIndex = index + 1 < markers.length ? markers[index + 1].index : text.length;
+    const remainder = text.slice(marker.index + marker[0].length);
+    const credit = /\/学\s*分\s*[:：]\s*(\d+(?:\.\d+)?)/.exec(remainder);
+    const relativeEnd = credit ? credit.index + credit[0].length : nextMarkerIndex - marker.index - marker[0].length;
+    const eventEnd = marker.index + marker[0].length + relativeEnd;
+    const title = cleanCourseName(text.slice(previousEventEnd, marker.index));
+
+    if (!title) {
+      // A PDF page can begin with the schedule marker of a course title that
+      // was drawn at the bottom of the previous page. Treat it as a
+      // continuation instead of manufacturing a warning or a bogus course.
+      previousEventEnd = eventEnd;
+      continue;
+    }
+
+    const raw = compact(text.slice(marker.index + marker[0].length, eventEnd));
+    const fields = parseFields(raw);
+    const activity = ACTIVITY_TYPES[marker[0]];
+    const weekRanges = parseWeekRanges(schedule[3]);
+
+    if (weekRanges.length === 0) {
+      warnings.push(`「${title}」未识别到周次`);
+    }
+
+    events.push({
+      courseName: title,
+      weekday,
+      activity,
+      activityLabel: ACTIVITY_LABELS[activity],
+      periods: {
+        start: Number(schedule[1]),
+        end: Number(schedule[2] ?? schedule[1])
+      },
+      weeks: weekRanges,
+      campus: fields["校区"] ?? "",
+      room: fields["场地"] ?? "",
+      teacher: fields["教师"] ?? "",
+      className: fields["教学班"] ?? "",
+      classComposition: fields["教学班组成"] ?? "",
+      assessment: fields["考核方式"] ?? "",
+      note: fields["选课备注"] ?? "",
+      courseHours: fields["课程学时组成"] ?? "",
+      weeklyHours: toFiniteNumber(fields["周学时"]),
+      totalHours: toFiniteNumber(fields["总学时"]),
+      credit: toFiniteNumber(fields["学分"]),
+      courseCode: courseCodeFromClassName(fields["教学班"]),
+      raw
+    });
+
+    previousEventEnd = eventEnd;
+  }
+
+  return events;
+}
+
+function itemPosition(item) {
+  const transform = item?.transform;
+  return {
+    x: Number(transform?.[4] ?? item?.x ?? 0),
+    y: Number(transform?.[5] ?? item?.y ?? 0)
+  };
+}
+
+function pageWidth(page) {
+  return Number(page?.width ?? page?.viewport?.width ?? 842);
+}
+
+function pageHeight(page) {
+  return Number(page?.height ?? page?.viewport?.height ?? 595);
+}
+
+function findColumnAnchors(pages) {
+  const found = new Map();
+
+  for (const page of pages) {
+    for (const item of page.items ?? []) {
+      const text = compact(item.str ?? item.text);
+      const match = /^星期([一二三四五六日天])$/.exec(text);
+      if (!match) continue;
+      const weekday = match[1] === "天" ? 7 : DAY_CHARS.indexOf(match[1]) + 1;
+      if (!found.has(weekday)) found.set(weekday, itemPosition(item));
+    }
+  }
+
+  if (found.size === 7) {
+    const positions = [...found.values()];
+    const xSpread = Math.max(...positions.map(position => position.x)) - Math.min(...positions.map(position => position.x));
+    const ySpread = Math.max(...positions.map(position => position.y)) - Math.min(...positions.map(position => position.y));
+    const axis = ySpread > xSpread ? "y" : "x";
+    return { axis, values: DAY_CHARS.map((_, index) => found.get(index + 1)[axis]) };
+  }
+
+  const rotated = pageHeight(pages[0]) > pageWidth(pages[0]);
+  const dimension = rotated ? pageHeight(pages[0]) : pageWidth(pages[0]);
+  return {
+    axis: rotated ? "y" : "x",
+    values: [0.1236, 0.2469, 0.3703, 0.4936, 0.617, 0.7403, 0.8637]
+      .map(ratio => ratio * dimension)
+  };
+}
+
+function weekdayForPosition(position, anchors) {
+  const values = anchors.values;
+  const value = position[anchors.axis];
+  const gap = values.length > 1 ? values[1] - values[0] : 100;
+  for (let index = 0; index < values.length; index += 1) {
+    const start = index === 0 ? values[index] - gap / 2 : (values[index - 1] + values[index]) / 2;
+    const end = index + 1 < values.length ? (values[index] + values[index + 1]) / 2 : values[index] + gap / 2;
+    if (value >= start && value < end) return index + 1;
+  }
+  return null;
+}
+
+function columnTextForPage(page, weekday, anchors) {
+  const rows = [];
+  const items = (page.items ?? [])
+    .map(item => ({ item, ...itemPosition(item) }))
+    .filter(entry => compact(entry.item.str ?? entry.item.text))
+    .filter(entry => weekdayForPosition(entry, anchors));
+
+  if (anchors.axis === "y") {
+    return items
+      .filter(entry => weekdayForPosition(entry, anchors) === weekday)
+      .sort((a, b) => a.x - b.x || a.y - b.y)
+      .map(entry => entry.item.str ?? entry.item.text)
+      .join("\n");
+  }
+
+  const orderedItems = items
+    .filter(entry => weekdayForPosition(entry, anchors) === weekday)
+    .sort((a, b) => b.y - a.y || a.x - b.x);
+
+  for (const entry of orderedItems) {
+    let row = rows.find(candidate => Math.abs(candidate.y - entry.y) <= 2);
+    if (!row) {
+      row = { y: entry.y, items: [] };
+      rows.push(row);
+    }
+    row.items.push(entry);
+  }
+
+  return rows
+    .sort((a, b) => b.y - a.y)
+    .map(row => row.items.sort((a, b) => a.x - b.x).map(entry => entry.item.str ?? entry.item.text).join(""))
+    .join("\n");
+}
+
+function parseDocumentIdentity(pages) {
+  const text = pages.flatMap(page => page.items ?? []).map(item => item.str ?? item.text ?? "").join("\n");
+  const semester = /(\d{4})\s*-\s*(\d{4})\s*学年\s*第?\s*([12])\s*学期/.exec(text);
+  const studentId = /学号\s*[:：]\s*([A-Za-z0-9-]+)/.exec(text);
+  const studentName = /([^\s]{2,12})课表/.exec(text);
+
+  return {
+    semester: semester ? `${semester[1]}-${semester[2]}-${semester[3]}` : "",
+    student: {
+      name: studentName?.[1] ?? "",
+      id: studentId?.[1] ?? ""
+    }
+  };
+}
+
+function mergeCourses(events) {
+  const courses = new Map();
+
+  for (const event of events) {
+    const key = event.courseName.toLowerCase();
+    let course = courses.get(key);
+    if (!course) {
+      course = {
+        name: event.courseName,
+        credit: event.credit,
+        score: "",
+        scale: "percent",
+        type: "",
+        courseCode: event.courseCode,
+        teachers: [],
+        campuses: [],
+        assessments: [],
+        events: []
+      };
+      courses.set(key, course);
+    }
+
+    if (course.credit == null && event.credit != null) course.credit = event.credit;
+    if (!course.courseCode && event.courseCode) course.courseCode = event.courseCode;
+    course.teachers = unique([...course.teachers, event.teacher]);
+    course.campuses = unique([...course.campuses, event.campus]);
+    course.assessments = unique([...course.assessments, event.assessment]);
+    course.events.push(event);
+  }
+
+  return [...courses.values()];
+}
+
+export function parseTimetablePages(pages) {
+  if (!Array.isArray(pages) || pages.length === 0) {
+    throw new TypeError("pages 必须是非空的 PDF.js 页面文本数组");
+  }
+
+  const warnings = [];
+  const anchors = findColumnAnchors(pages);
+  const events = [];
+
+  for (let weekday = 1; weekday <= 7; weekday += 1) {
+    const columnText = pages.map(page => columnTextForPage(page, weekday, anchors)).join("\n");
+    events.push(...parseColumn(columnText, weekday, warnings));
+  }
+
+  if (events.length === 0) {
+    throw new Error("未在 PDF 页面中识别到课程记录");
+  }
+
+  const identity = parseDocumentIdentity(pages);
+  return {
+    ...identity,
+    courses: mergeCourses(events),
+    events,
+    warnings
+  };
+}
+
+export async function extractPdfPages(fileOrData, pdfjsLib, pdfOptions = {}) {
+  if (!pdfjsLib || typeof pdfjsLib.getDocument !== "function") {
+    throw new TypeError("需要传入 PDF.js 模块");
+  }
+
+  let data;
+  if (fileOrData instanceof Uint8Array) data = fileOrData;
+  else if (fileOrData instanceof ArrayBuffer) data = new Uint8Array(fileOrData);
+  else if (fileOrData && typeof fileOrData.arrayBuffer === "function") {
+    data = new Uint8Array(await fileOrData.arrayBuffer());
+  } else {
+    throw new TypeError("fileOrData 必须是 File、ArrayBuffer 或 Uint8Array");
+  }
+
+  const pdf = await pdfjsLib.getDocument({ ...pdfOptions, data }).promise;
+  const pages = [];
+
+  for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+    const page = await pdf.getPage(pageNumber);
+    const viewport = page.getViewport({ scale: 1 });
+    const content = await page.getTextContent();
+    pages.push({
+      pageNumber,
+      width: viewport.width,
+      height: viewport.height,
+      items: content.items.map(item => ({
+        str: item.str ?? "",
+        transform: item.transform,
+        width: item.width,
+        height: item.height,
+        hasEOL: item.hasEOL
+      }))
+    });
+  }
+
+  return pages;
+}
+
+export async function parseTimetablePdf(fileOrData, pdfjsLib, pdfOptions = {}) {
+  return parseTimetablePages(await extractPdfPages(fileOrData, pdfjsLib, pdfOptions));
+}
+
+export const activityTypes = ACTIVITY_TYPES;
