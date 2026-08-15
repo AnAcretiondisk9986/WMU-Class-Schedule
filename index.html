@@ -473,6 +473,15 @@
       const periods = CAMPUS_PERIODS[event.campus] || CAMPUS_PERIODS['滨海校区'];
       return `${periods[event.start - 1][0]}–${periods[event.end - 1][1]}`;
     };
+    const truncateTitle = (title) => (title.length > 9 ? `${title.slice(0, 9)}..` : title);
+    const timeGroups = () => {
+      const campuses = new Set(EVENTS.map((event) => event.campus));
+      const hasTea = campuses.has('茶山校区') || campuses.has('学院路校区');
+      const hasBin = campuses.has('滨海校区');
+      if (hasTea && hasBin) return [{ label: '茶山/学院路', key: '茶山校区' }, { label: '滨海', key: '滨海校区' }];
+      if (hasBin) return [{ label: '滨海', key: '滨海校区' }];
+      return [{ label: '茶山/学院路', key: '茶山校区' }];
+    };
 
     function renderDays() {
       const days = dayInfo(state.week);
@@ -490,13 +499,13 @@
       const days = dayInfo(state.week);
       const events = visibleEvents();
       const slotHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slot-h')) || 92;
-      const head = `<div class="schedule-head"><div class="head-cell" title="时间轴上行为茶山/学院路，下行为滨海"><span class="axis-head"><b>节次</b><small>茶山/学院路<br>滨海</small></span></div>${days.map((day) => `<div class="head-cell ${state.day === day.key ? 'focus' : ''}">${day.name}</div>`).join('')}</div>`;
+      const groups = timeGroups();
+      const head = `<div class="schedule-head"><div class="head-cell" title="时间轴单位：${groups.map((g) => g.label).join('、')}"><span class="axis-head"><b>节次</b><small>${groups.map((g) => g.label).join('<br>')}</small></span></div>${days.map((day) => `<div class="head-cell ${state.day === day.key ? 'focus' : ''}">${day.name}</div>`).join('')}</div>`;
       const axis = `<div class="time-axis">${Array.from({ length: PERIOD_COUNT }, (_, index) => {
-        const tea = CAMPUS_PERIODS['茶山校区'][index][0];
-        const bin = CAMPUS_PERIODS['滨海校区'][index][0];
-        return `<div class="time" title="茶山/学院路 ${tea}；滨海 ${bin}"><strong>${index + 1}</strong><span>第 ${index + 1} 节</span><span class="time-points"><span>${tea}</span><span>${bin}</span></span></div>`;
+        const points = groups.map((g) => CAMPUS_PERIODS[g.key][index][0]);
+        return `<div class="time" title="${groups.map((g) => `${g.label} ${CAMPUS_PERIODS[g.key][index][0]}`).join('；')}"><strong>${index + 1}</strong><span>第 ${index + 1} 节</span><span class="time-points">${points.map((t) => `<span>${t}</span>`).join('')}</span></div>`;
       }).join('')}</div>`;
-      const columns = days.map((day) => `<div class="day-column" data-column="${day.key}">${Array.from({ length: PERIOD_COUNT }, () => '<div class="slot"></div>').join('')}${events.filter((event) => event.day === day.key).map((event) => `<button class="course type-${event.type}" data-event="${EVENTS.indexOf(event)}" style="top:${(event.start - 1) * slotHeight + 7}px;height:${(event.end - event.start + 1) * slotHeight - 14}px" type="button"><span class="course-title">${escapeHtml(event.title)}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room"><i data-lucide="map-pin"></i>${escapeHtml(event.room)}</span><span class="course-meta">${escapeHtml(event.campus)} · ${escapeHtml(event.teacher)}</span></button>`).join('')}</div>`).join('');
+      const columns = days.map((day) => `<div class="day-column" data-column="${day.key}">${Array.from({ length: PERIOD_COUNT }, () => '<div class="slot"></div>').join('')}${events.filter((event) => event.day === day.key).map((event) => `<button class="course type-${event.type}" data-event="${EVENTS.indexOf(event)}" style="top:${(event.start - 1) * slotHeight + 7}px;height:${(event.end - event.start + 1) * slotHeight - 14}px" type="button" title="${escapeHtml(event.title)}"><span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room"><i data-lucide="map-pin"></i>${escapeHtml(event.room)}</span><span class="course-meta">${escapeHtml(event.campus)} · ${escapeHtml(event.teacher)}</span></button>`).join('')}</div>`).join('');
       $('schedule').innerHTML = `${head}<div class="schedule-body">${axis}${columns}</div>`;
       $('emptyState').style.display = events.length ? 'none' : 'grid';
       document.querySelectorAll('[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(EVENTS[Number(button.dataset.event)])));
@@ -507,7 +516,7 @@
       const days = dayInfo(state.week);
       const events = visibleEvents();
       const isFavorites = state.view === 'favorites';
-      $('agenda').innerHTML = days.filter((day) => events.some((event) => event.day === day.key)).map((day) => `<section class="agenda-day"><div class="agenda-day-title"><span>${isFavorites ? day.name : `${day.name} · ${day.date}`}</span><span>${events.filter((event) => event.day === day.key).length} 节</span></div>${events.filter((event) => event.day === day.key).map((event) => `<button class="agenda-event type-${event.type}" data-event="${EVENTS.indexOf(event)}" type="button"><span class="event-time">${timeLabel(event)}</span><span><span class="event-title">${escapeHtml(event.title)}</span><span class="event-room">${escapeHtml(event.room)} · ${escapeHtml(event.teacher)}${isFavorites ? ' · ' + weeksLabel(event.weeks) : ''}</span></span></button>`).join('')}</section>`).join('') || '<div class="empty" style="display:grid"><div>没有匹配的课程</div></div>';
+      $('agenda').innerHTML = days.filter((day) => events.some((event) => event.day === day.key)).map((day) => `<section class="agenda-day"><div class="agenda-day-title"><span>${isFavorites ? day.name : `${day.name} · ${day.date}`}</span><span>${events.filter((event) => event.day === day.key).length} 节</span></div>${events.filter((event) => event.day === day.key).map((event) => `<button class="agenda-event type-${event.type}" data-event="${EVENTS.indexOf(event)}" type="button"><span class="event-time">${timeLabel(event)}</span><span><span class="event-title">${escapeHtml(truncateTitle(event.title))}</span><span class="event-room">${escapeHtml(event.room)} · ${escapeHtml(event.teacher)}${isFavorites ? ' · ' + weeksLabel(event.weeks) : ''}</span></span></button>`).join('')}</section>`).join('') || '<div class="empty" style="display:grid"><div>没有匹配的课程</div></div>';
       document.querySelectorAll('.agenda-event[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(EVENTS[Number(button.dataset.event)])));
     }
 
