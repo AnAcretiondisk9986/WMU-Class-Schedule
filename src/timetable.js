@@ -325,8 +325,8 @@ function rangeHasWeek(range, week) {
 
 function weeksOverlap(first, second) {
   if (!first?.length || !second?.length) return false;
-  const start = Math.max(...first.map(range => range.start));
-  const end = Math.min(...first.map(range => range.end), ...second.map(range => range.end));
+  const start = Math.min(...first.map(range => range.start), ...second.map(range => range.start));
+  const end = Math.max(...first.map(range => range.end), ...second.map(range => range.end));
   for (let week = start; week <= end; week += 1) {
     if (first.some(range => rangeHasWeek(range, week)) && second.some(range => rangeHasWeek(range, week))) {
       return true;

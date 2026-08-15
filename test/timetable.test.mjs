@@ -104,3 +104,29 @@ test("跨校区按实际钟点识别单双周冲突", () => {
   assert.equal(conflicts.length, 1);
   assert.deepEqual([conflicts[0].firstIndex, conflicts[0].secondIndex], [0, 1]);
 });
+
+test("多范围周次在非相邻区间也能识别跨校区冲突", () => {
+  const events = [
+    {
+      courseName: "茶山课程",
+      weekday: 1,
+      campus: "茶山校区",
+      periods: { start: 1, end: 1 },
+      weeks: [
+        { start: 1, end: 2, parity: "all" },
+        { start: 13, end: 17, parity: "odd" }
+      ]
+    },
+    {
+      courseName: "滨海课程",
+      weekday: 1,
+      campus: "滨海校区",
+      periods: { start: 1, end: 1 },
+      weeks: [{ start: 8, end: 16, parity: "all" }]
+    }
+  ];
+
+  const conflicts = detectCampusConflicts(events);
+  assert.equal(conflicts.length, 1);
+  assert.deepEqual([conflicts[0].firstIndex, conflicts[0].secondIndex], [0, 1]);
+});
