@@ -299,12 +299,13 @@
       .toolbar { order: 3; margin-top: 18px; }
       .pulse-row { order: 4; margin-top: 18px; }
       .agenda { order: 5; }
-      .course { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; }
+      .course { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; height: auto !important; min-height: calc(var(--slot-h) - 14px); }
       .course-title { order: 0; font-size: 12px; font-weight: 800; line-height: 1.25; text-align: left; }
-      .course-room { order: 1; font-size: 11px; font-weight: 700; }
-      .course-time { order: 2; margin-top: 5px; font-size: 9px; font-weight: 600; opacity: .5; }
-      .course-meta { order: 3; margin-top: 4px; font-size: 9px; opacity: .55; }
-      .course-type { order: 4; align-self: flex-start; }
+      .course-room { order: 1; justify-content: center; font-size: 11px; font-weight: 700; }
+      .course-time { order: 2; margin-top: 5px; text-align: center; font-size: 9px; font-weight: 600; opacity: .5; }
+      .course-type { order: 3; align-self: center; }
+      .course-meta { order: 4; margin-top: auto; padding-top: 6px; text-align: center; font-size: 9px; opacity: .8; }
+      .course-teacher { font-weight: 700; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
@@ -514,7 +515,7 @@
         const points = groups.map((g) => CAMPUS_PERIODS[g.key][index][0]);
         return `<div class="time" title="${groups.map((g) => `${g.label} ${CAMPUS_PERIODS[g.key][index][0]}`).join('；')}"><strong>${index + 1}</strong><span>第 ${index + 1} 节</span><span class="time-points">${points.map((t) => `<span>${t}</span>`).join('')}</span></div>`;
       }).join('')}</div>`;
-      const columns = days.map((day) => `<div class="day-column" data-column="${day.key}">${Array.from({ length: PERIOD_COUNT }, () => '<div class="slot"></div>').join('')}${events.filter((event) => event.day === day.key).map((event) => `<button class="course type-${event.type}" data-event="${EVENTS.indexOf(event)}" style="top:${(event.start - 1) * slotHeight + 7}px;height:${(event.end - event.start + 1) * slotHeight - 14}px" type="button" title="${escapeHtml(event.title)}"><span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room"><i data-lucide="map-pin"></i>${escapeHtml(event.room)}</span><span class="course-meta">${escapeHtml(event.campus)} · ${escapeHtml(event.teacher)}</span></button>`).join('')}</div>`).join('');
+      const columns = days.map((day) => `<div class="day-column" data-column="${day.key}">${Array.from({ length: PERIOD_COUNT }, () => '<div class="slot"></div>').join('')}${events.filter((event) => event.day === day.key).map((event) => `<button class="course type-${event.type}" data-event="${EVENTS.indexOf(event)}" style="top:${(event.start - 1) * slotHeight + 7}px;height:${(event.end - event.start + 1) * slotHeight - 14}px" type="button" title="${escapeHtml(event.title)}"><span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room"><i data-lucide="map-pin"></i>${escapeHtml(event.room)}</span><span class="course-meta"><span class="course-campus">${escapeHtml(event.campus)}</span><span class="course-teacher"> · ${escapeHtml(event.teacher)}</span></span></button>`).join('')}</div>`).join('');
       $('schedule').innerHTML = `${head}<div class="schedule-body">${axis}${columns}</div>`;
       $('emptyState').style.display = events.length ? 'none' : 'grid';
       document.querySelectorAll('[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(EVENTS[Number(button.dataset.event)])));
