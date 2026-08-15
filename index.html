@@ -174,6 +174,8 @@
     .empty-guide h3 { margin: 4px 0 0; color: var(--ink); font-size: 16px; }
     .empty-guide p { margin: 0; color: var(--muted); font-size: 12px; }
     .empty-guide .import-btn { margin-top: 10px; }
+    .jwxt-link { color: var(--mint-strong); font-size: 12px; font-weight: 650; text-decoration: none; }
+    .jwxt-link:hover { text-decoration: underline; }
 
     .drawer-backdrop { position: fixed; inset: 0; z-index: 10; background: rgba(12,24,18,.26); opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
     .drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 11; width: min(420px, 100vw); padding: 28px; overflow: auto; background: #fff; box-shadow: -15px 0 40px rgba(17,32,24,.12); transform: translateX(100%); transition: transform 260ms var(--ease-out); }
@@ -511,7 +513,7 @@
       }).join('')}</div>`).join('');
       $('schedule').innerHTML = `${head}<div class="schedule-body">${axis}${columns}</div>`;
       if (!EVENTS.length) {
-        $('emptyState').innerHTML = '<div class="empty-guide"><i data-lucide="file-up"></i><h3>还没有课表</h3><p>导入教务系统导出的课表 PDF，即可在这里查看你的课表</p><button class="import-btn" id="emptyImportBtn" type="button"><i data-lucide="scan-line"></i><span>导入 PDF</span></button></div>';
+        $('emptyState').innerHTML = '<div class="empty-guide"><i data-lucide="file-up"></i><h3>还没有课表</h3><p>先去教务系统导出课表 PDF，再回到这里导入</p><a class="jwxt-link" href="https://jwxt.wmu.edu.cn/jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&layout=default" target="_blank" rel="noopener">前往教务系统导出 PDF</a><button class="import-btn" id="emptyImportBtn" type="button"><i data-lucide="scan-line"></i><span>导入 PDF</span></button></div>';
         $('emptyState').style.display = 'grid';
       } else {
         $('emptyState').innerHTML = '<div><i data-lucide="calendar-off"></i><div>没有匹配的课程</div></div>';
