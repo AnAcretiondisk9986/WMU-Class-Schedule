@@ -139,7 +139,7 @@
     .day.active .day-count { background: #c8ebd6; color: #1e6747; }
 
     .schedule-shell { margin-top: 10px; overflow: hidden; border: 1px solid var(--line); border-radius: 11px; background: #fff; box-shadow: var(--shadow); }
-    .schedule-scroll { overflow-x: hidden; }
+    .schedule-scroll { overflow: visible; }
     .schedule { display: grid; grid-template-columns: 68px repeat(7, minmax(0, 1fr)); min-width: 0; }
     .schedule-head { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; min-height: 42px; border-bottom: 1px solid var(--line); background: #fafcf9; }
     .head-cell { display: flex; align-items: center; justify-content: center; border-right: 1px solid var(--line); color: var(--muted); font-size: 11px; font-weight: 700; }
@@ -266,7 +266,7 @@
       .day-name span { display: none; }
       .day-count { min-width: 19px; height: 19px; }
       .schedule { grid-template-columns: 48px repeat(7, minmax(0, 1fr)); min-width: 0; }
-      .schedule-scroll { overflow-x: hidden; }
+      .schedule-scroll { overflow: visible; }
       .schedule-shell { display: block; }
       .agenda { display: none; gap: 9px; margin-top: 10px; }
       .agenda-day { display: grid; gap: 7px; }
@@ -286,7 +286,7 @@
     @media (max-width: 520px) {
       :root { --slot-h: 104px; }
       .schedule { grid-template-columns: 38px repeat(7, minmax(0, 1fr)); min-width: 0; }
-      .schedule-scroll { overflow-x: hidden; }
+      .schedule-scroll { overflow: visible; }
       .head-cell { font-size: 9px; }
       .head-cell:first-child { font-size: 8px; }
       .time { padding-right: 3px; font-size: 8px; }
