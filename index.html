@@ -206,7 +206,7 @@
     .drawer-note { margin-top: 22px; padding: 12px; border-radius: 8px; background: #f3f7f3; color: #587166; font-size: 11px; }
 
     .modal-backdrop { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 20px; background: rgba(12,24,18,.32); opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
-    .modal { width: min(500px, 100%); padding: 23px; border-radius: 12px; background: #fff; box-shadow: 0 24px 60px rgba(14,29,21,.22); transform: scale(.96); opacity: 0; transition: transform 200ms var(--ease-out), opacity 160ms ease; }
+    .modal { width: min(500px, 100%); max-height: calc(100vh - 40px); overflow-y: auto; padding: 23px; border-radius: 12px; background: #fff; box-shadow: 0 24px 60px rgba(14,29,21,.22); transform: scale(.96); opacity: 0; transition: transform 200ms var(--ease-out), opacity 160ms ease; }
     .modal-backdrop.modal-open { opacity: 1; pointer-events: auto; }
     .modal-backdrop.modal-open .modal { transform: scale(1); opacity: 1; }
     .modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
@@ -217,6 +217,14 @@
     .dropzone svg { width: 25px; height: 25px; margin-bottom: 8px; color: #3b966d; }
     .dropzone strong { display: block; color: var(--ink); font-size: 13px; }
     .dropzone span { display: block; margin-top: 4px; font-size: 11px; }
+    .jwxt-bridge { display: grid; gap: 8px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .jwxt-bridge-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .jwxt-bridge-title { color: var(--ink); font-size: 12px; font-weight: 750; }
+    .jwxt-bridge-note { color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .jwxt-bridge .secondary-btn { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .jwxt-bridge .secondary-btn svg { width: 14px; height: 14px; }
+    .bookmarklet-link { color: var(--brand); font-size: 11px; font-weight: 700; text-decoration: underline; }
+    .bookmarklet-link[aria-disabled="true"] { color: var(--muted); pointer-events: none; }
     .file-input { display: none; }
     .modal-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
     .import-status { min-height: 18px; margin-top: 13px; color: var(--muted); font-size: 11px; line-height: 1.5; }
@@ -681,16 +689,17 @@
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
   <aside class="drawer" id="drawer" aria-label="课程详情" aria-hidden="true"><button class="icon-btn drawer-favorite" id="drawerFavorite" type="button" title="收藏课程" aria-label="收藏课程"><i data-lucide="bookmark"></i></button><button class="icon-btn drawer-close" id="drawerClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button><div class="drawer-kicker" id="drawerKicker">课程详情</div><h2 id="drawerTitle">课程名称</h2><p class="drawer-sub" id="drawerSub">周二 · 第 1–2 节</p><dl class="detail-list"><div class="detail-row"><dt>上课时间</dt><dd id="detailTime">08:00–09:25</dd></div><div class="detail-row"><dt>上课地点</dt><dd id="detailRoom">滨海校区 · 求知楼</dd></div><div class="detail-row"><dt>任课教师</dt><dd id="detailTeacher">教师姓名</dd></div><div class="detail-row"><dt>周次</dt><dd id="detailWeeks">第 1–16 周</dd></div><div class="detail-row"><dt>课程类型</dt><dd id="detailType">讲课</dd></div></dl><div class="drawer-note">课程数据保存在本地浏览器中。导入新的 PDF 后，可以继续手动修正课程信息。</div></aside>
 
-  <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>选择教务系统导出的课表文件。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><label class="dropzone" id="dropZone" for="fileInput"><i data-lucide="upload-cloud"></i><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="import-status" id="importStatus" role="status" aria-live="polite"></div><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button"><i data-lucide="scan-line"></i><span>开始识别</span></button></div></section></div>
+  <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>从教务系统获取，或选择本地 PDF。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="jwxt-bridge"><div class="jwxt-bridge-head"><span class="jwxt-bridge-title">从教务系统获取</span><button class="secondary-btn" id="openJwxtImport" type="button"><i data-lucide="external-link"></i><span>打开教务系统</span></button></div><span class="jwxt-bridge-note">登录后，将下面的链接拖到书签栏并点击一次，PDF 会自动返回此页面。</span><a class="bookmarklet-link" id="jwxtBookmarklet" href="#" aria-disabled="true">发送课表到本页面</a></div><label class="dropzone" id="dropZone" for="fileInput"><i data-lucide="upload-cloud"></i><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="import-status" id="importStatus" role="status" aria-live="polite"></div><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button"><i data-lucide="scan-line"></i><span>开始识别</span></button></div></section></div>
 
   <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题与本地数据管理。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option></select></label><p class="settings-note">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。</p><div class="data-actions"><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
 
-  <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>点击右上角「导入 PDF」，选择教务系统导出的课表文件，即可在浏览器本地解析并生成课表。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>「回到今天」定位到当前周次与星期。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
+  <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>点击右上角「导入 PDF」，可从教务系统获取课表，或选择已经下载的 PDF。</li><li>从教务系统获取时，由本页打开登录窗口，再在课表页点击「发送课表到本页面」书签。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>「回到今天」定位到当前周次与星期。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
 
   <div class="modal-backdrop" id="switchBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="switchTitle"><div class="modal-head"><div><h2 id="switchTitle">切换课表</h2><p>选择要查看的课表。</p></div><button class="icon-btn" id="switchClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="switch-list" id="switchList"></div><div class="modal-foot"><button class="secondary-btn" id="switchImport" type="button">导入新课表</button><button class="import-btn" id="switchDone" type="button">完成</button></div></section></div>
 
   <script type="module">
     import { parseTimetablePdf } from './src/timetable.js';
+    import { createJwxtBookmarklet, JWXT_TIMETABLE_URL, readJwxtPdfMessage } from './src/jwxt-bridge.js';
     import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/build/pdf.mjs';
 
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/build/pdf.worker.mjs';
@@ -728,6 +737,7 @@
     const STORAGE_KEY = 'wmu-timetable-v1';
     const state = { timetables: [], activeId: null, week: 1, day: 1, query: '', view: 'schedule', favorites: [], updatedAt: 0 };
     let selectedPdfFile = null;
+    let jwxtWindow = null;
     let activeEvent = null;
     const $ = (id) => document.getElementById(id);
     const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
@@ -850,7 +860,7 @@
       }).join('')}</div>`).join('');
       $('schedule').innerHTML = `${head}<div class="schedule-body">${axis}${columns}${nowLine}</div>`;
       if (!currentEvents().length) {
-        $('emptyState').innerHTML = '<div class="empty-guide"><i data-lucide="file-up"></i><h3>还没有课表</h3><p>先去教务系统导出课表 PDF，再回到这里导入</p><a class="jwxt-link" href="https://jwxt.wmu.edu.cn/jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&layout=default" target="_blank" rel="noopener">前往教务系统导出 PDF</a><button class="import-btn" id="emptyImportBtn" type="button"><i data-lucide="scan-line"></i><span>导入 PDF</span></button></div>';
+        $('emptyState').innerHTML = '<div class="empty-guide"><i data-lucide="file-up"></i><h3>还没有课表</h3><p>从教务系统获取，或选择已经下载的 PDF</p><button class="import-btn" id="emptyImportBtn" type="button"><i data-lucide="scan-line"></i><span>导入课表</span></button></div>';
         $('emptyState').style.display = 'grid';
       } else {
         $('emptyState').innerHTML = '<div><i data-lucide="calendar-off"></i><div>没有匹配的课程</div></div>';
@@ -1001,9 +1011,32 @@
       renderAll();
     }
     function closeDrawer() { document.body.classList.remove('drawer-open'); $('drawer').setAttribute('aria-hidden', 'true'); }
-    function openImportModal() { $('importStatus').textContent = ''; $('importStatus').className = 'import-status'; openModal('modalBackdrop'); }
+    function prepareJwxtBookmarklet() {
+      const link = $('jwxtBookmarklet');
+      try {
+        link.href = createJwxtBookmarklet(window.location.origin);
+        link.removeAttribute('aria-disabled');
+      } catch (error) {
+        link.href = '#';
+        link.setAttribute('aria-disabled', 'true');
+      }
+    }
+    function openImportModal() {
+      $('importStatus').textContent = '';
+      $('importStatus').className = 'import-status';
+      prepareJwxtBookmarklet();
+      openModal('modalBackdrop');
+    }
     function closeImportModal() { closeModalById('modalBackdrop'); }
     function setImportStatus(message, kind = '') { $('importStatus').textContent = message; $('importStatus').className = `import-status ${kind}`.trim(); }
+    function openJwxtImport() {
+      jwxtWindow = window.open(JWXT_TIMETABLE_URL, 'wmuTimetableImport');
+      if (!jwxtWindow) {
+        setImportStatus('浏览器阻止了教务系统窗口，请允许此网站打开弹窗。', 'error');
+        return;
+      }
+      setImportStatus('教务系统已打开。登录并进入课表页后，点击书签栏中的「发送课表到本页面」。');
+    }
     function openModal(id) { document.getElementById(id).classList.add('modal-open'); }
     function closeModalById(id) { document.getElementById(id).classList.remove('modal-open'); }
     function openSettings() {
@@ -1152,6 +1185,51 @@
       return false;
     }
 
+    async function importPdfFile(file) {
+      const button = $('confirmImport');
+      button.disabled = true;
+      selectedPdfFile = file;
+      $('fileName').textContent = file.name || '教务系统课表.pdf';
+      setImportStatus('正在读取 PDF 并识别课程，请稍候……');
+      try {
+        const result = await parseTimetablePdf(file, pdfjsLib, {
+          cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/cmaps/',
+          cMapPacked: true,
+          standardFontDataUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/standard_fonts/'
+        });
+        if (result.conflicts.length) {
+          setImportStatus(`识别到 ${result.conflicts.length} 个跨校区时间冲突：${result.conflicts.map((conflict) => conflict.message).join('；')}`, 'error');
+          return;
+        }
+        const events = result.events.map(eventFromParsed);
+        const semester = result.semester || '未设置学期';
+        const timetable = {
+          id: newTimetableId(),
+          name: uniqueTimetableName(semester),
+          semester,
+          student: result.student || { name: '', id: '' },
+          termStartDate: toIso(mondayOf(new Date())),
+          events,
+          updatedAt: Date.now()
+        };
+        state.timetables.push(timetable);
+        state.activeId = timetable.id;
+        state.week = 1;
+        state.day = 1;
+        state.view = 'schedule';
+        state.favorites = [];
+        state.query = '';
+        persist();
+        renderAll();
+        setImportStatus(`已识别 ${events.length} 个课次（${semester}），保存为「${timetable.name}」。`, 'success');
+        setTimeout(closeImportModal, 900);
+      } catch (error) {
+        setImportStatus(`解析失败：${error.message || '文件格式无法识别'}`, 'error');
+      } finally {
+        button.disabled = false;
+      }
+    }
+
     $('prevWeek').addEventListener('click', () => { state.week = Math.max(minNavigableWeek(), state.week - 1); persist(); renderAll(); });
     $('nextWeek').addEventListener('click', () => { state.week = Math.min(maxNavigableWeek(), state.week + 1); persist(); renderAll(); });
     $('todayButton').addEventListener('click', () => {
@@ -1182,6 +1260,7 @@
     $('drawerBackdrop').addEventListener('click', closeDrawer);
     $('drawerFavorite').addEventListener('click', toggleFavorite);
     $('importButton').addEventListener('click', openImportModal);
+    $('openJwxtImport').addEventListener('click', openJwxtImport);
     $('modalClose').addEventListener('click', closeImportModal);
     $('modalCancel').addEventListener('click', closeImportModal);
     $('settingsClose').addEventListener('click', () => closeModalById('settingsBackdrop'));
@@ -1231,50 +1310,17 @@
       $('fileName').textContent = file.name;
       setImportStatus('文件已就绪，可开始识别。');
     });
-    $('confirmImport').addEventListener('click', async () => {
+    $('confirmImport').addEventListener('click', () => {
       const file = selectedPdfFile || $('fileInput').files[0];
       if (!file) { setImportStatus('请先选择一个 PDF 文件。', 'error'); return; }
-      const button = $('confirmImport');
-      button.disabled = true;
-      setImportStatus('正在读取 PDF 并识别课程，请稍候……');
-      try {
-        const result = await parseTimetablePdf(file, pdfjsLib, {
-          cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/cmaps/',
-          cMapPacked: true,
-          standardFontDataUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/standard_fonts/'
-        });
-        if (result.conflicts.length) {
-          setImportStatus(`识别到 ${result.conflicts.length} 个跨校区时间冲突：${result.conflicts.map((conflict) => conflict.message).join('；')}`, 'error');
-          return;
-        }
-        const events = result.events.map(eventFromParsed);
-        const semester = result.semester || '未设置学期';
-        const timetable = {
-          id: newTimetableId(),
-          name: uniqueTimetableName(semester),
-          semester,
-          student: result.student || { name: '', id: '' },
-          termStartDate: toIso(mondayOf(new Date())),
-          events,
-          updatedAt: Date.now()
-        };
-        state.timetables.push(timetable);
-        state.activeId = timetable.id;
-        state.week = 1;
-        state.day = 1;
-        state.view = 'schedule';
-        state.favorites = [];
-        state.query = '';
-        $('fileName').textContent = file.name;
-        persist();
-        renderAll();
-        setImportStatus(`已识别 ${events.length} 个课次（${semester}），保存为「${timetable.name}」。`, 'success');
-        setTimeout(closeImportModal, 900);
-      } catch (error) {
-        setImportStatus(`解析失败：${error.message || '文件格式无法识别'}`, 'error');
-      } finally {
-        button.disabled = false;
-      }
+      importPdfFile(file);
+    });
+    window.addEventListener('message', (event) => {
+      const received = readJwxtPdfMessage(event, jwxtWindow);
+      if (!received) return;
+      openImportModal();
+      const file = new File([received.bytes], received.filename, { type: 'application/pdf' });
+      importPdfFile(file);
     });
     document.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape') return;
