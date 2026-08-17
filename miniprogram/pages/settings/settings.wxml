@@ -1,0 +1,51 @@
+<view class="page {{theme === 'warm' ? 'warm' : ''}}">
+
+  <view class="settings-group card">
+    <view class="group-title muted">学期</view>
+    <picker mode="date" value="{{termStartDate}}" bindchange="onTermStartChange">
+      <view class="row">
+        <text>学期第一周周一</text>
+        <text class="row-value">{{termStartDate}}</text>
+      </view>
+    </picker>
+    <view class="group-note muted" wx:if="{{hasTimetable}}">当前课表：{{timetableName}}。用于计算「第几周」与「今天」。</view>
+  </view>
+
+  <view class="settings-group card">
+    <view class="group-title muted">主题</view>
+    <picker mode="selector" range="{{themeLabels}}" value="{{themeIndex}}" bindchange="onThemeChange">
+      <view class="row">
+        <text>配色方案</text>
+        <text class="row-value">{{themeLabels[themeIndex]}}</text>
+      </view>
+    </picker>
+  </view>
+
+  <view class="settings-group card">
+    <view class="group-title muted">数据</view>
+    <view class="row" bindtap="onExport">
+      <text>导出数据备份</text>
+      <text class="row-arrow">复制到剪贴板 ›</text>
+    </view>
+    <view class="row" bindtap="onImport">
+      <text>从备份恢复</text>
+      <text class="row-arrow">读取剪贴板 ›</text>
+    </view>
+    <view class="row danger" bindtap="onReset">
+      <text>清除本地数据</text>
+    </view>
+  </view>
+
+  <view class="settings-group card">
+    <view class="group-title muted">关于</view>
+    <view class="row" bindtap="onHelp">
+      <text>使用说明</text>
+      <text class="row-arrow">›</text>
+    </view>
+    <view class="row">
+      <text>隐私</text>
+      <text class="row-value muted">PDF 仅在本地解析，不上传</text>
+    </view>
+  </view>
+
+</view>

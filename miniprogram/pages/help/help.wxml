@@ -1,0 +1,37 @@
+<view class="page {{theme === 'warm' ? 'warm' : ''}}">
+
+  <view class="card help-card">
+    <view class="help-title strong">如何导入课表</view>
+    <view class="help-step">
+      <text class="step-num">1</text>
+      <text>在电脑浏览器打开温州医科大学教务系统，进入「个人课表」页面，导出/打印为 PDF。</text>
+    </view>
+    <view class="help-step">
+      <text class="step-num">2</text>
+      <text>把该 PDF 发送到微信（可发给自己或「文件传输助手」）。</text>
+    </view>
+    <view class="help-step">
+      <text class="step-num">3</text>
+      <text>在本小程序点「导入 PDF」→「选择 PDF 文件」，从微信聊天记录中选择该文件。</text>
+    </view>
+    <view class="help-step">
+      <text class="step-num">4</text>
+      <text>点「开始识别」，稍等片刻即可生成课表。文件全程在手机本地解析，不会上传。</text>
+    </view>
+  </view>
+
+  <view class="card help-card">
+    <view class="help-title strong">功能说明</view>
+    <view class="help-step"><text class="step-num">·</text><text>顶部「上一周 / 下一周」切换周次；「今天」定位到当前周与星期。</text></view>
+    <view class="help-step"><text class="step-num">·</text><text>「周视图 / 列表」切换展示方式；搜索框可检索课程、教师、教室。</text></view>
+    <view class="help-step"><text class="step-num">·</text><text>点击课程卡片查看详情，可收藏课程；「收藏」页集中查看。</text></view>
+    <view class="help-step"><text class="step-num">·</text><text>时间轴上行是茶山/学院路时间，下行是滨海校区时间。</text></view>
+    <view class="help-step"><text class="step-num">·</text><text>识别到跨校区时间冲突时会提示；数据仅保存在本机。</text></view>
+  </view>
+
+  <view class="card help-card">
+    <view class="help-title strong">支持的 PDF 格式</view>
+    <view class="muted">面向温州医科大学教务系统导出的横向课表 PDF。课程内容按「星期列 + 节次」排版，解析不依赖 OCR。若教务系统改版导致识别失败，请反馈新版 PDF 样例。</view>
+  </view>
+
+</view>

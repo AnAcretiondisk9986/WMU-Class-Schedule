@@ -3,3 +3,6 @@ node_modules/
 .reasonix/
 test/fixtures/*.pdf
 !test/fixtures/.gitkeep
+
+# 微信开发者工具本地配置（含机器相关设置，不提交）
+project.private.config.json

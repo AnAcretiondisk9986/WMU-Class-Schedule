@@ -1,0 +1,40 @@
+.fav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+.fav-card { padding: 20rpx; }
+.fav-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding-bottom: 12rpx;
+  border-bottom: 1rpx solid var(--line);
+  margin-bottom: 8rpx;
+}
+.fav-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  min-width: 0;
+}
+.fav-remove {
+  flex-shrink: 0;
+  font-size: 24rpx;
+  color: #b91c1c;
+  border: 1rpx solid #fecaca;
+  border-radius: 999rpx;
+  padding: 4rpx 16rpx;
+  background: #fee2e2;
+}
+.fav-event {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 10rpx 0;
+  font-size: 24rpx;
+}
+.fav-ev-time { width: 200rpx; flex-shrink: 0; }
+.fav-ev-room { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.fav-ev-weeks { flex-shrink: 0; }

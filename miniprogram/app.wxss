@@ -1,0 +1,123 @@
+/* 全局样式与主题变量 */
+
+page {
+  --bg: #f3f4f6;
+  --card: #ffffff;
+  --card-2: #f9fafb;
+  --text: #111827;
+  --text-2: #6b7280;
+  --line: #e5e7eb;
+  --accent: #1f2937;
+  --accent-soft: #e5e7eb;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 28rpx;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  background: var(--bg);
+  padding: 24rpx;
+  padding-bottom: 48rpx;
+}
+
+.page.warm {
+  --bg: #faf6ef;
+  --card: #fffdf8;
+  --card-2: #f7f1e6;
+  --text: #2b2118;
+  --text-2: #8a7a66;
+  --line: #ece3d3;
+  --accent: #8a5a2b;
+  --accent-soft: #eadfce;
+}
+
+/* 课程类型配色 */
+.type-lecture { --type-bg: #dbeafe; --type-fg: #1d4ed8; --type-border: #93c5fd; }
+.type-lab { --type-bg: #d1fae5; --type-fg: #047857; --type-border: #6ee7b7; }
+.type-online { --type-bg: #e0e7ff; --type-fg: #4338ca; --type-border: #a5b4fc; }
+.type-discussion { --type-bg: #fef3c7; --type-fg: #b45309; --type-border: #fcd34d; }
+.type-practice { --type-bg: #ffe4e6; --type-fg: #be123c; --type-border: #fda4af; }
+.type-independent { --type-bg: #e2e8f0; --type-fg: #475569; --type-border: #cbd5e1; }
+
+.card {
+  background: var(--card);
+  border: 1rpx solid var(--line);
+  border-radius: 16rpx;
+  box-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.04);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  padding: 16rpx 28rpx;
+  border: none;
+  line-height: 1.4;
+}
+.btn::after { border: none; }
+
+.btn-primary {
+  background: var(--accent);
+  color: #ffffff;
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--text-2);
+  border: 1rpx solid var(--line);
+}
+.btn-danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.muted { color: var(--text-2); }
+.strong { color: var(--text); font-weight: 600; }
+.ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 80rpx 32rpx;
+  color: var(--text-2);
+  text-align: center;
+}
+
+.mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 100;
+}
+
+.modal {
+  position: fixed;
+  left: 24rpx;
+  right: 24rpx;
+  bottom: 24rpx;
+  background: var(--card);
+  border-radius: 24rpx;
+  padding: 32rpx;
+  z-index: 101;
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin: 24rpx 0 16rpx;
+}

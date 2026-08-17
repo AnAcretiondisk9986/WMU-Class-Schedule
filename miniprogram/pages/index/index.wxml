@@ -1,0 +1,214 @@
+<view class="page {{theme === 'warm' ? 'warm' : ''}}">
+
+  <!-- 顶栏 -->
+  <view class="header">
+    <view class="header-copy">
+      <text class="semester strong">{{semester || '未导入课表'}}</text>
+      <text class="muted sub" wx:if="{{studentName}}">{{studentName}}</text>
+    </view>
+    <button class="btn btn-primary" size="mini" bindtap="onOpenImport">导入 PDF</button>
+  </view>
+
+  <!-- 周次切换 -->
+  <view class="weekbar card">
+    <button class="icon-btn" bindtap="onPrevWeek">‹</button>
+    <view class="week-value">
+      <text class="strong">第 {{week}} 周</text>
+      <text class="muted">/ 共 {{maxWeek}} 周</text>
+    </view>
+    <button class="icon-btn" bindtap="onNextWeek">›</button>
+    <button class="btn btn-ghost today-btn" size="mini" bindtap="onToday">今天</button>
+  </view>
+
+  <!-- 视图切换 + 搜索 -->
+  <view class="toolbar">
+    <view class="toggle">
+      <text class="toggle-item {{view === 'schedule' ? 'on' : ''}}" bindtap="onToggleView">周视图</text>
+      <text class="toggle-item {{view === 'list' ? 'on' : ''}}" bindtap="onToggleView">列表</text>
+    </view>
+    <view class="search-box">
+      <input class="search-input" value="{{query}}" placeholder="搜索课程/教师/教室" bindinput="onSearchInput" />
+      <text class="search-clear" wx:if="{{query}}" bindtap="onClearSearch">×</text>
+    </view>
+  </view>
+
+  <!-- 统计 -->
+  <view class="stats" wx:if="{{hasTimetable}}">
+    <view class="stat card">
+      <text class="stat-value strong">{{stats.events}}</text>
+      <text class="stat-label muted">课次</text>
+    </view>
+    <view class="stat card">
+      <text class="stat-value strong">{{stats.courses}}</text>
+      <text class="stat-label muted">课程</text>
+    </view>
+    <view class="stat card">
+      <text class="stat-value strong">{{stats.credit}}</text>
+      <text class="stat-label muted">学分</text>
+    </view>
+    <view class="stat card">
+      <text class="stat-value strong ellipsis">{{stats.mainCampus}}</text>
+      <text class="stat-label muted">主要校区</text>
+    </view>
+  </view>
+
+  <!-- 下一节课 -->
+  <view class="next card" wx:if="{{hasTimetable}}">
+    <text class="muted">{{stats.next.label}}</text>
+    <text class="strong">{{stats.next.value}}</text>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty card" wx:if="{{!hasTimetable}}">
+    <text class="strong">还没有课表</text>
+    <text class="muted">先从教务系统导出课表 PDF，再回到这里导入</text>
+    <button class="btn btn-primary" bindtap="onOpenImport">导入 PDF</button>
+    <button class="btn btn-ghost" bindtap="onOpenHelp">使用说明</button>
+  </view>
+
+  <block wx:if="{{hasTimetable}}">
+    <!-- 星期条 -->
+    <scroll-view scroll-x class="day-strip" wx:if="{{view === 'schedule'}}">
+      <view
+        class="day-chip {{item.focus ? 'on' : ''}} {{item.isToday ? 'today' : ''}}"
+        wx:for="{{days}}" wx:key="key"
+        data-day="{{item.key}}" bindtap="onTapDay">
+        <text class="day-name">{{item.name}}</text>
+        <text class="day-date">{{item.date}}</text>
+        <text class="day-count" wx:if="{{item.count}}">{{item.count}}</text>
+      </view>
+    </scroll-view>
+
+    <!-- 周视图 -->
+    <scroll-view scroll-x class="schedule-scroll card" wx:if="{{view === 'schedule'}}">
+      <view class="schedule-inner">
+        <view class="schedule-head">
+          <view class="head-corner">时间</view>
+          <view class="head-cell {{item.focus ? 'focus' : ''}} {{item.isToday ? 'today' : ''}}" wx:for="{{days}}" wx:key="key">
+            <text>{{item.name}}</text>
+            <text class="muted">{{item.date}}</text>
+          </view>
+        </view>
+        <view class="schedule-body" style="height:{{totalHeight}}px">
+          <view class="time-axis">
+            <view class="tick" wx:for="{{ticks}}" wx:key="index" style="top:{{item.top}}px">
+              <text class="tick-line">{{item.label1}}</text>
+              <text class="tick-line muted">{{item.label2}}</text>
+            </view>
+          </view>
+          <view class="day-col" wx:for="{{columns}}" wx:key="day" wx:for-item="col">
+            <view
+              class="course type-{{event.type}}"
+              wx:for="{{col.events}}" wx:for-item="event" wx:key="index"
+              data-day="{{col.day}}" data-index="{{index}}"
+              bindtap="onTapEvent"
+              style="top:{{event.top}}px;height:{{event.height}}px">
+              <text class="course-title">{{event.title}}</text>
+              <text class="course-time">{{event.timeText}}</text>
+              <text class="course-room">{{event.room}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="legend muted">上行 茶山/学院路 · 下行 滨海</view>
+    </scroll-view>
+
+    <!-- 列表视图 -->
+    <view class="agenda" wx:if="{{view === 'list'}}">
+      <view class="agenda-item card" wx:for="{{listEvents}}" wx:key="index" data-index="{{index}}" bindtap="onTapListEvent">
+        <view class="agenda-left type-{{item.type}}">
+          <text class="agenda-day strong">{{item.dayName}}</text>
+          <text class="agenda-time">{{item.timeText}}</text>
+        </view>
+        <view class="agenda-main">
+          <text class="agenda-title strong">{{item.title}}</text>
+          <text class="agenda-sub muted">{{item.campus}} · {{item.room}} · {{item.teacher}}</text>
+          <text class="agenda-weeks muted">{{item.weeksText}}</text>
+        </view>
+        <text class="agenda-fav" wx:if="{{item.fav}}">★</text>
+      </view>
+    </view>
+
+    <!-- 底部操作 -->
+    <view class="footer-actions">
+      <button class="btn btn-ghost" size="mini" bindtap="onOpenSwitch">切换课表</button>
+      <button class="btn btn-ghost" size="mini" bindtap="onOpenSettings">偏好设置</button>
+      <button class="btn btn-ghost" size="mini" bindtap="onOpenHelp">帮助</button>
+    </view>
+  </block>
+
+  <!-- 课程详情 -->
+  <block wx:if="{{showDetail}}">
+    <view class="mask" bindtap="onCloseDetail"></view>
+    <view class="modal detail">
+      <view class="detail-head">
+        <view class="detail-kicker muted">{{detail.dayName}} · 第 {{detail.start}}–{{detail.end}} 节</view>
+        <view class="detail-title strong">{{detail.title}}</view>
+        <view class="detail-fav {{isFav ? 'on' : ''}}" bindtap="onToggleFavorite">{{isFav ? '★ 已收藏' : '☆ 收藏'}}</view>
+      </view>
+      <view class="detail-row"><text class="muted">上课时间</text><text class="strong">{{detail.timeText}}</text></view>
+      <view class="detail-row"><text class="muted">上课地点</text><text class="strong">{{detail.campus}} · {{detail.room}}</text></view>
+      <view class="detail-row"><text class="muted">任课教师</text><text class="strong">{{detail.teacher}}</text></view>
+      <view class="detail-row"><text class="muted">周次</text><text class="strong">{{detail.weeksText}}</text></view>
+      <view class="detail-row"><text class="muted">类型</text><text class="strong">{{detail.label}} · {{detail.credit}} 学分</text></view>
+      <view class="detail-row" wx:if="{{detail.courseCode}}"><text class="muted">课程代码</text><text class="strong">{{detail.courseCode}}</text></view>
+      <view class="detail-row" wx:if="{{detail.className}}"><text class="muted">教学班</text><text class="strong">{{detail.className}}</text></view>
+      <view class="detail-row" wx:if="{{detail.assessment}}"><text class="muted">考核方式</text><text class="strong">{{detail.assessment}}</text></view>
+      <button class="btn btn-primary detail-close" bindtap="onCloseDetail">关闭</button>
+    </view>
+  </block>
+
+  <!-- 导入弹窗 -->
+  <block wx:if="{{showImport}}">
+    <view class="mask" bindtap="onCloseImport"></view>
+    <view class="modal">
+      <view class="modal-title strong">导入课表 PDF</view>
+      <view class="muted modal-sub">选择教务系统导出的课表文件，全程本地解析，不上传。</view>
+      <button class="btn btn-ghost choose-btn" bindtap="onChooseFile">选择 PDF 文件</button>
+      <text class="file-name muted" wx:if="{{importFileName}}">{{importFileName}}</text>
+      <view class="import-status {{importStatusKind}}" wx:if="{{importStatus}}">{{importStatus}}</view>
+      <view class="modal-foot">
+        <button class="btn btn-ghost" bindtap="onCloseImport">取消</button>
+        <button class="btn btn-primary" loading="{{importing}}" disabled="{{importing}}" bindtap="onConfirmImport">开始识别</button>
+      </view>
+    </view>
+  </block>
+
+  <!-- 冲突提示 -->
+  <block wx:if="{{showConflict}}">
+    <view class="mask" bindtap="onCloseConflict"></view>
+    <view class="modal">
+      <view class="modal-title strong">检测到跨校区冲突</view>
+      <scroll-view scroll-y class="conflict-list">
+        <view class="conflict-item" wx:for="{{conflicts}}" wx:key="index">
+          <text>{{item.message}}</text>
+        </view>
+      </scroll-view>
+      <view class="muted modal-sub">为避免跑错校区，请核对后手动修正或重新导入。</view>
+      <button class="btn btn-primary" bindtap="onCloseConflict">知道了</button>
+    </view>
+  </block>
+
+  <!-- 切换课表 -->
+  <block wx:if="{{showSwitch}}">
+    <view class="mask" bindtap="onCloseSwitch"></view>
+    <view class="modal">
+      <view class="modal-title strong">切换课表</view>
+      <scroll-view scroll-y class="switch-list">
+        <view class="switch-item {{item.active ? 'on' : ''}}" wx:for="{{timetableList}}" wx:key="id" data-id="{{item.id}}" bindtap="onSelectTimetable">
+          <view class="switch-copy">
+            <text class="strong">{{item.name}}</text>
+            <text class="muted">{{item.semester}}{{item.student ? ' · ' + item.student : ''}} · {{item.count}} 个课次</text>
+          </view>
+          <text class="switch-badge" wx:if="{{item.active}}">当前</text>
+        </view>
+        <view class="empty muted" wx:if="{{!timetableList.length}}">还没有课表，先导入一个</view>
+      </scroll-view>
+      <view class="modal-foot">
+        <button class="btn btn-ghost" bindtap="onSwitchImport">导入新课表</button>
+        <button class="btn btn-primary" bindtap="onCloseSwitch">完成</button>
+      </view>
+    </view>
+  </block>
+
+</view>

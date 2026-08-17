@@ -1,0 +1,33 @@
+.settings-group {
+  margin-bottom: 20rpx;
+  padding: 8rpx 20rpx;
+}
+.group-title {
+  font-size: 22rpx;
+  padding: 16rpx 0 8rpx;
+}
+.group-note {
+  font-size: 22rpx;
+  padding: 4rpx 0 16rpx;
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 22rpx 0;
+  font-size: 28rpx;
+  border-bottom: 1rpx solid var(--line);
+}
+.row:last-child { border-bottom: none; }
+.row-value {
+  color: var(--text-2);
+  font-size: 26rpx;
+  max-width: 55%;
+  text-align: right;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.row-arrow { color: var(--text-2); font-size: 26rpx; }
+.row.danger text { color: #b91c1c; }

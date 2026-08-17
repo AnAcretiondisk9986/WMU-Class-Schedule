@@ -92,8 +92,14 @@ function runScenario(saved) {
       if (callback) callback({ target: element, preventDefault() {} });
     });
   };
+  const triggerEvent = (id, type, event) => {
+    withMocks(mocks, () => {
+      const callback = $(id).listeners[type];
+      if (callback) callback({ target: $(id), currentTarget: $(id), preventDefault() {}, stopPropagation() {}, ...event });
+    });
+  };
 
-  return { elements, documentElement, body, storage, error, $, trigger };
+  return { elements, documentElement, body, storage, error, $, trigger, triggerEvent };
 }
 
 const W = (start, end, parity = "all") => ({ start, end, parity });
@@ -201,4 +207,33 @@ test("index.html 切换课表列表渲染", () => {
   assert.ok(s.$("switchList").innerHTML.includes("2026-2027-1"), "列表含第一个课表");
   assert.ok(s.$("switchList").innerHTML.includes("2025-2026-1"), "列表含第二个课表");
   assert.ok(s.$("switchList").innerHTML.includes("当前"), "当前课表有标记");
+});
+
+test("书签脚本链接在应用页点击时只显示拖拽提示", () => {
+  const s = runScenario(null);
+  s.trigger("jwxtBookmarklet");
+  assert.match(s.$("importStatus").textContent, /拖到浏览器书签栏/);
+});
+
+test("周表头同时渲染星期与日期", () => {
+  const s = runScenario(SAVED());
+  assert.match(s.$("schedule").innerHTML, /head-date/);
+  assert.match(s.$("schedule").innerHTML, /周一/);
+});
+
+test("移动端校徽按钮打开完整导航并隐藏底部导航", () => {
+  const s = runScenario(null);
+  s.trigger("mobileMenuButton");
+  assert.equal(s.body.classList.contains("mobile-nav-open"), true);
+  assert.equal(s.$("mobileNavPanel")["attr_aria-hidden"], "false");
+  s.trigger("mobileNavClose");
+  assert.equal(s.body.classList.contains("mobile-nav-open"), false);
+});
+
+test("窄屏横向拖动切换到下一周", () => {
+  const s = runScenario(SAVED());
+  s.triggerEvent("weekSwipeSurface", "pointerdown", { pointerId: 1, pointerType: "touch", clientX: 280, clientY: 420 });
+  s.triggerEvent("weekSwipeSurface", "pointermove", { pointerId: 1, pointerType: "touch", clientX: 120, clientY: 420 });
+  s.triggerEvent("weekSwipeSurface", "pointerup", { pointerId: 1, pointerType: "touch", clientX: 80, clientY: 420 });
+  assert.equal(s.$("weekValue").textContent, "第 02 周");
 });
