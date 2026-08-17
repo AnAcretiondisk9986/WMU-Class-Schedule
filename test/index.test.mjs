@@ -270,13 +270,43 @@ test("宽屏侧栏和当前课程高亮规则已定义", () => {
 
 test("竖屏顶栏固定且地点按结构换行", () => {
   assert.match(html, /@media \(max-aspect-ratio: 1\/1\)[\s\S]*?\.topbar \{ position: sticky; top: 0; z-index: 9; \}/);
-  assert.match(html, /\.course \{[^}]*overflow: auto;[^}]*overscroll-behavior: contain;/);
+  assert.match(html, /\.course \{[^}]*overflow: hidden;/);
+  assert.match(html, /\.course-content \{[^}]*min-height: 0;[^}]*overflow: auto;[^}]*overscroll-behavior: contain;/);
   assert.match(html, /\.course-room \{ display: grid; width: 100%;[^}]*justify-items: center;/);
   assert.match(html, /\.course-room-icon \{ display: flex; width: 100%;[^}]*justify-content: center;/);
   assert.match(html, /\.course-room-code \{ white-space: nowrap; overflow-wrap: normal; word-break: normal; \}/);
   assert.match(html, /\.course-room-extra, \.course-room-free \{ white-space: normal; overflow-wrap: anywhere; word-break: break-word; \}/);
   assert.doesNotMatch(html, /\.course\.course-compact \.course-room, \.course\.course-compact \.course-type \{ display: none; \}/);
   assert.doesNotMatch(html, /\.course\.course-tiny \.course-room, \.course\.course-tiny \.course-type/);
+});
+
+test("重叠课程按讲课、线上、无地点、平台确定图层", () => {
+  const overlaps = [
+    { ...TEST_EVENTS[0], title: "最高层讲课", type: "lecture", label: "讲课", room: "学习通" },
+    { ...TEST_EVENTS[0], title: "线上课程", type: "online", label: "在线", room: "云端直播间", campus: "线上" },
+    { ...TEST_EVENTS[0], title: "地点待定", type: "lab", label: "实验", room: "待定" },
+    { ...TEST_EVENTS[0], title: "平台课程", type: "online", label: "在线", room: "学习通", campus: "线上" },
+    { ...TEST_EVENTS[0], title: "空地点", type: "lab", label: "实验", room: "" }
+  ];
+  const s = runScenario(SAVED({ timetables: [TT("layers", "2026-2027-1", "2026-2027-1", "测试同学", overlaps)], activeId: "layers" }));
+  const scheduleHtml = s.$("schedule").innerHTML;
+
+  assert.match(scheduleHtml, /class="course type-lecture layer-lecture[^"]*"[^>]*title="最高层讲课"/);
+  assert.match(scheduleHtml, /class="course type-online layer-online[^"]*"[^>]*title="线上课程"/);
+  assert.match(scheduleHtml, /class="course type-lab layer-missing[^"]*"[^>]*title="地点待定"/);
+  assert.match(scheduleHtml, /class="course type-online layer-platform[^"]*"[^>]*title="平台课程"/);
+  assert.match(scheduleHtml, /class="course type-lab layer-missing[^"]*"[^>]*title="空地点"/);
+  assert.match(html, /\.course\.layer-platform \{ z-index: 2; \}[\s\S]*?\.course\.layer-missing \{ z-index: 3; \}[\s\S]*?\.course\.layer-online \{ z-index: 5; \}[\s\S]*?\.course\.layer-lecture \{ z-index: 6; \}/);
+  assert.match(html, /\.course:hover, \.course:focus-visible \{ z-index: 20;/);
+});
+
+test("课程类型标签始终位于卡片内容末尾并底部居中", () => {
+  const s = runScenario(SAVED());
+  const firstCourse = s.$("schedule").innerHTML.match(/<button class="course[\s\S]*?<\/button>/)?.[0] || "";
+  assert.match(firstCourse, /<span class="course-content">[\s\S]*<span class="course-meta">[\s\S]*<\/span><span class="course-type">讲课<\/span><\/button>$/);
+  assert.match(html, /\.course-type \{[^}]*align-self: center;/);
+  assert.match(html, /\.course-content \{[^}]*flex: 1 1 auto;/);
+  assert.doesNotMatch(html, /\.course\.course-(?:compact|tiny) \.course-type \{ display: none; \}/);
 });
 
 test("按校区隐藏无用教室说明且保留学院路原始格式", () => {

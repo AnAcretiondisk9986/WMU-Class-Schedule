@@ -101,8 +101,8 @@ test("直接解析高强度合成测试 PDF", { skip: !existsSync(stressSampleUr
     assert.ok(rooms.has(room), `包含地点压力样本：${room}`);
   }
 
-  assert.equal(result.conflicts.length, 1);
-  assert.match(result.conflicts[0].message, /细胞生物学.*医学遗传学/);
+  assert.deepEqual(result.conflicts, []);
+  assert.ok(result.events.some(event => event.courseName === "医学遗传学" && event.periods.start === 9));
   assert.ok(result.events.some(event => event.courseName === "病理生理学" && event.periods.start === 7));
   assert.ok(result.events.some(event => event.courseName === "临床思维与循证医学" && event.periods.start === 8));
 });
