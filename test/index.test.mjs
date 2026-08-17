@@ -252,6 +252,12 @@ test("书签脚本链接在应用页点击时只显示拖拽提示", () => {
   assert.match(s.$("importStatus").textContent, /拖到浏览器书签栏/);
 });
 
+test("手机快捷获取要求先从应用打开教务系统", () => {
+  const s = runScenario(null);
+  s.trigger("runJwxtImport");
+  assert.match(s.$("importStatus").textContent, /请先点击「打开教务系统」/);
+});
+
 test("周表头同时渲染星期与日期", () => {
   const s = runScenario(SAVED());
   assert.match(s.$("schedule").innerHTML, /head-date/);

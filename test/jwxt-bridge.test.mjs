@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   JWXT_ORIGIN,
   createJwxtBookmarklet,
+  createJwxtWindowRunner,
   readJwxtPdfMessage
 } from "../src/jwxt-bridge.js";
 
@@ -16,6 +17,7 @@ test("书签脚本只向当前课表应用来源发送 PDF", () => {
   assert.ok(bookmarklet.includes("xskbcx_cxXsShcPdf.html"));
   assert.ok(!bookmarklet.includes("/path"));
   assert.doesNotThrow(() => new Function(bookmarklet.slice("javascript:".length)));
+  assert.equal(createJwxtWindowRunner("https://example.com"), createJwxtBookmarklet("https://example.com"));
 });
 
 test("拒绝非 HTTP 来源生成书签脚本", () => {

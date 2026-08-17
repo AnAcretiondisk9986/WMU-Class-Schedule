@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#7b182e">
+  <link rel="manifest" href="manifest.webmanifest">
   <meta name="description" content="温州医科大学课表 PDF 导入与周视图工具">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="温医大课表">
@@ -239,8 +240,13 @@
     .jwxt-bridge-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .jwxt-bridge-title { color: var(--ink); font-size: 12px; font-weight: 750; }
     .jwxt-bridge-note { color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .jwxt-bridge-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
     .jwxt-bridge .secondary-btn { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .jwxt-bridge .secondary-btn span, .jwxt-bridge .import-btn span { display: inline; }
     .jwxt-bridge .secondary-btn svg { width: 14px; height: 14px; }
+    .jwxt-bridge .import-btn { display: inline-flex; align-items: center; gap: 6px; width: auto; justify-content: center; padding: 0 10px; white-space: nowrap; }
+    .jwxt-bridge .import-btn svg { width: 14px; height: 14px; }
+    .jwxt-desktop-fallback { display: flex; align-items: baseline; gap: 5px; color: var(--muted); font-size: 10px; }
     .bookmarklet-link { color: var(--brand); font-size: 11px; font-weight: 700; text-decoration: underline; }
     .bookmarklet-link[aria-disabled="true"] { color: var(--muted); pointer-events: none; }
     .file-input { display: none; }
@@ -679,6 +685,8 @@
       .course-room { display: grid; min-height: auto; max-height: none; overflow: visible; text-overflow: clip; white-space: normal; -webkit-box-orient: initial; -webkit-line-clamp: unset; }
     }
     @media (max-width: 520px) and (max-aspect-ratio: 1/1) {
+      .jwxt-bridge-head { align-items: flex-start; flex-direction: column; }
+      .jwxt-bridge-actions { justify-content: flex-start; width: 100%; }
       .course-room-code[data-room-code-length="4"] { font-size: 9px; }
       .course-room-code[data-room-code-length="5"] { font-size: 7px; }
       .course-room-code[data-room-code-length="6"] { font-size: 6px; }
@@ -725,7 +733,7 @@
         <div class="top-spacer"></div>
         <label class="search"><i data-lucide="search"></i><input id="searchInput" type="search" placeholder="搜索课程、教师或教室" aria-label="搜索课程"></label>
         <button class="icon-btn" type="button" title="切换主题" aria-label="切换主题" id="themeButton"><i data-lucide="sun"></i></button>
-        <button class="import-btn" type="button" id="importButton"><i data-lucide="file-up"></i><span>导入 PDF</span></button>
+        <button class="import-btn" type="button" id="importButton" aria-label="导入 PDF" title="导入 PDF"><i data-lucide="file-up"></i><span>导入 PDF</span></button>
       </header>
 
       <div class="content">
@@ -773,17 +781,18 @@
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
   <aside class="drawer" id="drawer" aria-label="课程详情" aria-hidden="true"><button class="icon-btn drawer-favorite" id="drawerFavorite" type="button" title="收藏课程" aria-label="收藏课程"><i data-lucide="bookmark"></i></button><button class="icon-btn drawer-close" id="drawerClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button><div class="drawer-kicker" id="drawerKicker">课程详情</div><h2 id="drawerTitle">课程名称</h2><p class="drawer-sub" id="drawerSub">周二 · 第 1–2 节</p><dl class="detail-list"><div class="detail-row"><dt>上课时间</dt><dd id="detailTime">08:00–09:25</dd></div><div class="detail-row"><dt>上课地点</dt><dd id="detailRoom">滨海校区 · 求知楼</dd></div><div class="detail-row"><dt>任课教师</dt><dd id="detailTeacher">教师姓名</dd></div><div class="detail-row"><dt>周次</dt><dd id="detailWeeks">第 1–16 周</dd></div><div class="detail-row"><dt>课程类型</dt><dd id="detailType">讲课</dd></div></dl><div class="drawer-note">课程数据保存在本地浏览器中。导入新的 PDF 后，可以继续手动修正课程信息。</div></aside>
 
-  <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>从教务系统获取，或选择本地 PDF。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="jwxt-bridge"><div class="jwxt-bridge-head"><span class="jwxt-bridge-title">从教务系统获取</span><button class="secondary-btn" id="openJwxtImport" type="button"><i data-lucide="external-link"></i><span>打开教务系统</span></button></div><span class="jwxt-bridge-note">先将下面的链接拖到书签栏（Ctrl+Shift+B 可显示书签栏），再打开教务系统。进入个人课表后，点击书签栏里的这个书签。</span><a class="bookmarklet-link" id="jwxtBookmarklet" href="#" aria-disabled="true">拖我到书签栏：发送课表</a></div><label class="dropzone" id="dropZone" for="fileInput"><i data-lucide="upload-cloud"></i><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="import-status" id="importStatus" role="status" aria-live="polite"></div><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button"><i data-lucide="scan-line"></i><span>开始识别</span></button></div></section></div>
+  <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>从教务系统获取，或选择本地 PDF。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="jwxt-bridge"><div class="jwxt-bridge-head"><span class="jwxt-bridge-title">手机端快捷导入</span><div class="jwxt-bridge-actions"><button class="secondary-btn" id="openJwxtImport" type="button" aria-label="打开教务系统" title="打开教务系统"><i data-lucide="external-link"></i><span>打开教务系统</span></button><button class="import-btn" id="runJwxtImport" type="button" aria-label="已登录，获取课表" title="已登录，获取课表"><i data-lucide="download-cloud"></i><span>已登录，获取课表</span></button></div></div><span class="jwxt-bridge-note">先打开教务系统并完成认证，再回到本页点击「已登录，获取课表」。若浏览器不支持，请将本页添加到主屏幕后，在教务系统导出 PDF 并用系统分享发送给本应用。</span><div class="jwxt-desktop-fallback"><span>电脑端备用：</span><a class="bookmarklet-link" id="jwxtBookmarklet" href="#" aria-disabled="true">拖我到书签栏：发送课表</a></div></div><label class="dropzone" id="dropZone" for="fileInput"><i data-lucide="upload-cloud"></i><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="import-status" id="importStatus" role="status" aria-live="polite"></div><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button"><i data-lucide="scan-line"></i><span>开始识别</span></button></div></section></div>
 
   <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题与本地数据管理。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option></select></label><p class="settings-note">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。</p><div class="data-actions"><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
 
-  <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>点击右上角「导入 PDF」，可从教务系统获取课表，或选择已经下载的 PDF。</li><li>从教务系统获取时，先把「发送课表」链接拖到书签栏，再由本页打开教务系统。</li><li>进入个人课表查询页后，点击书签栏中的「发送课表」，不要在本应用页面直接点击该链接。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>「回到今天」定位到当前周次与星期。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
+  <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>点击右上角「导入 PDF」，可从教务系统获取课表，或选择已经下载的 PDF。</li><li>手机端先点击「打开教务系统」完成认证，再回到本页点击「已登录，获取课表」。</li><li>如果手机浏览器不支持快捷获取，将应用添加到主屏幕后，可从教务系统用系统分享发送 PDF。</li><li>电脑端可将「发送课表」链接拖到书签栏，进入个人课表页后点击该书签。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>「回到今天」定位到当前周次与星期。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
 
   <div class="modal-backdrop" id="switchBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="switchTitle"><div class="modal-head"><div><h2 id="switchTitle">切换课表</h2><p>选择要查看的课表。</p></div><button class="icon-btn" id="switchClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="switch-list" id="switchList"></div><div class="modal-foot"><button class="secondary-btn" id="switchImport" type="button">导入新课表</button><button class="import-btn" id="switchDone" type="button">完成</button></div></section></div>
 
   <script type="module">
     import { parseTimetablePdf } from './src/timetable.js';
-    import { createJwxtBookmarklet, JWXT_TIMETABLE_URL, readJwxtPdfMessage } from './src/jwxt-bridge.js';
+    import { createJwxtBookmarklet, createJwxtWindowRunner, JWXT_TIMETABLE_URL, readJwxtPdfMessage } from './src/jwxt-bridge.js';
+    import { takeSharedPdf } from './src/shared-pdf.js';
     import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/build/pdf.mjs';
 
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/build/pdf.worker.mjs';
@@ -1480,7 +1489,21 @@
         setImportStatus('浏览器阻止了教务系统窗口，请允许此网站打开弹窗。', 'error');
         return;
       }
-      setImportStatus('教务系统已打开。登录并进入课表页后，点击书签栏中的「发送课表到本页面」。');
+      setImportStatus('教务系统已打开。完成认证并进入个人课表后，回到本页点击「已登录，获取课表」。');
+    }
+    function runJwxtImport() {
+      if (!jwxtWindow || jwxtWindow.closed) {
+        setImportStatus('请先点击「打开教务系统」，完成认证后再获取课表。', 'error');
+        return;
+      }
+      try {
+        const runner = createJwxtWindowRunner(window.location.origin);
+        const target = window.open(runner, 'wmuTimetableImport');
+        if (!target) throw new Error('浏览器阻止了窗口操作');
+        setImportStatus('已向教务系统发送导出请求，等待 PDF 返回……');
+      } catch (error) {
+        setImportStatus('当前浏览器不支持快捷获取，请在教务系统导出 PDF 后使用系统分享。', 'error');
+      }
     }
     function openModal(id) { document.getElementById(id).classList.add('modal-open'); }
     function closeModalById(id) { document.getElementById(id).classList.remove('modal-open'); }
@@ -1715,6 +1738,7 @@
     $('mobileNavHelp').addEventListener('click', () => { closeMobileNav(); openHelp(); });
     $('importButton').addEventListener('click', openImportModal);
     $('openJwxtImport').addEventListener('click', openJwxtImport);
+    $('runJwxtImport').addEventListener('click', runJwxtImport);
     $('jwxtBookmarklet').addEventListener('click', (event) => {
       event.preventDefault();
       setImportStatus('请把这个链接拖到浏览器书签栏，再到教务系统个人课表页点击该书签。');
@@ -1799,10 +1823,35 @@
       resizeTimer = setTimeout(renderAll, 90);
     });
 
+    async function importSharedPdfIfPresent() {
+      const sharedState = window.location?.search ? new URLSearchParams(window.location.search).get('shared') : null;
+      if (!sharedState) return;
+      window.history?.replaceState({}, '', window.location.pathname);
+      if (sharedState === 'invalid') {
+        openImportModal();
+        setImportStatus('分享的文件不是 PDF，请重新选择课表 PDF。', 'error');
+        return;
+      }
+      try {
+        const file = await takeSharedPdf();
+        if (!file) return;
+        openImportModal();
+        importPdfFile(file);
+      } catch (error) {
+        openImportModal();
+        setImportStatus('无法读取分享的 PDF，请重新分享一次。', 'error');
+      }
+    }
+
+    if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
+      navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
+    }
+
     if (window.setInterval) window.setInterval(updateNowIndicator, 15000);
     loadState();
     if (window.lucide) window.lucide.createIcons();
     renderAll();
+    importSharedPdfIfPresent();
   </script>
 </body>
 </html>

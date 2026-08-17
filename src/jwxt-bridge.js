@@ -19,6 +19,10 @@ export function createJwxtBookmarklet(appOrigin) {
   return `javascript:${code}`;
 }
 
+export function createJwxtWindowRunner(appOrigin) {
+  return createJwxtBookmarklet(appOrigin);
+}
+
 export function readJwxtPdfMessage(event, expectedSource = null) {
   if (!event || event.origin !== JWXT_ORIGIN) return null;
   if (!expectedSource || event.source !== expectedSource) return null;

@@ -1,0 +1,30 @@
+{
+  "name": "温医大课表",
+  "short_name": "温医大课表",
+  "description": "温州医科大学课表导入与周视图工具",
+  "start_url": "./",
+  "display": "standalone",
+  "theme_color": "#7b182e",
+  "background_color": "#fbfcfa",
+  "icons": [
+    {
+      "src": "assets/wmu-preview.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "share_target": {
+    "action": "./share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [
+        {
+          "name": "file",
+          "accept": ["application/pdf", ".pdf"]
+        }
+      ]
+    }
+  }
+}
