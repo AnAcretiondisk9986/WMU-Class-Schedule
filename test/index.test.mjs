@@ -227,6 +227,20 @@ test("40 分钟课程卡片只显示名称和地点", () => {
   assert.doesNotMatch(card, /course-room-icon|data-lucide="map-pin"|course-time|course-meta|course-type/);
 });
 
+test("不足 40 分钟的极短课程卡片只显示居中名称", () => {
+  const event = { ...TEST_EVENTS[0], start: 7, end: 7, title: "极短课程", campus: "滨海校区", room: "1102", label: "讲课" };
+  const s = runScenario(SAVED({
+    timetables: [TT("ultra-short", "2026-2027-1", "2026-2027-1", "测试同学", [event])],
+    activeId: "ultra-short"
+  }));
+  const card = s.$("schedule").innerHTML.match(/<button class="course[^>]*title="极短课程">[\s\S]*?<\/button>/)?.[0] || "";
+
+  assert.match(card, /course-ultra-short/);
+  assert.match(card, /course-title">极短课程/);
+  assert.doesNotMatch(card, /course-room|course-time|course-meta|course-type/);
+  assert.match(html, /\.course\.course-ultra-short \.course-title \{[^}]*align-self: center;[^}]*text-align: center;/);
+});
+
 test("index.html 从 localStorage 恢复状态", () => {
   const s = runScenario(SAVED({ week: 2, day: 3, view: "list", theme: "warm" }));
   assert.equal(s.error, null, s.error?.stack);
@@ -350,12 +364,17 @@ test("重叠课程按讲课、线上、无地点、平台确定图层", () => {
   assert.match(html, /\.course:hover, \.course:focus-visible \{ z-index: 20;/);
 });
 
-test("课程类型标签始终位于卡片内容末尾并底部居中", () => {
+test("课程卡片的可见信息元素纵向等距分布", () => {
   const s = runScenario(SAVED());
   const firstCourse = s.$("schedule").innerHTML.match(/<button class="course[\s\S]*?<\/button>/)?.[0] || "";
-  assert.match(firstCourse, /<span class="course-content">[\s\S]*<span class="course-meta">[\s\S]*<\/span><span class="course-type">讲课<\/span><\/button>$/);
+  assert.match(firstCourse, /<span class="course-content">[\s\S]*<span class="course-meta">[\s\S]*<\/span><span class="course-type">讲课<\/span><\/span><\/button>$/);
   assert.match(html, /\.course-type \{[^}]*align-self: center;/);
-  assert.match(html, /\.course-content \{[^}]*flex: 1 1 auto;/);
+  assert.match(html, /\.course-content \{[^}]*flex: 1 1 auto;[^}]*justify-content: space-evenly;[^}]*overflow: auto;/);
+  assert.match(html, /\.course-time \{[^}]*margin: 0;/);
+  assert.match(html, /\.course-room \{[^}]*margin: 0;/);
+  assert.match(html, /\.course-meta \{[^}]*margin: 0;/);
+  assert.match(html, /\.course-type \{[^}]*margin: 0;/);
+  assert.match(html, /\.course\.course-tiny \.course-meta \{ display: none; \}/);
   assert.doesNotMatch(html, /\.course\.course-(?:compact|tiny) \.course-type \{ display: none; \}/);
 });
 
