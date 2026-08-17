@@ -275,6 +275,7 @@ test("竖屏顶栏固定且地点按结构换行", () => {
   assert.match(html, /\.course-room \{ display: grid; width: 100%;[^}]*justify-items: center;/);
   assert.match(html, /\.course-room-icon \{ display: flex; width: 100%;[^}]*justify-content: center;/);
   assert.match(html, /\.course-room-code \{ white-space: nowrap; overflow-wrap: normal; word-break: normal; \}/);
+  assert.match(html, /@media \(max-width: 520px\) and \(max-aspect-ratio: 1\/1\)[\s\S]*?data-room-code-length="4"\] \{ font-size: 9px; \}[\s\S]*?data-room-code-length="5"\] \{ font-size: 7px; \}[\s\S]*?data-room-code-length="6"\] \{ font-size: 6px; \}/);
   assert.match(html, /\.course-room-extra, \.course-room-free \{ white-space: normal; overflow-wrap: anywhere; word-break: break-word; \}/);
   assert.doesNotMatch(html, /\.course\.course-compact \.course-room, \.course\.course-compact \.course-type \{ display: none; \}/);
   assert.doesNotMatch(html, /\.course\.course-tiny \.course-room, \.course\.course-tiny \.course-type/);
@@ -316,13 +317,16 @@ test("按校区隐藏无用教室说明且保留学院路原始格式", () => {
     { ...TEST_EVENTS[2], day: 3, campus: "滨海校区", room: "6114计算机机房" },
     { ...TEST_EVENTS[3], day: 4, campus: "学院路校区", room: "教学楼 A101（智慧教室）" },
     { ...TEST_EVENTS[4], day: 5, campus: "滨海校区", room: "求知楼6114计算机机房", weeks: [W(1, 16)] },
-    { ...TEST_EVENTS[5], day: 6, campus: "茶山校区", room: "教学楼6A101（智慧教室）" }
+    { ...TEST_EVENTS[5], day: 6, campus: "茶山校区", room: "教学楼6A101（智慧教室）" },
+    { ...TEST_EVENTS[6], day: 7, campus: "茶山校区", room: "7CJ305" }
   ];
   const s = runScenario(SAVED({ timetables: [TT("rooms", "2026-2027-1", "2026-2027-1", "测试同学", rooms)], activeId: "rooms" }));
   const scheduleHtml = s.$("schedule").innerHTML;
   assert.match(scheduleHtml, /course-room-code">6A101</);
   assert.match(scheduleHtml, /course-room-code">6B203</);
   assert.match(scheduleHtml, /course-room-code">6114</);
+  assert.match(scheduleHtml, /data-room-code-length="5" class="course-room-code">6B203/);
+  assert.match(scheduleHtml, /data-room-code-length="6" class="course-room-code">7CJ305/);
   assert.match(scheduleHtml, /course-room-free">教学楼 A101（智慧教室）</);
   assert.match(scheduleHtml, /course-room-free">求知楼6114计算机机房</);
   assert.match(scheduleHtml, /course-room-free">教学楼6A101（智慧教室）</);

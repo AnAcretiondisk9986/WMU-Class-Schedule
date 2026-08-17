@@ -676,6 +676,11 @@
       .topbar { position: sticky; top: 0; z-index: 9; }
       .course-room { display: grid; min-height: auto; max-height: none; overflow: visible; text-overflow: clip; white-space: normal; -webkit-box-orient: initial; -webkit-line-clamp: unset; }
     }
+    @media (max-width: 520px) and (max-aspect-ratio: 1/1) {
+      .course-room-code[data-room-code-length="4"] { font-size: 9px; }
+      .course-room-code[data-room-code-length="5"] { font-size: 7px; }
+      .course-room-code[data-room-code-length="6"] { font-size: 6px; }
+    }
     @media (prefers-reduced-motion: reduce) {
       .sidebar, .mobile-nav-backdrop, .mobile-nav-panel { transition-duration: 1ms !important; }
       .week-swipe-surface { will-change: auto; }
@@ -919,7 +924,7 @@
     const roomMarkup = (event) => {
       const parts = roomDisplayParts(event);
       const body = parts.code
-        ? `<span class="course-room-body course-room-coded"><span class="course-room-code">${escapeHtml(parts.code)}</span>${parts.extra ? `<span class="course-room-extra">${escapeHtml(parts.extra)}</span>` : ''}</span>`
+        ? `<span class="course-room-body course-room-coded"><span data-room-code-length="${parts.code.length}" class="course-room-code">${escapeHtml(parts.code)}</span>${parts.extra ? `<span class="course-room-extra">${escapeHtml(parts.extra)}</span>` : ''}</span>`
         : `<span class="course-room-body course-room-free">${escapeHtml(parts.room)}</span>`;
       return `<span class="course-room-icon"><i data-lucide="map-pin"></i></span>${body}`;
     };
