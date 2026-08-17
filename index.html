@@ -186,7 +186,9 @@
     .course-meta { display: block; margin-top: 3px; overflow: hidden; color: inherit; font-size: 10px; opacity: .78; white-space: nowrap; text-overflow: ellipsis; }
     .course-type { position: static; align-self: center; flex: 0 0 auto; max-width: 100%; margin-top: 4px; padding: 2px 5px; border-radius: 4px; background: rgba(255,255,255,.54); font-size: 9px; font-weight: 800; overflow-wrap: anywhere; }
     .week-swipe-viewport { overflow: hidden; }
-    .week-swipe-surface { transform: translate3d(0, 0, 0); will-change: transform; }
+    .week-swipe-surface { display: grid; grid-template-columns: repeat(3, 100%); transform: translate3d(-100%, 0, 0); will-change: transform; }
+    .week-swipe-page { min-width: 0; }
+    .week-swipe-preview { pointer-events: none; user-select: none; }
     .mobile-menu-button, .mobile-nav-backdrop, .mobile-nav-panel { display: none; }
     .now-line { position: absolute; left: 0; right: 0; height: 2px; background: #e5484d; z-index: 5; pointer-events: none; }
     .now-label { position: absolute; left: 0; top: 50%; transform: translateY(-50%); padding: 0 6px; border-radius: 999px; background: #e5484d; color: #fff; font-size: 10px; font-weight: 700; line-height: 16px; white-space: nowrap; }
@@ -207,10 +209,10 @@
     .jwxt-link { color: var(--mint-strong); font-size: 12px; font-weight: 650; text-decoration: none; }
     .jwxt-link:hover { text-decoration: underline; }
 
-    .drawer-backdrop { position: fixed; inset: 0; z-index: 10; background: rgba(12,24,18,.26); opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
-    .drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 11; width: min(420px, 100vw); padding: 28px; overflow: auto; background: #fff; box-shadow: -15px 0 40px rgba(17,32,24,.12); transform: translateX(100%); transition: transform 260ms var(--ease-out); }
+    .drawer-backdrop { position: fixed; inset: 0; z-index: 10; background: rgba(12,24,18,.26); opacity: 0; pointer-events: none; }
+    .drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 11; width: min(420px, 100vw); padding: 28px; overflow: auto; background: #fff; box-shadow: -15px 0 40px rgba(17,32,24,.12); transform: translate3d(100%, 0, 0); touch-action: pan-y; will-change: transform; }
     .drawer-open .drawer-backdrop { opacity: 1; pointer-events: auto; }
-    .drawer-open .drawer { transform: translateX(0); }
+    .drawer-open .drawer { transform: translate3d(0, 0, 0); }
     .drawer-close { float: right; }
     .drawer-kicker { clear: both; padding-top: 28px; color: var(--mint-strong); font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
     .drawer h2 { max-width: 330px; margin: 7px 0 0; font-size: 25px; line-height: 1.15; letter-spacing: 0; }
@@ -683,7 +685,7 @@
     }
     @media (prefers-reduced-motion: reduce) {
       .sidebar, .mobile-nav-backdrop, .mobile-nav-panel { transition-duration: 1ms !important; }
-      .week-swipe-surface { will-change: auto; }
+      .week-swipe-surface, .drawer { will-change: auto; }
     }
   </style>
 </head>
@@ -748,9 +750,13 @@
         <section class="toolbar"><div><h2 id="viewTitle">周视图</h2><span class="subtle" id="weekRangeLabel">…</span></div><div class="toolbar-spacer"></div><div class="view-toggle" role="group" aria-label="视图切换"><button class="active" id="weekViewButton" type="button"><i data-lucide="table-2"></i>周视图</button><button id="listViewButton" type="button"><i data-lucide="list"></i>列表</button></div></section>
 
         <div class="week-swipe-viewport" id="weekSwipeViewport"><div class="week-swipe-surface" id="weekSwipeSurface">
-          <section class="day-strip" id="dayStrip" aria-label="选择日期"></section>
-          <section class="schedule-shell" id="scheduleShell"><div class="schedule-scroll"><div class="schedule" id="schedule"></div></div><div class="empty" id="emptyState"><div><i data-lucide="calendar-off"></i><div>没有匹配的课程</div></div></div></section>
-          <section class="agenda" id="agenda" aria-label="课程列表"></section>
+          <div class="week-swipe-page week-swipe-preview" id="previousWeekPreview" aria-hidden="true"></div>
+          <div class="week-swipe-page" id="currentWeekPage">
+            <section class="day-strip" id="dayStrip" aria-label="选择日期"></section>
+            <section class="schedule-shell" id="scheduleShell"><div class="schedule-scroll"><div class="schedule" id="schedule"></div></div><div class="empty" id="emptyState"><div><i data-lucide="calendar-off"></i><div>没有匹配的课程</div></div></div></section>
+            <section class="agenda" id="agenda" aria-label="课程列表"></section>
+          </div>
+          <div class="week-swipe-page week-swipe-preview" id="nextWeekPreview" aria-hidden="true"></div>
         </div></div>
       </div>
     </main>
@@ -830,6 +836,10 @@
     let activeEvent = null;
     let swipeAnimationFrame = 0;
     let swipeState = null;
+    let swipePosition = 0;
+    let drawerAnimationFrame = 0;
+    let drawerPosition = 0;
+    let drawerSwipeState = null;
     const $ = (id) => document.getElementById(id);
     const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
     const currentTimetable = () => state.timetables.find((t) => t.id === state.activeId) || null;
@@ -886,16 +896,17 @@
       weeks: event.weeks || [],
       credit: event.credit == null ? '—' : String(event.credit)
     });
-    const visibleEvents = () => {
+    const visibleEventsForWeek = (week) => {
       let events = currentEvents();
       if (state.view === 'favorites') events = events.filter((event) => state.favorites.includes(event.title));
       if (state.query) {
         const query = state.query.toLowerCase();
         events = events.filter((event) => `${event.title} ${event.teacher} ${event.room} ${event.campus}`.toLowerCase().includes(query));
       }
-      if (state.view !== 'favorites') events = events.filter((event) => eventInWeek(event, state.week));
+      if (state.view !== 'favorites') events = events.filter((event) => eventInWeek(event, week));
       return events;
     };
+    const visibleEvents = () => visibleEventsForWeek(state.week);
     const timeLabel = (event) => {
       const periods = CAMPUS_PERIODS[event.campus] || CAMPUS_PERIODS['滨海校区'];
       return `${periods[event.start - 1][0]}–${periods[event.end - 1][1]}`;
@@ -921,12 +932,12 @@
       if (!match) return { room, code: '', extra: '' };
       return { room, code: match[1], extra: room.slice(match[1].length).trim() };
     };
-    const roomMarkup = (event) => {
+    const roomMarkup = (event, showIcon = true) => {
       const parts = roomDisplayParts(event);
       const body = parts.code
         ? `<span class="course-room-body course-room-coded"><span data-room-code-length="${parts.code.length}" class="course-room-code">${escapeHtml(parts.code)}</span>${parts.extra ? `<span class="course-room-extra">${escapeHtml(parts.extra)}</span>` : ''}</span>`
         : `<span class="course-room-body course-room-free">${escapeHtml(parts.room)}</span>`;
-      return `<span class="course-room-icon"><i data-lucide="map-pin"></i></span>${body}`;
+      return `${showIcon ? '<span class="course-room-icon"><i data-lucide="map-pin"></i></span>' : ''}${body}`;
     };
     const isOnlinePlatformRoom = (room) => /学习通|超星|雨课堂|钉钉|腾讯会议|在线学习|线上课堂|同步课堂|在线教学平台|网络教学平台/i.test(String(room || ''));
     const isMissingRoom = (room) => {
@@ -950,15 +961,18 @@
     };
     const truncateTitle = (title) => (title.length > 9 ? `${title.slice(0, 9)}..` : title);
 
+    function rubberband(distance, dimension, constant = .32) {
+      return (distance * dimension * constant) / (dimension + constant * Math.abs(distance));
+    }
+    function weekSwipeWidth() {
+      return $('weekSwipeViewport')?.getBoundingClientRect?.().width || $('weekSwipeSurface')?.getBoundingClientRect?.().width || 320;
+    }
     function setSwipeTransform(value) {
       const surface = $('weekSwipeSurface');
-      if (surface) surface.style.transform = `translate3d(${Math.round(value * 100) / 100}px, 0, 0)`;
+      swipePosition = Math.round(value * 100) / 100;
+      if (surface) surface.style.transform = `translate3d(calc(-100% + ${swipePosition}px), 0, 0)`;
     }
-    function currentSwipeTransform() {
-      const value = $('weekSwipeSurface')?.style.transform || '';
-      const match = value.match(/translate3d\((-?[\d.]+)px/);
-      return match ? Number(match[1]) : 0;
-    }
+    function currentSwipeTransform() { return swipePosition; }
     function stopSwipeAnimation() {
       if (swipeAnimationFrame && window.cancelAnimationFrame) window.cancelAnimationFrame(swipeAnimationFrame);
       swipeAnimationFrame = 0;
@@ -996,14 +1010,10 @@
       renderAll();
       return true;
     }
-    function finishWeekSwipe(delta, releaseVelocity, width) {
-      const direction = delta > 0 ? -1 : 1;
+    function finishWeekSwipe(delta, releaseVelocity) {
       const changed = navigateWeek(delta);
       if (!changed) { animateSwipeTo(0, releaseVelocity * 1000); return; }
       const surface = $('weekSwipeSurface');
-      setSwipeTransform(direction * width);
-      if (window.requestAnimationFrame) window.requestAnimationFrame(() => animateSwipeTo(0, releaseVelocity * 1000));
-      else animateSwipeTo(0, releaseVelocity * 1000);
       if (surface) surface.setAttribute('aria-busy', 'false');
     }
     function attachWeekSwipe() {
@@ -1013,7 +1023,9 @@
       surface.addEventListener('pointerdown', (event) => {
         if ((event.pointerType === 'mouse' && (window.innerWidth || 0) > 760) || event.isPrimary === false) return;
         stopSwipeAnimation();
-        swipeState = { id: event.pointerId, startX: event.clientX, startY: event.clientY, x: event.clientX, time: performance.now(), velocity: 0, horizontal: false, cancelled: false, moved: false };
+        const now = performance.now();
+        swipeState = { id: event.pointerId, startX: event.clientX, startY: event.clientY, origin: currentSwipeTransform(), velocity: 0, samples: [{ x: event.clientX, time: now }], horizontal: false, cancelled: false };
+        surface.__swipeMoved = false;
         surface.setPointerCapture?.(event.pointerId);
       });
       surface.addEventListener('pointermove', (event) => {
@@ -1021,71 +1033,85 @@
         const dx = event.clientX - swipeState.startX;
         const dy = event.clientY - swipeState.startY;
         const now = performance.now();
-        const elapsed = Math.max(1, now - swipeState.time);
-        swipeState.velocity = (event.clientX - swipeState.x) / elapsed;
-        swipeState.x = event.clientX; swipeState.time = now;
+        swipeState.samples.push({ x: event.clientX, time: now });
+        swipeState.samples = swipeState.samples.filter((sample) => now - sample.time <= 120).slice(-5);
+        const first = swipeState.samples[0];
+        swipeState.velocity = (event.clientX - first.x) / Math.max(1, now - first.time);
         if (!swipeState.horizontal && Math.hypot(dx, dy) > 10) {
           if (Math.abs(dy) > Math.abs(dx)) { swipeState.cancelled = true; return; }
-          swipeState.horizontal = true; swipeState.moved = true; surface.__swipeMoved = true;
+          swipeState.horizontal = true; surface.__swipeMoved = true; surface.setAttribute('aria-busy', 'true');
         }
         if (!swipeState.horizontal) return;
         event.preventDefault?.();
-        const width = surface.getBoundingClientRect?.().width || 320;
-        const bound = width * .92;
-        let position = dx;
+        const width = weekSwipeWidth();
+        let position = swipeState.origin + dx;
         if ((dx < 0 && state.week >= maxNavigableWeek()) || (dx > 0 && state.week <= minNavigableWeek())) {
-          const overshoot = dx < 0 ? dx + bound : dx - bound;
-          position = (dx < 0 ? -1 : 1) * (bound + (overshoot * width * .22) / (width + .22 * Math.abs(overshoot)));
+          position = swipeState.origin + rubberband(dx, width);
         }
-        setSwipeTransform(Math.max(-bound, Math.min(bound, position)));
+        setSwipeTransform(Math.max(-width, Math.min(width, position)));
       });
       surface.addEventListener('pointerup', (event) => {
         if (!swipeState || event.pointerId !== swipeState.id) return;
         const gesture = swipeState; swipeState = null;
-        if (!gesture.horizontal || gesture.cancelled) { setSwipeTransform(0); return; }
+        surface.releasePointerCapture?.(event.pointerId);
+        if (!gesture.horizontal || gesture.cancelled) { animateSwipeTo(0); surface.setAttribute('aria-busy', 'false'); return; }
         const dx = event.clientX - gesture.startX;
         const velocity = gesture.velocity || 0;
-        const width = surface.getBoundingClientRect?.().width || 320;
+        const width = weekSwipeWidth();
         const threshold = Math.min(86, width * .2);
-        const shouldCommit = Math.abs(dx) > threshold || Math.abs(velocity) > .32;
-        if (!shouldCommit) { animateSwipeTo(0, velocity * 1000); return; }
-        const delta = dx < 0 ? 1 : -1;
+        const projected = dx + velocity * 180;
+        const shouldCommit = Math.abs(projected) > threshold || Math.abs(velocity) > .32;
+        if (!shouldCommit) { animateSwipeTo(0, velocity * 1000, () => surface.setAttribute('aria-busy', 'false')); return; }
+        const direction = Math.abs(velocity) > .32 ? Math.sign(velocity) : Math.sign(projected || dx);
+        const delta = direction < 0 ? 1 : -1;
+        const next = state.week + delta;
+        if (next < minNavigableWeek() || next > maxNavigableWeek()) {
+          animateSwipeTo(0, velocity * 1000, () => surface.setAttribute('aria-busy', 'false'));
+          return;
+        }
         const target = delta > 0 ? -width : width;
-        animateSwipeTo(target, velocity * 1000, () => finishWeekSwipe(delta, velocity, width));
+        animateSwipeTo(target, velocity * 1000, () => finishWeekSwipe(delta, velocity));
       });
-      surface.addEventListener('pointercancel', () => { swipeState = null; animateSwipeTo(0); });
+      surface.addEventListener('pointercancel', () => { swipeState = null; animateSwipeTo(0, 0, () => surface.setAttribute('aria-busy', 'false')); });
       surface.addEventListener('lostpointercapture', () => {
         if (!swipeState) return;
         swipeState = null;
-        animateSwipeTo(0);
+        animateSwipeTo(0, 0, () => surface.setAttribute('aria-busy', 'false'));
       });
       surface.addEventListener('click', (event) => {
         if (surface.__swipeMoved === true) { event.preventDefault(); event.stopPropagation(); surface.__swipeMoved = false; }
       }, true);
     }
 
-    function renderDays() {
-      const days = dayInfo(state.week);
+    function dayStripMarkup(week, interactive = true) {
+      const days = dayInfo(week);
       const today = weekAndDayForDate(new Date());
-      const isTodayWeek = state.week === today.week;
-      $('dayStrip').innerHTML = days.map((day) => {
-        const count = visibleEvents().filter((event) => event.day === day.key).length;
+      const isTodayWeek = week === today.week;
+      const events = visibleEventsForWeek(week);
+      return days.map((day) => {
+        const count = events.filter((event) => event.day === day.key).length;
         const isToday = isTodayWeek && day.key === today.day;
-        return `<button class="day ${state.day === day.key ? 'active' : ''} ${isToday ? 'today' : ''}" data-day="${day.key}" type="button"><span class="day-name"><b>${day.name}</b><span>${day.date}</span></span><span class="day-count">${count}</span></button>`;
+        const tag = interactive ? 'button' : 'div';
+        const attributes = interactive ? ` data-day="${day.key}" type="button"` : '';
+        return `<${tag} class="day ${state.day === day.key ? 'active' : ''} ${isToday ? 'today' : ''}"${attributes}><span class="day-name"><b>${day.name}</b><span>${day.date}</span></span><span class="day-count">${count}</span></${tag}>`;
       }).join('');
+    }
+
+    function renderDays() {
+      $('dayStrip').innerHTML = dayStripMarkup(state.week);
       document.querySelectorAll('[data-day]').forEach((button) => button.addEventListener('click', () => { state.day = Number(button.dataset.day); renderAll(); }));
     }
 
-    function renderSchedule() {
-      const days = dayInfo(state.week);
-      const events = visibleEvents();
+    function buildScheduleMarkup(week, interactive = true) {
+      const days = dayInfo(week);
+      const events = visibleEventsForWeek(week);
       const slotHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slot-h')) || 72;
       const pxPerMinute = slotHeight / 45;
       const now = new Date();
       const current = weekAndDayForDate(now);
       const nowWeek = current.week;
       const nowMinutes = now.getHours() * 60 + now.getMinutes();
-      const isCurrentWeek = state.week === nowWeek;
+      const isCurrentWeek = week === nowWeek;
       const todayKey = isCurrentWeek ? current.day : null;
       const axisStart = 8 * 60;
       const lastEnd = events.length ? Math.max(...events.map(eventEndMinute)) : axisStart + 45;
@@ -1094,20 +1120,33 @@
       const totalHeight = Math.round((axisEnd - axisStart) * pxPerMinute);
       const ticks = [];
       for (let minute = axisStart; minute < axisEnd; minute += 45) ticks.push(minute);
-      scheduleAxis = { start: axisStart, end: axisEnd, pxPerMinute };
       const showNowLine = isCurrentWeek && nowMinutes >= axisStart && nowMinutes <= axisEnd;
-      const nowLine = showNowLine ? `<div class="now-line" id="nowLine" style="top:${Math.round((nowMinutes - axisStart) * pxPerMinute)}px"><span class="now-label">${formatClock(nowMinutes)}</span></div>` : '';
+      const nowLine = showNowLine ? `<div class="now-line"${interactive ? ' id="nowLine"' : ''} style="top:${Math.round((nowMinutes - axisStart) * pxPerMinute)}px"><span class="now-label">${formatClock(nowMinutes)}</span></div>` : '';
 
       const head = `<div class="schedule-head"><div class="head-cell"><span class="axis-head"><b>时间</b></span></div>${days.map((day) => `<div class="head-cell ${state.day === day.key ? 'focus' : ''} ${day.key === todayKey ? 'today-column' : ''}"><span class="head-day"><b>${day.name}</b><small class="head-date">${day.date}</small></span></div>`).join('')}</div>`;
       const axis = `<div class="time-axis" style="height:${totalHeight}px">${ticks.map((minute) => `<div class="time" style="height:${Math.round(45 * pxPerMinute)}px">${formatClock(minute)}</div>`).join('')}</div>`;
       const columns = days.map((day) => `<div class="day-column ${day.key === todayKey ? 'today-column' : ''}" data-column="${day.key}" style="height:${totalHeight}px">${events.filter((event) => event.day === day.key).map((event) => {
         const top = Math.round((eventStartMinute(event) - axisStart) * pxPerMinute);
-        const height = Math.round((eventEndMinute(event) - eventStartMinute(event)) * pxPerMinute);
+        const duration = eventEndMinute(event) - eventStartMinute(event);
+        const height = Math.round(duration * pxPerMinute);
         const density = height < 108 ? ' course-tiny' : height < 166 ? ' course-compact' : '';
+        const fortyMinute = duration === 40;
         const ongoing = isCurrentWeek && event.day === todayKey && nowMinutes >= eventStartMinute(event) && nowMinutes < eventEndMinute(event);
-        return `<button class="course type-${event.type} layer-${courseLayer(event)}${density}${ongoing ? ' ongoing' : ''}" data-event="${currentEvents().indexOf(event)}" style="top:${top}px;height:${height}px" type="button" title="${escapeHtml(event.title)}"><span class="course-content"><span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room">${roomMarkup(event)}</span><span class="course-meta"><span class="course-campus">${escapeHtml(event.campus)}</span><span class="course-teacher"> · ${escapeHtml(event.teacher)}</span></span></span><span class="course-type">${escapeHtml(event.label)}</span></button>`;
+        const tag = interactive ? 'button' : 'div';
+        const attributes = interactive ? ` data-event="${currentEvents().indexOf(event)}" type="button"` : '';
+        const details = fortyMinute
+          ? `<span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-room">${roomMarkup(event, false)}</span>`
+          : `<span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room">${roomMarkup(event)}</span><span class="course-meta"><span class="course-campus">${escapeHtml(event.campus)}</span><span class="course-teacher"> · ${escapeHtml(event.teacher)}</span></span>`;
+        return `<${tag} class="course type-${event.type} layer-${courseLayer(event)}${density}${fortyMinute ? ' course-40min' : ''}${ongoing ? ' ongoing' : ''}"${attributes} style="top:${top}px;height:${height}px" title="${escapeHtml(event.title)}"><span class="course-content">${details}</span>${fortyMinute ? '' : `<span class="course-type">${escapeHtml(event.label)}</span>`}</${tag}>`;
       }).join('')}</div>`).join('');
-      $('schedule').innerHTML = `${head}<div class="schedule-body">${axis}${columns}${nowLine}</div>`;
+      return { html: `${head}<div class="schedule-body">${axis}${columns}${nowLine}</div>`, events, axis: { start: axisStart, end: axisEnd, pxPerMinute } };
+    }
+
+    function renderSchedule() {
+      const result = buildScheduleMarkup(state.week);
+      const events = result.events;
+      scheduleAxis = result.axis;
+      $('schedule').innerHTML = result.html;
       if (!currentEvents().length) {
         $('emptyState').innerHTML = '<div class="empty-guide"><i data-lucide="file-up"></i><h3>还没有课表</h3><p>从教务系统获取，或选择已经下载的 PDF</p><button class="import-btn" id="emptyImportBtn" type="button"><i data-lucide="scan-line"></i><span>导入课表</span></button></div>';
         $('emptyState').style.display = 'grid';
@@ -1121,12 +1160,34 @@
       if (window.lucide) window.lucide.createIcons();
     }
 
-    function renderAgenda() {
-      const days = dayInfo(state.week);
-      const events = visibleEvents();
+    function agendaMarkup(week, interactive = true) {
+      const days = dayInfo(week);
+      const events = visibleEventsForWeek(week);
       const isFavorites = state.view === 'favorites';
-      $('agenda').innerHTML = days.filter((day) => events.some((event) => event.day === day.key)).map((day) => `<section class="agenda-day"><div class="agenda-day-title"><span>${isFavorites ? day.name : `${day.name} · ${day.date}`}</span><span>${events.filter((event) => event.day === day.key).length} 节</span></div>${events.filter((event) => event.day === day.key).map((event) => `<button class="agenda-event type-${event.type}" data-event="${currentEvents().indexOf(event)}" type="button"><span class="event-time">${timeLabel(event)}</span><span><span class="event-title">${escapeHtml(truncateTitle(event.title))}</span><span class="event-room">${escapeHtml(displayRoom(event))} · ${escapeHtml(event.teacher)}${isFavorites ? ' · ' + weeksLabel(event.weeks) : ''}</span></span></button>`).join('')}</section>`).join('') || '<div class="empty" style="display:grid"><div>没有匹配的课程</div></div>';
+      return days.filter((day) => events.some((event) => event.day === day.key)).map((day) => `<section class="agenda-day"><div class="agenda-day-title"><span>${isFavorites ? day.name : `${day.name} · ${day.date}`}</span><span>${events.filter((event) => event.day === day.key).length} 节</span></div>${events.filter((event) => event.day === day.key).map((event) => {
+        const tag = interactive ? 'button' : 'div';
+        const attributes = interactive ? ` data-event="${currentEvents().indexOf(event)}" type="button"` : '';
+        return `<${tag} class="agenda-event type-${event.type}"${attributes}><span class="event-time">${timeLabel(event)}</span><span><span class="event-title">${escapeHtml(truncateTitle(event.title))}</span><span class="event-room">${escapeHtml(displayRoom(event))} · ${escapeHtml(event.teacher)}${isFavorites ? ' · ' + weeksLabel(event.weeks) : ''}</span></span></${tag}>`;
+      }).join('')}</section>`).join('') || '<div class="empty" style="display:grid"><div>没有匹配的课程</div></div>';
+    }
+
+    function renderAgenda() {
+      $('agenda').innerHTML = agendaMarkup(state.week);
       document.querySelectorAll('.agenda-event[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(currentEvents()[Number(button.dataset.event)])));
+    }
+
+    function renderWeekPreview(id, week) {
+      const root = $(id);
+      const schedule = buildScheduleMarkup(week, false);
+      const showSchedule = state.view === 'schedule';
+      const emptyVisible = !currentEvents().length || !schedule.events.length;
+      root.setAttribute('data-preview-week', String(week));
+      root.innerHTML = `<section class="day-strip" aria-hidden="true">${dayStripMarkup(week, false)}</section><section class="schedule-shell" style="display:${showSchedule ? 'block' : 'none'}"><div class="schedule-scroll"><div class="schedule">${schedule.html}</div></div><div class="empty" style="display:${emptyVisible ? 'grid' : 'none'}"><div>${currentEvents().length ? '没有匹配的课程' : '还没有课表'}</div></div></section><section class="agenda" style="display:${showSchedule ? 'none' : 'grid'}" aria-hidden="true">${agendaMarkup(week, false)}</section>`;
+    }
+
+    function renderWeekPreviews() {
+      renderWeekPreview('previousWeekPreview', Math.max(minNavigableWeek(), state.week - 1));
+      renderWeekPreview('nextWeekPreview', Math.min(maxNavigableWeek(), state.week + 1));
     }
 
     function updateNowIndicator() {
@@ -1230,7 +1291,10 @@
       renderDays();
       renderSchedule();
       renderAgenda();
+      renderWeekPreviews();
+      setSwipeTransform(0);
       attachWeekSwipe();
+      attachDrawerSwipe();
       document.body.classList.toggle('list-mode', state.view !== 'schedule');
       $('scheduleShell').style.display = state.view === 'schedule' ? '' : 'none';
       $('agenda').style.display = state.view === 'schedule' ? '' : 'grid';
@@ -1240,6 +1304,7 @@
       $('navList').classList.toggle('active', state.view === 'list');
       $('navFavorites').classList.toggle('active', state.view === 'favorites');
       syncMobileNav();
+      if (window.lucide) window.lucide.createIcons();
     }
 
     function nextCourseToday() {
@@ -1254,6 +1319,111 @@
       return { label: `${prefix} · 已结束`, value: `${todayEvents[todayEvents.length - 1].title} 已下课` };
     }
 
+    function drawerWidth() {
+      return $('drawer')?.getBoundingClientRect?.().width || Math.min(420, window.innerWidth || 420);
+    }
+    function setDrawerPosition(value, width = drawerWidth()) {
+      drawerPosition = Math.round(value * 100) / 100;
+      $('drawer').style.transform = `translate3d(${drawerPosition}px, 0, 0)`;
+      $('drawerBackdrop').style.opacity = String(1 - Math.min(1, Math.max(0, drawerPosition) / Math.max(1, width)));
+    }
+    function stopDrawerAnimation() {
+      if (drawerAnimationFrame && window.cancelAnimationFrame) window.cancelAnimationFrame(drawerAnimationFrame);
+      drawerAnimationFrame = 0;
+    }
+    function animateDrawerTo(target, initialVelocity = 0, done) {
+      stopDrawerAnimation();
+      const width = drawerWidth();
+      if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || !window.requestAnimationFrame) {
+        setDrawerPosition(target, width); done?.(); return;
+      }
+      let position = drawerPosition;
+      let velocity = initialVelocity;
+      let previous = performance.now();
+      const step = (timestamp) => {
+        const delta = Math.min(.032, Math.max(.001, (timestamp - previous) / 1000));
+        previous = timestamp;
+        const spring = 500 * (target - position);
+        const damping = 42 * velocity;
+        velocity += (spring - damping) * delta;
+        position += velocity * delta;
+        setDrawerPosition(position, width);
+        if (Math.abs(target - position) < .45 && Math.abs(velocity) < 8) {
+          setDrawerPosition(target, width); drawerAnimationFrame = 0; done?.(); return;
+        }
+        drawerAnimationFrame = window.requestAnimationFrame(step);
+      };
+      drawerAnimationFrame = window.requestAnimationFrame(step);
+    }
+    function finishDrawerClose() {
+      document.body.classList.remove('drawer-open');
+      $('drawer').setAttribute('aria-hidden', 'true');
+      $('drawer').style.transform = '';
+      $('drawerBackdrop').style.opacity = '';
+      drawerPosition = drawerWidth();
+    }
+    function closeDrawer() {
+      if (!document.body.classList.contains('drawer-open')) {
+        $('drawer').setAttribute('aria-hidden', 'true');
+        return;
+      }
+      animateDrawerTo(drawerWidth(), 0, finishDrawerClose);
+    }
+    function attachDrawerSwipe() {
+      const drawer = $('drawer');
+      if (!drawer || drawer.__swipeReady) return;
+      drawer.__swipeReady = true;
+      drawer.addEventListener('pointerdown', (event) => {
+        if (!document.body.classList.contains('drawer-open') || (event.pointerType === 'mouse' && (window.innerWidth || 0) > 760) || event.isPrimary === false) return;
+        stopDrawerAnimation();
+        const now = performance.now();
+        drawerSwipeState = { id: event.pointerId, startX: event.clientX, startY: event.clientY, origin: drawerPosition, velocity: 0, samples: [{ x: event.clientX, time: now }], horizontal: false, cancelled: false };
+        drawer.__swipeMoved = false;
+        drawer.setPointerCapture?.(event.pointerId);
+      });
+      drawer.addEventListener('pointermove', (event) => {
+        if (!drawerSwipeState || event.pointerId !== drawerSwipeState.id || drawerSwipeState.cancelled) return;
+        const dx = event.clientX - drawerSwipeState.startX;
+        const dy = event.clientY - drawerSwipeState.startY;
+        const now = performance.now();
+        drawerSwipeState.samples.push({ x: event.clientX, time: now });
+        drawerSwipeState.samples = drawerSwipeState.samples.filter((sample) => now - sample.time <= 120).slice(-5);
+        const first = drawerSwipeState.samples[0];
+        drawerSwipeState.velocity = (event.clientX - first.x) / Math.max(1, now - first.time);
+        if (!drawerSwipeState.horizontal && Math.hypot(dx, dy) > 10) {
+          if (Math.abs(dy) > Math.abs(dx)) { drawerSwipeState.cancelled = true; return; }
+          drawerSwipeState.horizontal = true; drawer.__swipeMoved = true;
+        }
+        if (!drawerSwipeState.horizontal) return;
+        event.preventDefault?.();
+        const width = drawerWidth();
+        const raw = drawerSwipeState.origin + dx;
+        const position = raw < 0 ? -rubberband(-raw, width, .14) : raw > width ? width + rubberband(raw - width, width, .2) : raw;
+        setDrawerPosition(position, width);
+      });
+      drawer.addEventListener('pointerup', (event) => {
+        if (!drawerSwipeState || event.pointerId !== drawerSwipeState.id) return;
+        const gesture = drawerSwipeState; drawerSwipeState = null;
+        drawer.releasePointerCapture?.(event.pointerId);
+        if (!gesture.horizontal || gesture.cancelled) return;
+        const width = drawerWidth();
+        const velocity = gesture.velocity || 0;
+        const projected = drawerPosition + velocity * 180;
+        const shouldClose = projected > Math.min(120, width * .3) || velocity > .42;
+        if (shouldClose) animateDrawerTo(width, velocity * 1000, finishDrawerClose);
+        else animateDrawerTo(0, velocity * 1000);
+      });
+      drawer.addEventListener('pointercancel', () => { drawerSwipeState = null; animateDrawerTo(0); });
+      drawer.addEventListener('lostpointercapture', () => {
+        if (!drawerSwipeState) return;
+        drawerSwipeState = null;
+        animateDrawerTo(0);
+      });
+      drawer.addEventListener('click', (event) => {
+        if (drawer.__swipeMoved === true) { event.preventDefault(); event.stopPropagation(); drawer.__swipeMoved = false; }
+      }, true);
+    }
+
     function openDrawer(event) {
       activeEvent = event;
       $('drawerTitle').textContent = event.title;
@@ -1264,8 +1434,12 @@
       $('detailWeeks').textContent = weeksLabel(event.weeks);
       $('detailType').textContent = `${event.label} · ${event.credit} 学分`;
       renderFavoriteButton();
+      const wasOpen = document.body.classList.contains('drawer-open');
+      stopDrawerAnimation();
+      if (!wasOpen) setDrawerPosition(drawerWidth());
       document.body.classList.add('drawer-open');
       $('drawer').setAttribute('aria-hidden', 'false');
+      animateDrawerTo(0);
     }
     function renderFavoriteButton() {
       if (!activeEvent) return;
@@ -1282,7 +1456,6 @@
       persist();
       renderAll();
     }
-    function closeDrawer() { document.body.classList.remove('drawer-open'); $('drawer').setAttribute('aria-hidden', 'true'); }
     function prepareJwxtBookmarklet() {
       const link = $('jwxtBookmarklet');
       try {

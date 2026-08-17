@@ -185,12 +185,12 @@ test("index.html 课程名超九字截断、Y 轴为严格时间标尺", () => {
 
 test("index.html 按校区精确显示非等间隔作息时间", () => {
   const periods = [
-    { ...TEST_EVENTS[0], day: 1, start: 3, end: 3, title: "茶山第三节", campus: "茶山校区" },
-    { ...TEST_EVENTS[0], day: 2, start: 3, end: 3, title: "滨海第三节", campus: "滨海校区" },
-    { ...TEST_EVENTS[0], day: 3, start: 7, end: 7, title: "滨海第七节", campus: "滨海校区" },
-    { ...TEST_EVENTS[0], day: 4, start: 8, end: 8, title: "茶山第八节", campus: "茶山校区" },
-    { ...TEST_EVENTS[0], day: 5, start: 14, end: 14, title: "学院路第十四节", campus: "学院路校区" },
-    { ...TEST_EVENTS[0], day: 6, start: 16, end: 16, title: "滨海第十六节", campus: "滨海校区" }
+    { ...TEST_EVENTS[0], day: 1, start: 3, end: 4, title: "茶山第三至四节", campus: "茶山校区" },
+    { ...TEST_EVENTS[0], day: 2, start: 3, end: 4, title: "滨海第三至四节", campus: "滨海校区" },
+    { ...TEST_EVENTS[0], day: 3, start: 7, end: 8, title: "滨海第七至八节", campus: "滨海校区" },
+    { ...TEST_EVENTS[0], day: 4, start: 8, end: 9, title: "茶山第八至九节", campus: "茶山校区" },
+    { ...TEST_EVENTS[0], day: 5, start: 14, end: 15, title: "学院路第十四至十五节", campus: "学院路校区" },
+    { ...TEST_EVENTS[0], day: 6, start: 16, end: 17, title: "滨海第十六至十七节", campus: "滨海校区" }
   ];
   const s = runScenario(SAVED({
     timetables: [TT("periods", "2026-2027-1", "2026-2027-1", "测试同学", periods)],
@@ -198,12 +198,26 @@ test("index.html 按校区精确显示非等间隔作息时间", () => {
   }));
   const scheduleHtml = s.$("schedule").innerHTML;
 
-  assert.match(scheduleHtml, /09:40–10:20/, "茶山第三节");
-  assert.match(scheduleHtml, /10:10–10:50/, "滨海第三节");
-  assert.match(scheduleHtml, /13:05–13:20/, "滨海第七节");
-  assert.match(scheduleHtml, /13:30–14:10/, "各校区第八节");
-  assert.match(scheduleHtml, /18:20–19:00/, "各校区第十四节");
-  assert.match(scheduleHtml, /19:50–20:30/, "各校区第十六节");
+  assert.match(scheduleHtml, /09:40–11:05/, "茶山第三至四节");
+  assert.match(scheduleHtml, /10:10–11:35/, "滨海第三至四节");
+  assert.match(scheduleHtml, /13:05–14:10/, "滨海第七至八节");
+  assert.match(scheduleHtml, /13:30–14:55/, "各校区第八至九节");
+  assert.match(scheduleHtml, /18:20–19:45/, "各校区第十四至十五节");
+  assert.match(scheduleHtml, /19:50–21:15/, "各校区第十六至十七节");
+});
+
+test("40 分钟课程卡片只显示名称和地点", () => {
+  const event = { ...TEST_EVENTS[0], start: 1, end: 1, title: "单节40分钟", campus: "茶山校区", room: "6B203", label: "讲课" };
+  const s = runScenario(SAVED({
+    timetables: [TT("forty-minutes", "2026-2027-1", "2026-2027-1", "测试同学", [event])],
+    activeId: "forty-minutes"
+  }));
+  const card = s.$("schedule").innerHTML.match(/<button class="course[^>]*title="单节40分钟">[\s\S]*?<\/button>/)?.[0] || "";
+
+  assert.match(card, /course-40min/);
+  assert.match(card, /course-title">单节40分钟/);
+  assert.match(card, /course-room-code">6B203/);
+  assert.doesNotMatch(card, /course-room-icon|data-lucide="map-pin"|course-time|course-meta|course-type/);
 });
 
 test("index.html 从 localStorage 恢复状态", () => {
@@ -257,8 +271,38 @@ test("窄屏横向拖动切换到下一周", () => {
   const s = runScenario(SAVED());
   s.triggerEvent("weekSwipeSurface", "pointerdown", { pointerId: 1, pointerType: "touch", clientX: 280, clientY: 420 });
   s.triggerEvent("weekSwipeSurface", "pointermove", { pointerId: 1, pointerType: "touch", clientX: 120, clientY: 420 });
+  assert.match(s.$("weekSwipeSurface").style.transform, /calc\(-100% \+ -160px\)/, "拖动中轨道与手指同步");
   s.triggerEvent("weekSwipeSurface", "pointerup", { pointerId: 1, pointerType: "touch", clientX: 80, clientY: 420 });
   assert.equal(s.$("weekValue").textContent, "第 02 周");
+});
+
+test("周滑动前预渲染相邻周课表", () => {
+  const nextOnly = { ...TEST_EVENTS[0], title: "第二周预渲染课程", weeks: [W(2, 2)] };
+  const s = runScenario(SAVED({
+    timetables: [TT("preview", "2026-2027-1", "2026-2027-1", "测试同学", [TEST_EVENTS[0], nextOnly])],
+    activeId: "preview"
+  }));
+
+  assert.equal(s.$("nextWeekPreview")["attr_data-preview-week"], "2");
+  assert.doesNotMatch(s.$("schedule").innerHTML, /第二周预渲染课程/);
+  assert.match(s.$("nextWeekPreview").innerHTML, /第二周预渲染课程/);
+  assert.match(html, /\.week-swipe-surface \{ display: grid; grid-template-columns: repeat\(3, 100%\); transform: translate3d\(-100%, 0, 0\);/);
+});
+
+test("课程详情可向右跟手滑动并关闭", () => {
+  const s = runScenario(SAVED());
+  s.body.classList.add("drawer-open");
+  s.$("drawer").setAttribute("aria-hidden", "false");
+
+  s.triggerEvent("drawer", "pointerdown", { pointerId: 2, pointerType: "touch", clientX: 40, clientY: 180 });
+  s.triggerEvent("drawer", "pointermove", { pointerId: 2, pointerType: "touch", clientX: 180, clientY: 184 });
+  assert.match(s.$("drawer").style.transform, /translate3d\(140px, 0, 0\)/, "详情页与右滑手势同步");
+  assert.ok(Number(s.$("drawerBackdrop").style.opacity) < 1, "遮罩随抽屉关闭进度减淡");
+
+  s.triggerEvent("drawer", "pointerup", { pointerId: 2, pointerType: "touch", clientX: 240, clientY: 184 });
+  assert.equal(s.body.classList.contains("drawer-open"), false);
+  assert.equal(s.$("drawer")["attr_aria-hidden"], "true");
+  assert.match(html, /\.drawer \{[^}]*touch-action: pan-y;[^}]*will-change: transform;/);
 });
 
 test("宽屏侧栏和当前课程高亮规则已定义", () => {
