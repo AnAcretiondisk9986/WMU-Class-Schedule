@@ -3,7 +3,6 @@
  */
 
 const DAY_NAMES = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
-const PERIOD_COUNT = 19;
 
 function pad2(value) {
   return String(value).padStart(2, "0");
@@ -43,19 +42,29 @@ function formatClock(minutes) {
   return `${pad2(Math.floor(minutes / 60))}:${pad2(minutes % 60)}`;
 }
 
-function buildPeriods(startMinutes) {
-  return Array.from({ length: PERIOD_COUNT }, (_, index) => {
-    const start = startMinutes + index * 45;
-    return [formatClock(start), formatClock(start + 40)];
-  });
-}
+const SHARED_AFTERNOON_PERIODS = [
+  ["13:30", "14:10"], ["14:15", "14:55"], ["15:00", "15:40"],
+  ["15:45", "16:25"], ["16:30", "17:10"], ["17:15", "17:55"],
+  ["18:20", "19:00"], ["19:05", "19:45"], ["19:50", "20:30"],
+  ["20:35", "21:15"], ["21:20", "22:00"], ["22:05", "22:45"]
+];
+const CHASHAN_PERIODS = [
+  ["08:00", "08:40"], ["08:45", "09:25"], ["09:40", "10:20"],
+  ["10:25", "11:05"], ["11:10", "11:50"], ["11:55", "12:35"],
+  ["12:40", "13:20"], ...SHARED_AFTERNOON_PERIODS
+];
+const BINHAI_PERIODS = [
+  ["08:30", "09:10"], ["09:15", "09:55"], ["10:10", "10:50"],
+  ["10:55", "11:35"], ["11:40", "12:20"], ["12:25", "13:05"],
+  ["13:05", "13:20"], ...SHARED_AFTERNOON_PERIODS
+];
 
-// 茶山/学院路 08:00 上课，滨海 08:30 上课，每节 40 分钟、课间 5 分钟。
+// 前 16 节按学校作息表显式配置；17-19 节为兼容旧课表数据的连续晚间时段。
 const CAMPUS_PERIODS = {
-  "茶山校区": buildPeriods(8 * 60),
-  "学院路校区": buildPeriods(8 * 60),
-  "滨海校区": buildPeriods(8 * 60 + 30),
-  "线上": buildPeriods(8 * 60 + 30)
+  "茶山校区": CHASHAN_PERIODS,
+  "学院路校区": CHASHAN_PERIODS,
+  "滨海校区": BINHAI_PERIODS,
+  "线上": BINHAI_PERIODS
 };
 
 function weeksLabel(weeks) {
@@ -147,7 +156,6 @@ function eventEndMinute(event) {
 
 module.exports = {
   DAY_NAMES,
-  PERIOD_COUNT,
   CAMPUS_PERIODS,
   pad2,
   mondayOf,
@@ -157,7 +165,6 @@ module.exports = {
   formatFull,
   timeToMinutes,
   formatClock,
-  buildPeriods,
   weeksLabel,
   eventInWeek,
   termMonday,

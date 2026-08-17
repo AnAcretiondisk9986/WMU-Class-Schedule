@@ -2,7 +2,7 @@ const store = require("../../utils/store.js");
 const time = require("../../utils/time.js");
 const pdf = require("../../utils/pdf.js");
 
-const SLOT = 44;              // 每个 45 分钟节次的像素高度
+const SLOT = 44;              // 45 分钟对应的像素高度，卡片按真实分钟定位
 const PX_PER_MINUTE = SLOT / 45;
 const AXIS_START = 8 * 60;    // 08:00
 
@@ -71,16 +71,18 @@ Page({
     }));
 
     // 时间轴
+    const axisEnd = Math.max(...Object.keys(time.CAMPUS_PERIODS).reduce((minutes, campus) => {
+      return minutes.concat(time.CAMPUS_PERIODS[campus].map(period => time.timeToMinutes(period[1])));
+    }, []));
     const ticks = [];
-    for (let p = 1; p <= time.PERIOD_COUNT; p += 1) {
-      const start = AXIS_START + (p - 1) * 45;
+    for (let start = AXIS_START; start < axisEnd; start += 45) {
       ticks.push({
         top: Math.round((start - AXIS_START) * PX_PER_MINUTE),
         label1: time.formatClock(start),
         label2: time.formatClock(start + 30)
       });
     }
-    const totalHeight = time.PERIOD_COUNT * SLOT;
+    const totalHeight = Math.round((axisEnd - AXIS_START) * PX_PER_MINUTE);
 
     // 周视图列
     const positioned = visible.map(e => {

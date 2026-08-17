@@ -28,10 +28,26 @@ const ACTIVITY_LABELS = Object.freeze({
 
 const DAY_CHARS = Object.freeze(["一", "二", "三", "四", "五", "六", "日"]);
 const PHYSICAL_CAMPUSES = Object.freeze(["茶山校区", "学院路校区", "滨海校区"]);
-const CAMPUS_START_MINUTES = Object.freeze({
-  "茶山校区": 8 * 60,
-  "学院路校区": 8 * 60,
-  "滨海校区": 8 * 60 + 30
+const SHARED_AFTERNOON_PERIODS = Object.freeze([
+  ["13:30", "14:10"], ["14:15", "14:55"], ["15:00", "15:40"],
+  ["15:45", "16:25"], ["16:30", "17:10"], ["17:15", "17:55"],
+  ["18:20", "19:00"], ["19:05", "19:45"], ["19:50", "20:30"],
+  ["20:35", "21:15"], ["21:20", "22:00"], ["22:05", "22:45"]
+]);
+const CHASHAN_PERIODS = Object.freeze([
+  ["08:00", "08:40"], ["08:45", "09:25"], ["09:40", "10:20"],
+  ["10:25", "11:05"], ["11:10", "11:50"], ["11:55", "12:35"],
+  ["12:40", "13:20"], ...SHARED_AFTERNOON_PERIODS
+]);
+const BINHAI_PERIODS = Object.freeze([
+  ["08:30", "09:10"], ["09:15", "09:55"], ["10:10", "10:50"],
+  ["10:55", "11:35"], ["11:40", "12:20"], ["12:25", "13:05"],
+  ["13:05", "13:20"], ...SHARED_AFTERNOON_PERIODS
+]);
+const CAMPUS_PERIODS = Object.freeze({
+  "茶山校区": CHASHAN_PERIODS,
+  "学院路校区": CHASHAN_PERIODS,
+  "滨海校区": BINHAI_PERIODS
 });
 const FIELD_NAMES = Object.freeze([
   "校区",
@@ -343,12 +359,20 @@ function weeksOverlap(first, second) {
   return false;
 }
 
+function clockToMinutes(value) {
+  const parts = String(value).split(":").map(Number);
+  return parts[0] * 60 + parts[1];
+}
+
 function eventClockRange(event) {
-  const startMinutes = CAMPUS_START_MINUTES[event.campus];
-  if (startMinutes == null || !event.periods) return null;
+  const periods = CAMPUS_PERIODS[event.campus];
+  if (!periods || !event.periods) return null;
+  const start = periods[event.periods.start - 1];
+  const end = periods[event.periods.end - 1];
+  if (!start || !end) return null;
   return {
-    start: startMinutes + (event.periods.start - 1) * 45,
-    end: startMinutes + (event.periods.end - 1) * 45 + 40
+    start: clockToMinutes(start[0]),
+    end: clockToMinutes(end[1])
   };
 }
 
