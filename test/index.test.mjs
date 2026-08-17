@@ -146,6 +146,12 @@ test("index.html 空数据显示引导导入", () => {
   assert.ok(s.$("emptyState").innerHTML.includes("emptyImportBtn"), "引导界面含导入按钮");
 });
 
+test("网页仅保留本地 PDF 导入", () => {
+  assert.match(html, /id="importButton" aria-label="导入 PDF" title="导入 PDF"/);
+  assert.match(html, /选择从教务系统导出的课表 PDF/);
+  assert.doesNotMatch(html, /jwxt|manifest\.webmanifest|快捷导入|一键导入|书签栏|系统分享|serviceWorker/);
+});
+
 test("index.html 预填充数据正确渲染课表", () => {
   const s = runScenario(SAVED());
   assert.equal(s.error, null, s.error?.stack);
@@ -244,18 +250,6 @@ test("index.html 切换课表列表渲染", () => {
   assert.ok(s.$("switchList").innerHTML.includes("2026-2027-1"), "列表含第一个课表");
   assert.ok(s.$("switchList").innerHTML.includes("2025-2026-1"), "列表含第二个课表");
   assert.ok(s.$("switchList").innerHTML.includes("当前"), "当前课表有标记");
-});
-
-test("书签脚本链接在应用页点击时只显示拖拽提示", () => {
-  const s = runScenario(null);
-  s.trigger("jwxtBookmarklet");
-  assert.match(s.$("importStatus").textContent, /拖到浏览器书签栏/);
-});
-
-test("手机快捷获取要求先从应用打开教务系统", () => {
-  const s = runScenario(null);
-  s.trigger("runJwxtImport");
-  assert.match(s.$("importStatus").textContent, /请先点击「打开教务系统」/);
 });
 
 test("周表头同时渲染星期与日期", () => {
