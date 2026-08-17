@@ -237,3 +237,18 @@ test("窄屏横向拖动切换到下一周", () => {
   s.triggerEvent("weekSwipeSurface", "pointerup", { pointerId: 1, pointerType: "touch", clientX: 80, clientY: 420 });
   assert.equal(s.$("weekValue").textContent, "第 02 周");
 });
+
+test("宽屏侧栏和当前课程高亮规则已定义", () => {
+  assert.match(html, /@media \(min-width: 1081px\)[\s\S]*?\.sidebar \{ position: sticky;/);
+  assert.match(html, /\.day-column\.today-column \{ background-color: #f8e9ed;/);
+  assert.match(html, /\.course\.ongoing \{ --course-bg: #DEBA85;/);
+  assert.match(code, /const ongoing = isCurrentWeek && event\.day === todayKey && nowMinutes >= eventStartMinute\(event\) && nowMinutes < eventEndMinute\(event\);/);
+});
+
+test("竖屏顶栏固定且地点文字不截断", () => {
+  assert.match(html, /@media \(max-aspect-ratio: 1\/1\)[\s\S]*?\.topbar \{ position: sticky; top: 0; z-index: 9; \}/);
+  assert.match(html, /\.course \{[^}]*overflow: auto;[^}]*overscroll-behavior: contain;/);
+  assert.match(html, /\.course-room-text \{ min-width: 0; overflow-wrap: anywhere; word-break: break-word; \}/);
+  assert.doesNotMatch(html, /\.course\.course-compact \.course-room, \.course\.course-compact \.course-type \{ display: none; \}/);
+  assert.doesNotMatch(html, /\.course\.course-tiny \.course-room, \.course\.course-tiny \.course-type/);
+});

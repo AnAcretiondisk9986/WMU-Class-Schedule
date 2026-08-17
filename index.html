@@ -165,15 +165,17 @@
     .time-axis { position: relative; border-right: 1px solid var(--line); background: #fbfcfa; }
     .time { position: relative; padding: 4px 8px 0 0; color: #9aa59e; font-size: 10px; text-align: right; border-bottom: 1px solid var(--line); }
     .day-column { position: relative; border-right: 1px solid var(--line); background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--slot-h) - 1px), var(--line) calc(var(--slot-h) - 1px), var(--line) var(--slot-h)); }
-    .course { position: absolute; left: 7px; right: 7px; z-index: 2; padding: 6px 8px 5px; overflow: hidden; border: 1px solid transparent; border-left: 3px solid var(--course-accent); border-radius: 8px; background: var(--course-bg); color: var(--course-text); cursor: pointer; text-align: left; display: flex; flex-direction: column; transition: transform 170ms var(--ease-out), box-shadow 170ms ease, filter 170ms ease; }
+    .course { position: absolute; left: 7px; right: 7px; z-index: 2; padding: 6px 8px 5px; overflow: auto; overscroll-behavior: contain; scrollbar-width: none; border: 1px solid transparent; border-left: 3px solid var(--course-accent); border-radius: 8px; background: var(--course-bg); color: var(--course-text); cursor: pointer; text-align: left; display: flex; flex-direction: column; transition: transform 170ms var(--ease-out), box-shadow 170ms ease, filter 170ms ease; }
+    .course::-webkit-scrollbar { display: none; }
     .course:hover { z-index: 4; transform: translateY(-2px); box-shadow: 0 8px 18px rgba(24,43,34,.12); filter: saturate(1.05); }
     .course:active { transform: translateY(0) scale(.985); }
-    .course-title { display: block; min-width: 0; margin-top: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 800; }
-    .course-time { display: block; margin-top: 3px; font-size: 10px; font-weight: 650; opacity: .8; }
-    .course-room { display: flex; min-width: 0; align-items: center; gap: 4px; margin-top: 6px; overflow: hidden; font-size: 10px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    .course-title { display: block; min-width: 0; margin-top: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 800; }
+    .course-time { display: block; flex: 0 0 auto; margin-top: 3px; font-size: 10px; font-weight: 650; opacity: .8; }
+    .course-room { display: flex; min-width: 0; flex: 0 0 auto; align-items: flex-start; gap: 4px; margin-top: 6px; overflow: visible; font-size: 10px; font-weight: 650; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
     .course-room svg { width: 12px; height: 12px; flex: 0 0 auto; }
+    .course-room-text { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
     .course-meta { display: block; margin-top: 3px; margin-bottom: auto; overflow: hidden; color: inherit; font-size: 10px; opacity: .78; white-space: nowrap; text-overflow: ellipsis; }
-    .course-type { position: absolute; top: 8px; right: 8px; padding: 2px 5px; border-radius: 4px; background: rgba(255,255,255,.54); font-size: 9px; font-weight: 800; }
+    .course-type { position: static; order: -1; align-self: flex-start; flex: 0 0 auto; max-width: 100%; padding: 2px 5px; border-radius: 4px; background: rgba(255,255,255,.54); font-size: 9px; font-weight: 800; overflow-wrap: anywhere; }
     .week-swipe-viewport { overflow: hidden; }
     .week-swipe-surface { transform: translate3d(0, 0, 0); will-change: transform; }
     .mobile-menu-button, .mobile-nav-backdrop, .mobile-nav-panel { display: none; }
@@ -307,12 +309,12 @@
       .course-title { display: -webkit-box; min-height: 0; max-height: none; margin: 0; overflow: hidden; font-size: 10px; line-height: 1.2; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; word-break: break-all; -webkit-box-orient: vertical; -webkit-line-clamp: 4; }
       .course-type { position: static; display: block; width: fit-content; margin-top: 4px; padding: 1px 3px; font-size: 8px; line-height: 1.1; }
       .course-time { margin-top: 4px; font-size: 8px; line-height: 1.15; white-space: normal; overflow-wrap: anywhere; }
-      .course-room { display: -webkit-box; min-height: 0; margin-top: 4px; overflow: hidden; font-size: 8px; line-height: 1.15; white-space: normal; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+      .course-room { display: flex; min-height: auto; margin-top: 4px; overflow: visible; font-size: 8px; line-height: 1.15; white-space: normal; overflow-wrap: anywhere; -webkit-box-orient: initial; -webkit-line-clamp: unset; }
       .course-room svg { width: 10px; height: 10px; flex: 0 0 auto; margin-top: 1px; }
       .course-meta { display: none; }
-      .course.course-compact .course-room, .course.course-compact .course-type { display: none; }
+      .course.course-compact .course-type { display: none; }
       .course.course-compact .course-title { -webkit-line-clamp: 3; }
-      .course.course-tiny .course-room, .course.course-tiny .course-type, .course.course-tiny .course-meta { display: none; }
+      .course.course-tiny .course-type, .course.course-tiny .course-meta { display: none; }
       .course.course-tiny .course-title { -webkit-line-clamp: 2; }
     }
     @media (max-width: 520px) {
@@ -329,7 +331,7 @@
       .course-title { max-height: none; overflow: hidden; font-size: 8px; line-height: 1.18; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; word-break: break-all; -webkit-line-clamp: 4; }
       .course-type { position: static; display: block; width: fit-content; margin-top: 3px; padding: 1px 2px; font-size: 7px; line-height: 1.1; }
       .course-time { margin-top: 3px; font-size: 7px; line-height: 1.15; white-space: normal; overflow-wrap: anywhere; }
-      .course-room { display: -webkit-box; margin-top: 3px; overflow: hidden; font-size: 7px; line-height: 1.15; white-space: normal; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+      .course-room { display: flex; margin-top: 3px; overflow: visible; font-size: 7px; line-height: 1.15; white-space: normal; overflow-wrap: anywhere; -webkit-box-orient: initial; -webkit-line-clamp: unset; }
       .course-room svg { width: 8px; height: 8px; flex: 0 0 auto; margin-top: 1px; }
       .course-meta { display: none; }
     }
@@ -533,10 +535,13 @@
     .schedule-head { background: #f7f6f5; }
     .head-cell { color: #786c70; }
     .head-cell.focus { background: var(--brand-soft); color: var(--brand-deep); }
+    .head-cell.today-column { background: #f8e9ed; color: var(--brand-deep); }
     .time-axis { background: #fbfaf9; }
     .day-column { background-color: #fff; }
+    .day-column.today-column { background-color: #f8e9ed; }
     .course { border-radius: 5px; transition: transform 160ms var(--ease-out), box-shadow 160ms ease; }
     .course:hover { box-shadow: 0 8px 18px rgba(72,36,45,.13); filter: none; }
+    .course.ongoing { --course-bg: #DEBA85; --course-accent: #A71F3C; --course-text: #512C33; box-shadow: inset 0 0 0 1px rgba(167,31,60,.22), 0 6px 15px rgba(97,48,58,.12); }
     .course-title { letter-spacing: 0; }
     .course-type { border-radius: 3px; }
     .now-line, .now-label { background: var(--brand); }
@@ -546,6 +551,10 @@
     .type-online { --course-bg: #eeeaf3; --course-accent: #78638b; --course-text: #594569; }
     .type-practice { --course-bg: #f8efe1; --course-accent: #b48a4c; --course-text: #765a2f; }
     .type-discussion { --course-bg: #e7f0ed; --course-accent: #4f7d6e; --course-text: #355d50; }
+
+    @media (min-width: 1081px) {
+      .sidebar { position: sticky; top: 0; align-self: start; height: 100vh; }
+    }
 
     .empty-guide > svg, .jwxt-link { color: var(--brand); }
     .drawer-backdrop, .modal-backdrop { background: rgba(52,24,31,.35); }
@@ -655,6 +664,9 @@
     @media (max-aspect-ratio: 1/1) {
       .page-heading { display: none; }
       .toolbar { border-top: 0; padding-top: 0; }
+      .topbar { position: sticky; top: 0; z-index: 9; }
+      .course-room { display: flex; min-height: auto; max-height: none; overflow: visible; text-overflow: clip; white-space: normal; -webkit-box-orient: initial; -webkit-line-clamp: unset; }
+      .course-room-text { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
     }
     @media (prefers-reduced-motion: reduce) {
       .sidebar, .mobile-nav-backdrop, .mobile-nav-panel { transition-duration: 1ms !important; }
@@ -1006,9 +1018,11 @@
       const slotHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slot-h')) || 72;
       const pxPerMinute = slotHeight / 45;
       const now = new Date();
-      const nowWeek = weekAndDayForDate(now).week;
+      const current = weekAndDayForDate(now);
+      const nowWeek = current.week;
       const nowMinutes = now.getHours() * 60 + now.getMinutes();
       const isCurrentWeek = state.week === nowWeek;
+      const todayKey = isCurrentWeek ? current.day : null;
       const axisStart = 8 * 60;
       const lastEnd = events.length ? Math.max(...events.map(eventEndMinute)) : axisStart + 45;
       const latestEnd = isCurrentWeek ? Math.max(lastEnd, nowMinutes) : lastEnd;
@@ -1020,13 +1034,14 @@
       const showNowLine = isCurrentWeek && nowMinutes >= axisStart && nowMinutes <= axisEnd;
       const nowLine = showNowLine ? `<div class="now-line" id="nowLine" style="top:${Math.round((nowMinutes - axisStart) * pxPerMinute)}px"><span class="now-label">${formatClock(nowMinutes)}</span></div>` : '';
 
-      const head = `<div class="schedule-head"><div class="head-cell"><span class="axis-head"><b>时间</b></span></div>${days.map((day) => `<div class="head-cell ${state.day === day.key ? 'focus' : ''}"><span class="head-day"><b>${day.name}</b><small class="head-date">${day.date}</small></span></div>`).join('')}</div>`;
+      const head = `<div class="schedule-head"><div class="head-cell"><span class="axis-head"><b>时间</b></span></div>${days.map((day) => `<div class="head-cell ${state.day === day.key ? 'focus' : ''} ${day.key === todayKey ? 'today-column' : ''}"><span class="head-day"><b>${day.name}</b><small class="head-date">${day.date}</small></span></div>`).join('')}</div>`;
       const axis = `<div class="time-axis" style="height:${totalHeight}px">${ticks.map((minute) => `<div class="time" style="height:${Math.round(45 * pxPerMinute)}px">${formatClock(minute)}</div>`).join('')}</div>`;
-      const columns = days.map((day) => `<div class="day-column" data-column="${day.key}" style="height:${totalHeight}px">${events.filter((event) => event.day === day.key).map((event) => {
+      const columns = days.map((day) => `<div class="day-column ${day.key === todayKey ? 'today-column' : ''}" data-column="${day.key}" style="height:${totalHeight}px">${events.filter((event) => event.day === day.key).map((event) => {
         const top = Math.round((eventStartMinute(event) - axisStart) * pxPerMinute);
         const height = Math.round((eventEndMinute(event) - eventStartMinute(event)) * pxPerMinute);
         const density = height < 108 ? ' course-tiny' : height < 166 ? ' course-compact' : '';
-        return `<button class="course type-${event.type}${density}" data-event="${currentEvents().indexOf(event)}" style="top:${top}px;height:${height}px" type="button" title="${escapeHtml(event.title)}"><span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room"><i data-lucide="map-pin"></i>${escapeHtml(event.room)}</span><span class="course-meta"><span class="course-campus">${escapeHtml(event.campus)}</span><span class="course-teacher"> · ${escapeHtml(event.teacher)}</span></span></button>`;
+        const ongoing = isCurrentWeek && event.day === todayKey && nowMinutes >= eventStartMinute(event) && nowMinutes < eventEndMinute(event);
+        return `<button class="course type-${event.type}${density}${ongoing ? ' ongoing' : ''}" data-event="${currentEvents().indexOf(event)}" style="top:${top}px;height:${height}px" type="button" title="${escapeHtml(event.title)}"><span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room"><i data-lucide="map-pin"></i><span class="course-room-text">${escapeHtml(event.room)}</span></span><span class="course-meta"><span class="course-campus">${escapeHtml(event.campus)}</span><span class="course-teacher"> · ${escapeHtml(event.teacher)}</span></span></button>`;
       }).join('')}</div>`).join('');
       $('schedule').innerHTML = `${head}<div class="schedule-body">${axis}${columns}${nowLine}</div>`;
       if (!currentEvents().length) {
