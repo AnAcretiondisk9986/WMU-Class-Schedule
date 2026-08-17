@@ -115,6 +115,9 @@ function courseCodeFromClassName(className) {
 
 function cleanCourseName(value) {
   return compact(value)
+    // PDF 页眉可能落在某个星期列中，和该列第一页的第一门课连成一段文本。
+    // 课程名本身不会以“星期X”作为页眉边界，因此从最后一个星期标记后开始取名。
+    .replace(/^.*星期[一二三四五六日天]/, "")
     .replace(/^星期[一二三四五六日天]/, "")
     .replace(/^(?:上午|中午|下午|晚上)/, "")
     .replace(/^\d{1,2}/, "")

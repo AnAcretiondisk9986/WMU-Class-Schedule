@@ -39,6 +39,9 @@ test("直接解析真实滨海校区 WMU 课表 PDF", { skip: !existsSync(sample
   assert.ok(result.courses.length >= 10);
   assert.ok(result.events.length >= 25);
   assert.deepEqual(result.warnings, []);
+  assert.equal(result.events.some(event => /学号|课表星期[一二三四五六日天]/.test(event.courseName)), false);
+  assert.ok(result.events.some(event => event.courseName === "计算机网络与应用" && event.weekday === 3));
+  assert.ok(result.events.some(event => event.courseName === "习近平新时代中国特色社会主义思想概论" && event.weekday === 6));
 
   const cloud = result.courses.find(course => course.name === "云计算基础");
   assert.ok(cloud);
