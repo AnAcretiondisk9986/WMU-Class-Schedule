@@ -146,10 +146,11 @@ test("index.html 空数据显示引导导入", () => {
   assert.ok(s.$("emptyState").innerHTML.includes("emptyImportBtn"), "引导界面含导入按钮");
 });
 
-test("网页仅保留本地 PDF 导入", () => {
+test("网页仅通过本地 PDF 导入课表", () => {
   assert.match(html, /id="importButton" aria-label="导入 PDF" title="导入 PDF"/);
   assert.match(html, /选择从教务系统导出的课表 PDF/);
-  assert.doesNotMatch(html, /jwxt|manifest\.webmanifest|快捷导入|一键导入|书签栏|系统分享|serviceWorker/);
+  assert.match(html, /href="https:\/\/jwxt\.wmu\.edu\.cn\/jwglxt\/kbcx\/xskbcx_cxXskbcxIndex\.html\?gnmkdm=N2151&amp;layout=default" target="_blank" rel="noopener noreferrer"/);
+  assert.doesNotMatch(html, /jwxt-bridge|manifest\.webmanifest|快捷导入|一键导入|书签栏|系统分享|serviceWorker|postMessage|downForm/);
 });
 
 test("index.html 预填充数据正确渲染课表", () => {
@@ -305,15 +306,19 @@ test("课程详情可向右跟手滑动并关闭", () => {
   assert.match(html, /\.drawer \{[^}]*touch-action: pan-y;[^}]*will-change: transform;/);
 });
 
-test("宽屏侧栏和当前课程高亮规则已定义", () => {
+test("宽屏侧栏、顶栏和当前课程高亮规则已定义", () => {
   assert.match(html, /@media \(min-width: 1081px\)[\s\S]*?\.sidebar \{ position: sticky;/);
+  assert.match(html, /\.topbar \{ position: sticky; top: 0; z-index: 9;/);
   assert.match(html, /\.day-column\.today-column \{ background-color: #f8e9ed;/);
   assert.match(html, /\.course\.ongoing \{ --course-bg: #DEBA85;/);
   assert.match(code, /const ongoing = isCurrentWeek && event\.day === todayKey && nowMinutes >= eventStartMinute\(event\) && nowMinutes < eventEndMinute\(event\);/);
 });
 
-test("竖屏顶栏固定且地点按结构换行", () => {
-  assert.match(html, /@media \(max-aspect-ratio: 1\/1\)[\s\S]*?\.topbar \{ position: sticky; top: 0; z-index: 9; \}/);
+test("星期表头固定且竖屏地点按结构换行", () => {
+  assert.match(html, /\.schedule-head \{ position: sticky; top: var\(--topbar-height\); z-index: 8;/);
+  assert.match(html, /\.week-swipe-viewport \{ overflow: hidden; overflow: clip; \}/);
+  assert.match(html, /\.schedule-shell \{[^}]*overflow: hidden; overflow: clip;/);
+  assert.doesNotMatch(html, /day-strip|data-day=|class="day /);
   assert.match(html, /\.course \{[^}]*overflow: hidden;/);
   assert.match(html, /\.course-content \{[^}]*min-height: 0;[^}]*overflow: auto;[^}]*overscroll-behavior: contain;/);
   assert.match(html, /\.course-room \{ display: grid; width: 100%;[^}]*justify-items: center;/);

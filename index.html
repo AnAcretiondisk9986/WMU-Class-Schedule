@@ -37,6 +37,7 @@
       --violet: #ebe2ff;
       --violet-strong: #7655b2;
       --slot-h: 72px;
+      --topbar-height: 66px;
       --ease-out: cubic-bezier(.23, 1, .32, 1);
       --shadow: 0 18px 45px rgba(25, 44, 34, .07), 0 2px 5px rgba(25, 44, 34, .04);
     }
@@ -89,7 +90,7 @@
     .profile-sub { color: #7e968a; font-size: 10px; }
 
     .main { min-width: 0; background: var(--paper); }
-    .topbar { display: flex; align-items: center; gap: 16px; min-height: 69px; padding: 0 32px; border-bottom: 1px solid var(--line); background: rgba(251,252,250,.92); }
+    .topbar { position: sticky; top: 0; z-index: 9; display: flex; align-items: center; gap: 16px; min-height: 69px; padding: 0 32px; border-bottom: 1px solid var(--line); background: rgba(251,252,250,.92); }
     .top-context { display: grid; gap: 1px; }
     .top-context strong { font-size: 13px; font-weight: 700; }
     .top-context span { color: var(--muted); font-size: 11px; }
@@ -139,21 +140,10 @@
     .view-toggle button.active { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(26,43,33,.08); }
     .view-toggle svg { width: 13px; height: 13px; }
 
-    .day-strip { display: grid; grid-template-columns: repeat(7, minmax(80px, 1fr)); gap: 7px; margin-top: 13px; }
-    .day { display: flex; align-items: center; justify-content: space-between; min-height: 51px; padding: 8px 11px; border: 1px solid transparent; border-radius: 9px; background: #f4f6f3; color: var(--muted); cursor: pointer; text-align: left; transition: background 150ms ease, border-color 150ms ease, transform 120ms ease-out; }
-    .day:hover { border-color: #d2ddd4; background: #f9fbf9; }
-    .day.active { border-color: #b9dec8; background: #e8f7ee; color: #1f6749; }
-    .day.today { box-shadow: inset 0 -2px 0 #2f8b68; }
-    .day-name { display: grid; gap: 1px; }
-    .day-name b { font-size: 12px; }
-    .day-name span { font-size: 10px; }
-    .day-count { display: grid; place-items: center; min-width: 22px; height: 22px; border-radius: 6px; background: #fff; color: var(--ink); font-size: 10px; font-weight: 750; }
-    .day.active .day-count { background: #c8ebd6; color: #1e6747; }
-
-    .schedule-shell { margin-top: 10px; overflow: hidden; border: 1px solid var(--line); border-radius: 11px; background: #fff; box-shadow: var(--shadow); }
+    .schedule-shell { margin-top: 10px; overflow: hidden; overflow: clip; border: 1px solid var(--line); border-radius: 11px; background: #fff; box-shadow: var(--shadow); }
     .schedule-scroll { overflow: visible; }
     .schedule { display: grid; grid-template-columns: 68px repeat(7, minmax(0, 1fr)); min-width: 0; }
-    .schedule-head { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; min-height: 42px; border-bottom: 1px solid var(--line); background: #fafcf9; }
+    .schedule-head { position: sticky; top: var(--topbar-height); z-index: 8; display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; min-height: 42px; border-bottom: 1px solid var(--line); background: #fafcf9; box-shadow: 0 1px 0 var(--line); }
     .head-cell { display: flex; align-items: center; justify-content: center; border-right: 1px solid var(--line); color: var(--muted); font-size: 11px; font-weight: 700; }
     .head-day { display: grid; place-items: center; gap: 2px; line-height: 1.05; }
     .head-date { color: #929d97; font-size: 9px; font-weight: 600; }
@@ -185,7 +175,7 @@
     .course-room-extra, .course-room-free { white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
     .course-meta { display: block; margin-top: 3px; overflow: hidden; color: inherit; font-size: 10px; opacity: .78; white-space: nowrap; text-overflow: ellipsis; }
     .course-type { position: static; align-self: center; flex: 0 0 auto; max-width: 100%; margin-top: 4px; padding: 2px 5px; border-radius: 4px; background: rgba(255,255,255,.54); font-size: 9px; font-weight: 800; overflow-wrap: anywhere; }
-    .week-swipe-viewport { overflow: hidden; }
+    .week-swipe-viewport { overflow: hidden; overflow: clip; }
     .week-swipe-surface { display: grid; grid-template-columns: repeat(3, 100%); transform: translate3d(-100%, 0, 0); will-change: transform; }
     .week-swipe-page { min-width: 0; }
     .week-swipe-preview { pointer-events: none; user-select: none; }
@@ -240,6 +230,9 @@
     .import-status.success { color: #287957; }
     .secondary-btn { height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: 7px; background: #fff; cursor: pointer; font-size: 12px; font-weight: 650; }
     .secondary-btn:hover { background: #f5f8f5; }
+    .query-link-row { display: flex; margin-top: 18px; }
+    .query-link { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); text-decoration: none; }
+    .query-link svg { width: 14px; height: 14px; }
     .drawer-favorite { float: right; margin-right: 8px; }
     .drawer-favorite.active { color: #a26e09; background: #fff0bf; border-color: #e6cf95; }
     .drawer-favorite.active svg { fill: #d69527; }
@@ -270,7 +263,7 @@
       .content { padding-inline: 22px; }
     }
     @media (max-width: 760px) {
-      :root { --slot-h: 88px; }
+      :root { --slot-h: 88px; --topbar-height: 61px; }
       .app { display: block; }
       .sidebar { display: flex; flex-direction: row; align-items: center; gap: 14px; height: 58px; padding: 0 14px; }
       .brand-copy { display: block; }
@@ -291,10 +284,6 @@
       .pulse { min-height: 63px; }
       .toolbar { margin-top: 24px; }
       .toolbar .subtle { display: none; }
-      .day-strip { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
-      .day { flex-direction: column; gap: 3px; min-width: 0; min-height: 54px; padding: 6px 2px; text-align: center; }
-      .day-name span { display: none; }
-      .day-count { min-width: 19px; height: 19px; }
       .schedule { grid-template-columns: 48px repeat(7, minmax(0, 1fr)); min-width: 0; }
       .schedule-scroll { overflow: visible; }
       .schedule-shell { display: block; }
@@ -341,7 +330,6 @@
       .page-heading { display: none; }
       .head-actions { margin: 0; }
       .schedule-shell { order: 1; margin-top: 10px; }
-      .day-strip { order: 2; }
       .toolbar { order: 3; margin-top: 18px; }
       .pulse-row { order: 4; margin-top: 18px; }
       .agenda { order: 5; }
@@ -524,14 +512,6 @@
     .view-toggle { border-radius: 5px; background: #f4f2f2; }
     .view-toggle button { border-radius: 3px; }
     .view-toggle button.active { color: var(--brand-deep); }
-    .day-strip { gap: 6px; }
-    .day { border-color: var(--line); border-radius: 5px; background: #f7f6f5; }
-    .day:hover { border-color: #d9bdc4; background: #fff; }
-    .day.active { border-color: #d7a7b2; background: var(--brand-soft); color: var(--brand-deep); }
-    .day.today { box-shadow: inset 0 -2px 0 var(--brand); }
-    .day-count { border-radius: 4px; }
-    .day.active .day-count { background: var(--brand); color: #fff; }
-
     .schedule-shell { border-color: var(--line); border-radius: 6px; box-shadow: var(--shadow); }
     .schedule-head { background: #f7f6f5; }
     .head-cell { color: #786c70; }
@@ -649,7 +629,6 @@
       .pulse-row { gap: 7px; }
       .pulse { min-height: 63px; }
       .toolbar { margin-top: 22px; }
-      .day { border-radius: 4px; }
       .schedule-shell { border-radius: 4px; }
       .agenda-event { border-radius: 5px; }
     }
@@ -665,7 +644,6 @@
     @media (max-aspect-ratio: 1/1) {
       .page-heading { display: none; }
       .toolbar { border-top: 0; padding-top: 0; }
-      .topbar { position: sticky; top: 0; z-index: 9; }
       .course-room { display: grid; min-height: auto; max-height: none; overflow: visible; text-overflow: clip; white-space: normal; -webkit-box-orient: initial; -webkit-line-clamp: unset; }
     }
     @media (max-width: 520px) and (max-aspect-ratio: 1/1) {
@@ -742,7 +720,6 @@
         <div class="week-swipe-viewport" id="weekSwipeViewport"><div class="week-swipe-surface" id="weekSwipeSurface">
           <div class="week-swipe-page week-swipe-preview" id="previousWeekPreview" aria-hidden="true"></div>
           <div class="week-swipe-page" id="currentWeekPage">
-            <section class="day-strip" id="dayStrip" aria-label="选择日期"></section>
             <section class="schedule-shell" id="scheduleShell"><div class="schedule-scroll"><div class="schedule" id="schedule"></div></div><div class="empty" id="emptyState"><div><i data-lucide="calendar-off"></i><div>没有匹配的课程</div></div></div></section>
             <section class="agenda" id="agenda" aria-label="课程列表"></section>
           </div>
@@ -763,11 +740,11 @@
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
   <aside class="drawer" id="drawer" aria-label="课程详情" aria-hidden="true"><button class="icon-btn drawer-favorite" id="drawerFavorite" type="button" title="收藏课程" aria-label="收藏课程"><i data-lucide="bookmark"></i></button><button class="icon-btn drawer-close" id="drawerClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button><div class="drawer-kicker" id="drawerKicker">课程详情</div><h2 id="drawerTitle">课程名称</h2><p class="drawer-sub" id="drawerSub">周二 · 第 1–2 节</p><dl class="detail-list"><div class="detail-row"><dt>上课时间</dt><dd id="detailTime">08:00–09:25</dd></div><div class="detail-row"><dt>上课地点</dt><dd id="detailRoom">滨海校区 · 求知楼</dd></div><div class="detail-row"><dt>任课教师</dt><dd id="detailTeacher">教师姓名</dd></div><div class="detail-row"><dt>周次</dt><dd id="detailWeeks">第 1–16 周</dd></div><div class="detail-row"><dt>课程类型</dt><dd id="detailType">讲课</dd></div></dl><div class="drawer-note">课程数据保存在本地浏览器中。导入新的 PDF 后，可以继续手动修正课程信息。</div></aside>
 
-  <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>选择从教务系统导出的课表 PDF。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><label class="dropzone" id="dropZone" for="fileInput"><i data-lucide="upload-cloud"></i><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="import-status" id="importStatus" role="status" aria-live="polite"></div><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button" aria-label="开始识别" title="开始识别"><i data-lucide="scan-line"></i><span>开始识别</span></button></div></section></div>
+  <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>选择从教务系统导出的课表 PDF。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="query-link-row"><a class="secondary-btn query-link" href="https://jwxt.wmu.edu.cn/jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&amp;layout=default" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i><span>前往教务系统查询课表</span></a></div><label class="dropzone" id="dropZone" for="fileInput"><i data-lucide="upload-cloud"></i><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="import-status" id="importStatus" role="status" aria-live="polite"></div><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button" aria-label="开始识别" title="开始识别"><i data-lucide="scan-line"></i><span>开始识别</span></button></div></section></div>
 
   <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题与本地数据管理。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option></select></label><p class="settings-note">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。</p><div class="data-actions"><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
 
-  <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>先在教务系统导出课表 PDF，再点击右上角「导入 PDF」选择该文件。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>「回到今天」定位到当前周次与星期。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
+  <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>可在「导入 PDF」弹窗中前往教务系统查询课表；正常导出 PDF 后，回到本页选择该文件。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>「回到今天」定位到当前周次与星期。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
 
   <div class="modal-backdrop" id="switchBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="switchTitle"><div class="modal-head"><div><h2 id="switchTitle">切换课表</h2><p>选择要查看的课表。</p></div><button class="icon-btn" id="switchClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="switch-list" id="switchList"></div><div class="modal-foot"><button class="secondary-btn" id="switchImport" type="button">导入新课表</button><button class="import-btn" id="switchDone" type="button">完成</button></div></section></div>
 
@@ -1071,25 +1048,6 @@
       }, true);
     }
 
-    function dayStripMarkup(week, interactive = true) {
-      const days = dayInfo(week);
-      const today = weekAndDayForDate(new Date());
-      const isTodayWeek = week === today.week;
-      const events = visibleEventsForWeek(week);
-      return days.map((day) => {
-        const count = events.filter((event) => event.day === day.key).length;
-        const isToday = isTodayWeek && day.key === today.day;
-        const tag = interactive ? 'button' : 'div';
-        const attributes = interactive ? ` data-day="${day.key}" type="button"` : '';
-        return `<${tag} class="day ${state.day === day.key ? 'active' : ''} ${isToday ? 'today' : ''}"${attributes}><span class="day-name"><b>${day.name}</b><span>${day.date}</span></span><span class="day-count">${count}</span></${tag}>`;
-      }).join('');
-    }
-
-    function renderDays() {
-      $('dayStrip').innerHTML = dayStripMarkup(state.week);
-      document.querySelectorAll('[data-day]').forEach((button) => button.addEventListener('click', () => { state.day = Number(button.dataset.day); renderAll(); }));
-    }
-
     function buildScheduleMarkup(week, interactive = true) {
       const days = dayInfo(week);
       const events = visibleEventsForWeek(week);
@@ -1170,7 +1128,7 @@
       const showSchedule = state.view === 'schedule';
       const emptyVisible = !currentEvents().length || !schedule.events.length;
       root.setAttribute('data-preview-week', String(week));
-      root.innerHTML = `<section class="day-strip" aria-hidden="true">${dayStripMarkup(week, false)}</section><section class="schedule-shell" style="display:${showSchedule ? 'block' : 'none'}"><div class="schedule-scroll"><div class="schedule">${schedule.html}</div></div><div class="empty" style="display:${emptyVisible ? 'grid' : 'none'}"><div>${currentEvents().length ? '没有匹配的课程' : '还没有课表'}</div></div></section><section class="agenda" style="display:${showSchedule ? 'none' : 'grid'}" aria-hidden="true">${agendaMarkup(week, false)}</section>`;
+      root.innerHTML = `<section class="schedule-shell" style="display:${showSchedule ? 'block' : 'none'}"><div class="schedule-scroll"><div class="schedule">${schedule.html}</div></div><div class="empty" style="display:${emptyVisible ? 'grid' : 'none'}"><div>${currentEvents().length ? '没有匹配的课程' : '还没有课表'}</div></div></section><section class="agenda" style="display:${showSchedule ? 'none' : 'grid'}" aria-hidden="true">${agendaMarkup(week, false)}</section>`;
     }
 
     function renderWeekPreviews() {
@@ -1276,7 +1234,6 @@
         ? `第 ${String(state.week).padStart(2, '0')} 周`
         : weekLabel(state.week);
       renderStorage();
-      renderDays();
       renderSchedule();
       renderAgenda();
       renderWeekPreviews();
