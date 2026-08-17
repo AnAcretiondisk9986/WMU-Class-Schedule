@@ -665,9 +665,11 @@
       .page-heading { display: none; }
       .toolbar { border-top: 0; padding-top: 0; }
       .topbar { position: sticky; top: 0; z-index: 9; }
-      .course-room { display: flex; min-height: auto; max-height: none; overflow: visible; text-overflow: clip; white-space: normal; -webkit-box-orient: initial; -webkit-line-clamp: unset; }
-      .course-room-text { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+      .course-room { display: flex; min-height: auto; max-height: none; overflow: visible; text-overflow: clip; white-space: nowrap; -webkit-box-orient: initial; -webkit-line-clamp: unset; }
+      .course-room-text { min-width: 0; white-space: nowrap; overflow-wrap: normal; word-break: normal; }
     }
+    .course-room { flex-wrap: nowrap; white-space: nowrap; }
+    .course-room-text { white-space: nowrap; overflow-wrap: normal; word-break: normal; }
     @media (prefers-reduced-motion: reduce) {
       .sidebar, .mobile-nav-backdrop, .mobile-nav-panel { transition-duration: 1ms !important; }
       .week-swipe-surface { will-change: auto; }
@@ -876,6 +878,21 @@
       const periods = CAMPUS_PERIODS[event.campus] || CAMPUS_PERIODS['滨海校区'];
       return `${periods[event.start - 1][0]}–${periods[event.end - 1][1]}`;
     };
+    const displayRoom = (event) => {
+      const room = String(event.room || '待定').trim();
+      const leadingCode = room.match(/^([A-Za-z0-9]{4,6})(?=[^A-Za-z0-9]|$)/)?.[1];
+      if (!leadingCode) return room;
+      if (event.campus === '茶山校区') {
+        return room.replace(/\s*[（(]\s*智慧教室\s*[）)]\s*/g, ' ').trim();
+      }
+      if (event.campus === '滨海校区') {
+        return room
+          .replace(/\s*[（(]\s*智慧教室\s*[）)]\s*/g, ' ')
+          .replace(/\s*计算机机房\s*$/g, '')
+          .trim();
+      }
+      return room;
+    };
     const eventStartMinute = (event) => {
       const periods = CAMPUS_PERIODS[event.campus] || CAMPUS_PERIODS['滨海校区'];
       return timeToMinutes(periods[event.start - 1][0]);
@@ -1041,7 +1058,7 @@
         const height = Math.round((eventEndMinute(event) - eventStartMinute(event)) * pxPerMinute);
         const density = height < 108 ? ' course-tiny' : height < 166 ? ' course-compact' : '';
         const ongoing = isCurrentWeek && event.day === todayKey && nowMinutes >= eventStartMinute(event) && nowMinutes < eventEndMinute(event);
-        return `<button class="course type-${event.type}${density}${ongoing ? ' ongoing' : ''}" data-event="${currentEvents().indexOf(event)}" style="top:${top}px;height:${height}px" type="button" title="${escapeHtml(event.title)}"><span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room"><i data-lucide="map-pin"></i><span class="course-room-text">${escapeHtml(event.room)}</span></span><span class="course-meta"><span class="course-campus">${escapeHtml(event.campus)}</span><span class="course-teacher"> · ${escapeHtml(event.teacher)}</span></span></button>`;
+        return `<button class="course type-${event.type}${density}${ongoing ? ' ongoing' : ''}" data-event="${currentEvents().indexOf(event)}" style="top:${top}px;height:${height}px" type="button" title="${escapeHtml(event.title)}"><span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-type">${event.label}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room"><i data-lucide="map-pin"></i><span class="course-room-text">${escapeHtml(displayRoom(event))}</span></span><span class="course-meta"><span class="course-campus">${escapeHtml(event.campus)}</span><span class="course-teacher"> · ${escapeHtml(event.teacher)}</span></span></button>`;
       }).join('')}</div>`).join('');
       $('schedule').innerHTML = `${head}<div class="schedule-body">${axis}${columns}${nowLine}</div>`;
       if (!currentEvents().length) {
@@ -1061,7 +1078,7 @@
       const days = dayInfo(state.week);
       const events = visibleEvents();
       const isFavorites = state.view === 'favorites';
-      $('agenda').innerHTML = days.filter((day) => events.some((event) => event.day === day.key)).map((day) => `<section class="agenda-day"><div class="agenda-day-title"><span>${isFavorites ? day.name : `${day.name} · ${day.date}`}</span><span>${events.filter((event) => event.day === day.key).length} 节</span></div>${events.filter((event) => event.day === day.key).map((event) => `<button class="agenda-event type-${event.type}" data-event="${currentEvents().indexOf(event)}" type="button"><span class="event-time">${timeLabel(event)}</span><span><span class="event-title">${escapeHtml(truncateTitle(event.title))}</span><span class="event-room">${escapeHtml(event.room)} · ${escapeHtml(event.teacher)}${isFavorites ? ' · ' + weeksLabel(event.weeks) : ''}</span></span></button>`).join('')}</section>`).join('') || '<div class="empty" style="display:grid"><div>没有匹配的课程</div></div>';
+      $('agenda').innerHTML = days.filter((day) => events.some((event) => event.day === day.key)).map((day) => `<section class="agenda-day"><div class="agenda-day-title"><span>${isFavorites ? day.name : `${day.name} · ${day.date}`}</span><span>${events.filter((event) => event.day === day.key).length} 节</span></div>${events.filter((event) => event.day === day.key).map((event) => `<button class="agenda-event type-${event.type}" data-event="${currentEvents().indexOf(event)}" type="button"><span class="event-time">${timeLabel(event)}</span><span><span class="event-title">${escapeHtml(truncateTitle(event.title))}</span><span class="event-room">${escapeHtml(displayRoom(event))} · ${escapeHtml(event.teacher)}${isFavorites ? ' · ' + weeksLabel(event.weeks) : ''}</span></span></button>`).join('')}</section>`).join('') || '<div class="empty" style="display:grid"><div>没有匹配的课程</div></div>';
       document.querySelectorAll('.agenda-event[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(currentEvents()[Number(button.dataset.event)])));
     }
 
@@ -1186,7 +1203,7 @@
       const prefix = `今天 ${DAY_NAMES[today.day - 1]}`;
       if (!todayEvents.length) return { label: `${prefix} · 无课`, value: '今天没有课程安排' };
       const next = todayEvents.find((event) => timeToMinutes(timeLabel(event).split('–')[0]) > nowMinutes);
-      if (next) return { label: `${prefix} · 下一节 ${timeLabel(next).split('–')[0]}`, value: `${next.title} · ${next.room}` };
+      if (next) return { label: `${prefix} · 下一节 ${timeLabel(next).split('–')[0]}`, value: `${next.title} · ${displayRoom(next)}` };
       return { label: `${prefix} · 已结束`, value: `${todayEvents[todayEvents.length - 1].title} 已下课` };
     }
 
@@ -1195,7 +1212,7 @@
       $('drawerTitle').textContent = event.title;
       $('drawerSub').textContent = `${DAY_NAMES[event.day - 1]} · 第 ${event.start}–${event.end} 节`;
       $('detailTime').textContent = timeLabel(event);
-      $('detailRoom').textContent = `${event.campus} · ${event.room}`;
+      $('detailRoom').textContent = `${event.campus} · ${displayRoom(event)}`;
       $('detailTeacher').textContent = event.teacher;
       $('detailWeeks').textContent = weeksLabel(event.weeks);
       $('detailType').textContent = `${event.label} · ${event.credit} 学分`;

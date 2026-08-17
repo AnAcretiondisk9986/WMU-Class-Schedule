@@ -248,7 +248,28 @@ test("宽屏侧栏和当前课程高亮规则已定义", () => {
 test("竖屏顶栏固定且地点文字不截断", () => {
   assert.match(html, /@media \(max-aspect-ratio: 1\/1\)[\s\S]*?\.topbar \{ position: sticky; top: 0; z-index: 9; \}/);
   assert.match(html, /\.course \{[^}]*overflow: auto;[^}]*overscroll-behavior: contain;/);
-  assert.match(html, /\.course-room-text \{ min-width: 0; overflow-wrap: anywhere; word-break: break-word; \}/);
+  assert.match(html, /\.course-room \{ flex-wrap: nowrap; white-space: nowrap; \}/);
+  assert.match(html, /\.course-room-text \{ white-space: nowrap; overflow-wrap: normal; word-break: normal; \}/);
   assert.doesNotMatch(html, /\.course\.course-compact \.course-room, \.course\.course-compact \.course-type \{ display: none; \}/);
   assert.doesNotMatch(html, /\.course\.course-tiny \.course-room, \.course\.course-tiny \.course-type/);
+});
+
+test("按校区隐藏无用教室说明且保留学院路原始格式", () => {
+  const rooms = [
+    { ...TEST_EVENTS[0], day: 1, campus: "茶山校区", room: "6A101（智慧教室）" },
+    { ...TEST_EVENTS[1], day: 2, campus: "茶山校区", room: "6B203 （智慧教室）" },
+    { ...TEST_EVENTS[2], day: 3, campus: "滨海校区", room: "6114计算机机房" },
+    { ...TEST_EVENTS[3], day: 4, campus: "学院路校区", room: "教学楼 A101（智慧教室）" },
+    { ...TEST_EVENTS[4], day: 5, campus: "滨海校区", room: "求知楼6114计算机机房", weeks: [W(1, 16)] },
+    { ...TEST_EVENTS[5], day: 6, campus: "茶山校区", room: "教学楼6A101（智慧教室）" }
+  ];
+  const s = runScenario(SAVED({ timetables: [TT("rooms", "2026-2027-1", "2026-2027-1", "测试同学", rooms)], activeId: "rooms" }));
+  const scheduleHtml = s.$("schedule").innerHTML;
+  assert.match(scheduleHtml, /course-room-text">6A101</);
+  assert.match(scheduleHtml, /course-room-text">6B203</);
+  assert.match(scheduleHtml, /course-room-text">6114</);
+  assert.match(scheduleHtml, /course-room-text">教学楼 A101（智慧教室）</);
+  assert.match(scheduleHtml, /course-room-text">求知楼6114计算机机房</);
+  assert.match(scheduleHtml, /course-room-text">教学楼6A101（智慧教室）</);
+  assert.doesNotMatch(scheduleHtml, /course-room-text">(?:6114计算机机房|6A101（智慧教室）|6B203 （智慧教室）)</);
 });
