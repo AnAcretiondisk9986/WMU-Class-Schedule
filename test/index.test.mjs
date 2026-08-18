@@ -162,6 +162,51 @@ test("index.html 预填充数据正确渲染课表", () => {
   assert.match(s.$("headNote").textContent, /第 1 周共有 7 节课/);
 });
 
+test("自定义日程默认当前周日并保存为最高层彩色卡片", () => {
+  const s = runScenario(SAVED());
+  s.trigger("addCustomButton");
+
+  assert.equal(s.$("customBackdrop").classList.contains("modal-open"), true);
+  assert.ok(Number.isInteger(Number(s.$("customWeek").value)), "默认周次有效");
+  assert.ok(Number(s.$("customDay").value) >= 1 && Number(s.$("customDay").value) <= 7, "默认星期有效");
+  assert.match(s.$("customStart").value, /^\d{2}:\d{2}$/);
+  assert.match(s.$("customEnd").value, /^\d{2}:\d{2}$/);
+
+  s.$("customTitle").value = "实验室组会";
+  s.$("customDescription").value = "汇报本周进度";
+  s.$("customRoom").value = "求知楼 204";
+  s.$("customWeek").value = "2";
+  s.$("customDay").value = "3";
+  s.$("customStart").value = "07:30";
+  s.$("customEnd").value = "08:20";
+  s.trigger("customSave");
+
+  const saved = JSON.parse(s.storage["wmu-timetable-v1"]);
+  assert.equal(saved.timetables[0].customEvents.length, 1);
+  assert.deepEqual(saved.timetables[0].customEvents[0], {
+    id: saved.timetables[0].customEvents[0].id,
+    kind: "custom",
+    title: "实验室组会",
+    description: "汇报本周进度",
+    room: "求知楼 204",
+    week: 2,
+    day: 3,
+    startTime: "07:30",
+    endTime: "08:20",
+    color: "brand",
+    type: "custom",
+    label: "自定义",
+    campus: "",
+    teacher: "",
+    credit: "—",
+    weeks: [W(2, 2)]
+  });
+  assert.equal(s.$("customBackdrop").classList.contains("modal-open"), false);
+  assert.match(s.$("schedule").innerHTML, /class="course type-custom layer-custom custom-event/);
+  assert.match(s.$("schedule").innerHTML, /--course-accent:#a71f3c/);
+  assert.match(html, /\.course\.layer-custom \{ z-index: 30; \}/);
+});
+
 test("index.html 周次切换按单双周过滤", () => {
   const s = runScenario(SAVED());
   s.trigger("nextWeek");

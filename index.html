@@ -104,6 +104,9 @@
     .import-btn { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border: 1px solid #246f51; border-radius: 7px; background: #246f51; color: #fff; cursor: pointer; font-size: 12px; font-weight: 700; transition: background 150ms ease, transform 120ms ease-out; }
     .import-btn:hover { background: #1d6045; }
     .import-btn svg { width: 15px; height: 15px; }
+    .custom-add-btn { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 11px; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: var(--ink); cursor: pointer; font-size: 12px; font-weight: 700; transition: border-color 150ms ease, background 150ms ease, transform 120ms ease-out; }
+    .custom-add-btn:hover { border-color: #b9dec8; background: #f4faf6; color: var(--mint-strong); }
+    .custom-add-btn svg { width: 15px; height: 15px; }
 
     .content { max-width: 1540px; margin: 0 auto; padding: 28px 32px 40px; }
     .page-head { display: flex; align-items: flex-end; gap: 20px; }
@@ -163,6 +166,9 @@
     .course.layer-standard { z-index: 4; }
     .course.layer-online { z-index: 5; }
     .course.layer-lecture { z-index: 6; }
+    .course.layer-custom { z-index: 30; }
+    .course.custom-event { border-left-width: 4px; box-shadow: 0 5px 13px rgba(49, 31, 36, .13); }
+    .course.custom-event .course-description { display: block; overflow: hidden; color: inherit; font-size: 10px; opacity: .78; text-overflow: ellipsis; white-space: nowrap; }
     .course:hover, .course:focus-visible { z-index: 20; transform: translateY(-2px); box-shadow: 0 8px 18px rgba(24,43,34,.12); filter: saturate(1.05); }
     .course:active { transform: translateY(0) scale(.985); }
     .course-title { display: block; min-width: 0; margin-top: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 800; }
@@ -239,9 +245,25 @@
     .drawer-favorite { float: right; margin-right: 8px; }
     .drawer-favorite.active { color: #a26e09; background: #fff0bf; border-color: #e6cf95; }
     .drawer-favorite.active svg { fill: #d69527; }
+    .drawer-delete-custom { display: none; float: left; gap: 6px; height: 34px; padding-inline: 10px; color: #9a574b; }
+    .drawer-delete-custom.visible { display: inline-flex; align-items: center; }
+    .drawer-delete-custom svg { width: 14px; height: 14px; }
     .settings-body { margin-top: 18px; display: grid; gap: 14px; }
     .field { display: grid; gap: 6px; font-size: 12px; color: var(--muted); }
-    .field input, .field select { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: var(--ink); font-size: 13px; }
+    .field input, .field select, .field textarea { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: var(--ink); font-size: 13px; }
+    .field textarea { height: auto; min-height: 74px; padding-block: 9px; resize: vertical; line-height: 1.5; }
+    .field > span b { color: var(--brand, #a71f3c); font-weight: 700; }
+    .custom-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .color-options { display: flex; flex-wrap: wrap; gap: 9px; }
+    .color-option { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 1px solid transparent; border-radius: 50%; background: transparent; cursor: pointer; }
+    .color-option i { display: block; width: 22px; height: 22px; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px rgba(40,40,40,.16); }
+    .color-option.selected { border-color: var(--ink); }
+    .color-option[data-color="brand"] i { background: #a71f3c; }
+    .color-option[data-color="gold"] i { background: #b48a4c; }
+    .color-option[data-color="blue"] i { background: #587797; }
+    .color-option[data-color="mint"] i { background: #4f7d6e; }
+    .color-option[data-color="violet"] i { background: #78638b; }
+    .custom-status { margin-top: 0; }
     .settings-note { margin: 2px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
     .data-actions { display: flex; gap: 8px; }
     .switch-list { display: grid; gap: 8px; margin-top: 18px; max-height: 55vh; overflow: auto; }
@@ -287,6 +309,8 @@
       .pulse { min-height: 63px; }
       .toolbar { margin-top: 24px; }
       .toolbar .subtle { display: none; }
+      .custom-add-btn { width: 34px; justify-content: center; padding: 0; }
+      .custom-add-btn span { display: none; }
       .schedule { grid-template-columns: 48px repeat(7, minmax(0, 1fr)); min-width: 0; }
       .schedule-scroll { overflow: visible; }
       .schedule-shell { display: block; }
@@ -470,7 +494,7 @@
     .top-context strong { color: var(--brand-deep); font-family: Georgia, "Times New Roman", "Songti SC", serif; font-size: 14px; letter-spacing: 0; }
     .search { width: min(260px, 24vw); }
     .search svg { color: #998b8f; }
-    .search input, .icon-btn, .secondary-btn, .field input, .field select {
+    .search input, .icon-btn, .secondary-btn, .field input, .field select, .field textarea {
       border-color: var(--line);
       border-radius: 5px;
       background: var(--panel);
@@ -485,6 +509,8 @@
       font-weight: 700;
     }
     .import-btn:hover { background: var(--brand-mid); }
+    .custom-add-btn { border-color: #d9c9cd; border-radius: 5px; background: var(--panel); color: var(--brand-deep); }
+    .custom-add-btn:hover { border-color: var(--brand); background: var(--brand-soft); color: var(--brand); }
 
     .content { max-width: 1580px; padding: 31px 34px 42px; }
     .page-head { align-items: center; }
@@ -718,7 +744,7 @@
           <div class="pulse"><div class="pulse-icon"><i data-lucide="map-pin"></i></div><div class="pulse-copy"><div class="pulse-label">主要校区</div><div class="pulse-value" id="campusValue">滨海校区 · 求知楼</div></div></div>
         </section>
 
-        <section class="toolbar"><div><h2 id="viewTitle">周视图</h2><span class="subtle" id="weekRangeLabel">…</span></div><div class="toolbar-spacer"></div><div class="view-toggle" role="group" aria-label="视图切换"><button class="active" id="weekViewButton" type="button"><i data-lucide="table-2"></i>周视图</button><button id="listViewButton" type="button"><i data-lucide="list"></i>列表</button></div></section>
+        <section class="toolbar"><div><h2 id="viewTitle">周视图</h2><span class="subtle" id="weekRangeLabel">…</span></div><div class="toolbar-spacer"></div><button class="custom-add-btn" id="addCustomButton" type="button" title="添加自定义日程"><i data-lucide="plus"></i><span>新建日程</span></button><div class="view-toggle" role="group" aria-label="视图切换"><button class="active" id="weekViewButton" type="button"><i data-lucide="table-2"></i>周视图</button><button id="listViewButton" type="button"><i data-lucide="list"></i>列表</button></div></section>
 
         <div class="week-swipe-viewport" id="weekSwipeViewport"><div class="week-swipe-surface" id="weekSwipeSurface">
           <div class="week-swipe-page week-swipe-preview" id="previousWeekPreview" aria-hidden="true"></div>
@@ -741,15 +767,17 @@
   </aside>
 
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
-  <aside class="drawer" id="drawer" aria-label="课程详情" aria-hidden="true"><button class="icon-btn drawer-favorite" id="drawerFavorite" type="button" title="收藏课程" aria-label="收藏课程"><i data-lucide="bookmark"></i></button><button class="icon-btn drawer-close" id="drawerClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button><div class="drawer-kicker" id="drawerKicker">课程详情</div><h2 id="drawerTitle">课程名称</h2><p class="drawer-sub" id="drawerSub">周二 · 第 1–2 节</p><dl class="detail-list"><div class="detail-row"><dt>上课时间</dt><dd id="detailTime">08:00–09:25</dd></div><div class="detail-row"><dt>上课地点</dt><dd id="detailRoom">滨海校区 · 求知楼</dd></div><div class="detail-row"><dt>任课教师</dt><dd id="detailTeacher">教师姓名</dd></div><div class="detail-row"><dt>周次</dt><dd id="detailWeeks">第 1–16 周</dd></div><div class="detail-row"><dt>课程类型</dt><dd id="detailType">讲课</dd></div></dl><div class="drawer-note">课程数据保存在本地浏览器中。导入新的 PDF 后，可以继续手动修正课程信息。</div></aside>
+  <aside class="drawer" id="drawer" aria-label="课程详情" aria-hidden="true"><button class="icon-btn drawer-favorite" id="drawerFavorite" type="button" title="收藏课程" aria-label="收藏课程"><i data-lucide="bookmark"></i></button><button class="secondary-btn drawer-delete-custom" id="drawerDeleteCustom" type="button" title="删除自定义日程"><i data-lucide="trash-2"></i><span>删除日程</span></button><button class="icon-btn drawer-close" id="drawerClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button><div class="drawer-kicker" id="drawerKicker">课程详情</div><h2 id="drawerTitle">课程名称</h2><p class="drawer-sub" id="drawerSub">周二 · 第 1–2 节</p><dl class="detail-list"><div class="detail-row"><dt>上课时间</dt><dd id="detailTime">08:00–09:25</dd></div><div class="detail-row"><dt>上课地点</dt><dd id="detailRoom">滨海校区 · 求知楼</dd></div><div class="detail-row" id="detailDescriptionRow"><dt>简介</dt><dd id="detailDescription">—</dd></div><div class="detail-row" id="detailTeacherRow"><dt>任课教师</dt><dd id="detailTeacher">教师姓名</dd></div><div class="detail-row"><dt>周次</dt><dd id="detailWeeks">第 1–16 周</dd></div><div class="detail-row"><dt>课程类型</dt><dd id="detailType">讲课</dd></div></dl><div class="drawer-note" id="drawerNote">课程数据保存在本地浏览器中。导入新的 PDF 后，可以继续手动修正课程信息。</div></aside>
 
   <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>选择从教务系统导出的课表 PDF。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="query-link-row"><a class="secondary-btn query-link" href="https://jwxt.wmu.edu.cn/jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&amp;layout=default" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i><span>前往教务系统查询课表</span></a></div><label class="dropzone" id="dropZone" for="fileInput"><i data-lucide="upload-cloud"></i><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="import-status" id="importStatus" role="status" aria-live="polite"></div><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button" aria-label="开始识别" title="开始识别"><i data-lucide="scan-line"></i><span>开始识别</span></button></div></section></div>
 
   <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题与本地数据管理。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option></select></label><p class="settings-note">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。</p><div class="data-actions"><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
 
-  <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>可在「导入 PDF」弹窗中前往教务系统查询课表；正常导出 PDF 后，回到本页选择该文件。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>「回到今天」定位到当前周次与星期。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
+  <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>可在「导入 PDF」弹窗中前往教务系统查询课表；正常导出 PDF 后，回到本页选择该文件。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>「回到今天」定位到当前周次与星期。</li><li>工具栏「新建日程」可快速添加课表外安排，默认定位到当前周和当天。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
 
   <div class="modal-backdrop" id="switchBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="switchTitle"><div class="modal-head"><div><h2 id="switchTitle">切换课表</h2><p>选择要查看的课表。</p></div><button class="icon-btn" id="switchClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="switch-list" id="switchList"></div><div class="modal-foot"><button class="secondary-btn" id="switchImport" type="button">导入新课表</button><button class="import-btn" id="switchDone" type="button">完成</button></div></section></div>
+
+  <div class="modal-backdrop" id="customBackdrop"><section class="modal custom-modal" role="dialog" aria-modal="true" aria-labelledby="customTitleHeading"><div class="modal-head"><div><h2 id="customTitleHeading">添加自定义日程</h2><p>记录不在课表里的安排，保存后会显示在最上层。</p></div><button class="icon-btn" id="customClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body custom-form"><label class="field"><span>标题 <b aria-hidden="true">*</b></span><input id="customTitle" type="text" maxlength="40" placeholder="例如：实验室组会" autocomplete="off"></label><label class="field"><span>简介</span><textarea id="customDescription" rows="3" maxlength="120" placeholder="补充提醒或待办内容"></textarea></label><label class="field"><span>地点</span><input id="customRoom" type="text" maxlength="50" placeholder="例如：求知楼 204"></label><div class="custom-grid"><label class="field"><span>周次</span><input id="customWeek" type="number" min="-52" max="99" step="1"></label><label class="field"><span>星期</span><select id="customDay"><option value="1">周一</option><option value="2">周二</option><option value="3">周三</option><option value="4">周四</option><option value="5">周五</option><option value="6">周六</option><option value="7">周日</option></select></label></div><div class="custom-grid"><label class="field"><span>开始时间</span><input id="customStart" type="time"></label><label class="field"><span>结束时间</span><input id="customEnd" type="time"></label></div><div class="field"><span>卡片颜色</span><div class="color-options" id="customColorOptions" role="radiogroup" aria-label="卡片颜色"><button type="button" class="color-option selected" data-color="brand" title="校红" aria-label="校红"><i></i></button><button type="button" class="color-option" data-color="gold" title="金色" aria-label="金色"><i></i></button><button type="button" class="color-option" data-color="blue" title="蓝色" aria-label="蓝色"><i></i></button><button type="button" class="color-option" data-color="mint" title="青绿" aria-label="青绿"><i></i></button><button type="button" class="color-option" data-color="violet" title="紫灰" aria-label="紫灰"><i></i></button></div></div><div class="import-status" id="customStatus" role="status" aria-live="polite"></div></div><div class="modal-foot"><button class="secondary-btn" id="customCancel" type="button">取消</button><button class="import-btn" id="customSave" type="button"><i data-lucide="check"></i><span>保存日程</span></button></div></section></div>
 
   <script type="module">
     import { parseTimetablePdf } from './src/timetable.js';
@@ -771,10 +799,12 @@
           return `${span}${range.parity === 'odd' ? '（单）' : range.parity === 'even' ? '（双）' : ''}`;
         }).join('、') + ' 周'
       : '周次未标注';
-    const eventInWeek = (event, week) => (event.weeks || []).some((range) =>
-      week >= range.start && week <= range.end &&
-      (range.parity === 'all' || (range.parity === 'odd' && week % 2 === 1) || (range.parity === 'even' && week % 2 === 0))
-    );
+    const eventInWeek = (event, week) => event.kind === 'custom'
+      ? Number(event.week) === week
+      : (event.weeks || []).some((range) =>
+          week >= range.start && week <= range.end &&
+          (range.parity === 'all' || (range.parity === 'odd' && week % 2 === 1) || (range.parity === 'even' && week % 2 === 0))
+        );
     const formatClock = (minutes) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
     const SHARED_AFTERNOON_PERIODS = [
       ['13:30', '14:10'], ['14:15', '14:55'], ['15:00', '15:40'],
@@ -798,10 +828,18 @@
       '滨海校区': BINHAI_PERIODS,
       '线上': BINHAI_PERIODS
     };
+    const CUSTOM_EVENT_COLORS = {
+      brand: { background: '#f7e7eb', accent: '#a71f3c', text: '#68192b' },
+      gold: { background: '#f8efe1', accent: '#b48a4c', text: '#765a2f' },
+      blue: { background: '#e8eef5', accent: '#587797', text: '#344f6a' },
+      mint: { background: '#e7f0ed', accent: '#4f7d6e', text: '#355d50' },
+      violet: { background: '#eeeaf3', accent: '#78638b', text: '#594569' }
+    };
     const STORAGE_KEY = 'wmu-timetable-v1';
     const state = { timetables: [], activeId: null, week: 1, day: 1, query: '', view: 'schedule', favorites: [], updatedAt: 0 };
     let selectedPdfFile = null;
     let activeEvent = null;
+    let selectedCustomColor = 'brand';
     let swipeAnimationFrame = 0;
     let swipeState = null;
     let swipePosition = 0;
@@ -811,9 +849,13 @@
     const $ = (id) => document.getElementById(id);
     const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
     const currentTimetable = () => state.timetables.find((t) => t.id === state.activeId) || null;
-    const currentEvents = () => currentTimetable()?.events || [];
+    const currentEvents = () => {
+      const timetable = currentTimetable();
+      return timetable ? [...(timetable.events || []), ...(timetable.customEvents || [])] : [];
+    };
     const currentTermStart = () => currentTimetable()?.termStartDate || toIso(mondayOf(new Date()));
     const newTimetableId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const newCustomEventId = () => `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const uniqueTimetableName = (base) => {
       const names = new Set(state.timetables.map((t) => t.name));
       if (!names.has(base)) return base;
@@ -866,21 +908,22 @@
     });
     const visibleEventsForWeek = (week) => {
       let events = currentEvents();
-      if (state.view === 'favorites') events = events.filter((event) => state.favorites.includes(event.title));
+      if (state.view === 'favorites') events = events.filter((event) => event.kind !== 'custom' && state.favorites.includes(event.title));
       if (state.query) {
         const query = state.query.toLowerCase();
-        events = events.filter((event) => `${event.title} ${event.teacher} ${event.room} ${event.campus}`.toLowerCase().includes(query));
+        events = events.filter((event) => `${event.title} ${event.description || ''} ${event.teacher || ''} ${event.room || ''} ${event.campus || ''}`.toLowerCase().includes(query));
       }
       if (state.view !== 'favorites') events = events.filter((event) => eventInWeek(event, week));
       return events;
     };
     const visibleEvents = () => visibleEventsForWeek(state.week);
     const timeLabel = (event) => {
+      if (event.kind === 'custom') return `${event.startTime}–${event.endTime}`;
       const periods = CAMPUS_PERIODS[event.campus] || CAMPUS_PERIODS['滨海校区'];
       return `${periods[event.start - 1][0]}–${periods[event.end - 1][1]}`;
     };
     const displayRoom = (event) => {
-      const room = String(event.room || '待定').trim();
+      const room = String(event.room || (event.kind === 'custom' ? '未设置地点' : '待定')).trim();
       const leadingCode = room.match(/^([A-Za-z0-9]{4,6})(?=[^A-Za-z0-9]|$)/)?.[1];
       if (!leadingCode) return room;
       if (event.campus === '茶山校区') {
@@ -913,6 +956,7 @@
       return !value || /^(?:待定|无地点|未标注(?:地点|教室|场地)|暂无)$/i.test(value);
     };
     const courseLayer = (event) => {
+      if (event.kind === 'custom') return 'custom';
       if (event.type === 'lecture') return 'lecture';
       if (isOnlinePlatformRoom(event.room)) return 'platform';
       if (isMissingRoom(event.room)) return 'missing';
@@ -920,12 +964,19 @@
       return 'standard';
     };
     const eventStartMinute = (event) => {
+      if (event.kind === 'custom') return timeToMinutes(event.startTime);
       const periods = CAMPUS_PERIODS[event.campus] || CAMPUS_PERIODS['滨海校区'];
       return timeToMinutes(periods[event.start - 1][0]);
     };
     const eventEndMinute = (event) => {
+      if (event.kind === 'custom') return timeToMinutes(event.endTime);
       const periods = CAMPUS_PERIODS[event.campus] || CAMPUS_PERIODS['滨海校区'];
       return timeToMinutes(periods[event.end - 1][1]);
+    };
+    const customColorStyle = (event) => {
+      if (event.kind !== 'custom') return '';
+      const color = CUSTOM_EVENT_COLORS[event.color] || CUSTOM_EVENT_COLORS.brand;
+      return `--course-bg:${color.background};--course-accent:${color.accent};--course-text:${color.text};`;
     };
     const truncateTitle = (title) => (title.length > 9 ? `${title.slice(0, 9)}..` : title);
 
@@ -1062,7 +1113,8 @@
       const nowMinutes = now.getHours() * 60 + now.getMinutes();
       const isCurrentWeek = week === nowWeek;
       const todayKey = isCurrentWeek ? current.day : null;
-      const axisStart = 8 * 60;
+      const customStarts = events.filter((event) => event.kind === 'custom').map(eventStartMinute).filter(Number.isFinite);
+      const axisStart = customStarts.length ? Math.min(8 * 60, Math.floor(Math.min(...customStarts) / 45) * 45) : 8 * 60;
       const lastEnd = events.length ? Math.max(...events.map(eventEndMinute)) : axisStart + 45;
       const latestEnd = isCurrentWeek ? Math.max(lastEnd, nowMinutes) : lastEnd;
       const axisEnd = Math.ceil(Math.max(axisStart + 45, latestEnd) / 45) * 45;
@@ -1077,19 +1129,24 @@
       const columns = days.map((day) => `<div class="day-column ${day.key === todayKey ? 'today-column' : ''}" data-column="${day.key}" style="height:${totalHeight}px">${events.filter((event) => event.day === day.key).map((event) => {
         const top = Math.round((eventStartMinute(event) - axisStart) * pxPerMinute);
         const duration = eventEndMinute(event) - eventStartMinute(event);
-        const height = Math.round(duration * pxPerMinute);
+        const height = event.kind === 'custom' ? Math.max(26, Math.round(duration * pxPerMinute)) : Math.round(duration * pxPerMinute);
         const density = height < 108 ? ' course-tiny' : height < 166 ? ' course-compact' : '';
         const ultraShort = duration < 40;
         const fortyMinute = duration === 40;
         const ongoing = isCurrentWeek && event.day === todayKey && nowMinutes >= eventStartMinute(event) && nowMinutes < eventEndMinute(event);
         const tag = interactive ? 'button' : 'div';
         const attributes = interactive ? ` data-event="${currentEvents().indexOf(event)}" type="button"` : '';
-        const details = ultraShort
-          ? `<span class="course-title">${escapeHtml(truncateTitle(event.title))}</span>`
-          : fortyMinute
-            ? `<span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-room">${roomMarkup(event, false)}</span>`
-            : `<span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room">${roomMarkup(event)}</span><span class="course-meta"><span class="course-campus">${escapeHtml(event.campus)}</span><span class="course-teacher"> · ${escapeHtml(event.teacher)}</span></span>`;
-        return `<${tag} class="course type-${event.type} layer-${courseLayer(event)}${density}${ultraShort ? ' course-ultra-short' : ''}${fortyMinute ? ' course-40min' : ''}${ongoing ? ' ongoing' : ''}"${attributes} style="top:${top}px;height:${height}px" title="${escapeHtml(event.title)}"><span class="course-content">${details}${ultraShort || fortyMinute ? '' : `<span class="course-type">${escapeHtml(event.label)}</span>`}</span></${tag}>`;
+        const details = event.kind === 'custom'
+          ? ultraShort
+            ? `<span class="course-title">${escapeHtml(truncateTitle(event.title))}</span>`
+            : `<span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room">${roomMarkup(event, false)}</span>${event.description ? `<span class="course-description">${escapeHtml(event.description)}</span>` : ''}`
+          : ultraShort
+            ? `<span class="course-title">${escapeHtml(truncateTitle(event.title))}</span>`
+            : fortyMinute
+              ? `<span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-room">${roomMarkup(event, false)}</span>`
+              : `<span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room">${roomMarkup(event)}</span><span class="course-meta"><span class="course-campus">${escapeHtml(event.campus)}</span><span class="course-teacher"> · ${escapeHtml(event.teacher)}</span></span>`;
+        const showType = event.kind === 'custom' ? !ultraShort && duration >= 60 : !ultraShort && !fortyMinute;
+        return `<${tag} class="course type-${event.type} layer-${courseLayer(event)}${event.kind === 'custom' ? ' custom-event' : ''}${density}${ultraShort ? ' course-ultra-short' : ''}${fortyMinute ? ' course-40min' : ''}${ongoing ? ' ongoing' : ''}"${attributes} style="top:${top}px;height:${height}px;${customColorStyle(event)}" title="${escapeHtml(event.title)}"><span class="course-content">${details}${showType ? `<span class="course-type">${escapeHtml(event.label)}</span>` : ''}</span></${tag}>`;
       }).join('')}</div>`).join('');
       return { html: `${head}<div class="schedule-body">${axis}${columns}${nowLine}</div>`, events, axis: { start: axisStart, end: axisEnd, pxPerMinute } };
     }
@@ -1119,7 +1176,10 @@
       return days.filter((day) => events.some((event) => event.day === day.key)).map((day) => `<section class="agenda-day"><div class="agenda-day-title"><span>${isFavorites ? day.name : `${day.name} · ${day.date}`}</span><span>${events.filter((event) => event.day === day.key).length} 节</span></div>${events.filter((event) => event.day === day.key).map((event) => {
         const tag = interactive ? 'button' : 'div';
         const attributes = interactive ? ` data-event="${currentEvents().indexOf(event)}" type="button"` : '';
-        return `<${tag} class="agenda-event type-${event.type}"${attributes}><span class="event-time">${timeLabel(event)}</span><span><span class="event-title">${escapeHtml(truncateTitle(event.title))}</span><span class="event-room">${escapeHtml(displayRoom(event))} · ${escapeHtml(event.teacher)}${isFavorites ? ' · ' + weeksLabel(event.weeks) : ''}</span></span></${tag}>`;
+        const meta = event.kind === 'custom'
+          ? `${escapeHtml(displayRoom(event))}${event.description ? ' · ' + escapeHtml(event.description) : ''}`
+          : `${escapeHtml(displayRoom(event))} · ${escapeHtml(event.teacher)}${isFavorites ? ' · ' + weeksLabel(event.weeks) : ''}`;
+        return `<${tag} class="agenda-event type-${event.type}${event.kind === 'custom' ? ' custom-event' : ''}"${attributes} style="${customColorStyle(event)}"><span class="event-time">${timeLabel(event)}</span><span><span class="event-title">${escapeHtml(truncateTitle(event.title))}</span><span class="event-room">${meta}</span></span></${tag}>`;
       }).join('')}</section>`).join('') || '<div class="empty" style="display:grid"><div>没有匹配的课程</div></div>';
     }
 
@@ -1262,7 +1322,7 @@
       const today = weekAndDayForDate(new Date());
       const now = new Date();
       const nowMinutes = now.getHours() * 60 + now.getMinutes();
-      const todayEvents = currentEvents().filter((event) => event.day === today.day && eventInWeek(event, today.week)).sort((a, b) => a.start - b.start);
+      const todayEvents = currentEvents().filter((event) => event.day === today.day && eventInWeek(event, today.week)).sort((a, b) => eventStartMinute(a) - eventStartMinute(b));
       const prefix = `今天 ${DAY_NAMES[today.day - 1]}`;
       if (!todayEvents.length) return { label: `${prefix} · 无课`, value: '今天没有课程安排' };
       const next = todayEvents.find((event) => timeToMinutes(timeLabel(event).split('–')[0]) > nowMinutes);
@@ -1377,14 +1437,22 @@
 
     function openDrawer(event) {
       activeEvent = event;
+      const isCustom = event.kind === 'custom';
+      $('drawerKicker').textContent = isCustom ? '自定义日程' : '课程详情';
       $('drawerTitle').textContent = event.title;
-      $('drawerSub').textContent = `${DAY_NAMES[event.day - 1]} · 第 ${event.start}–${event.end} 节`;
+      $('drawerSub').textContent = isCustom ? `${weekLabel(event.week)} · ${DAY_NAMES[event.day - 1]}` : `${DAY_NAMES[event.day - 1]} · 第 ${event.start}–${event.end} 节`;
       $('detailTime').textContent = timeLabel(event);
-      $('detailRoom').textContent = `${event.campus} · ${displayRoom(event)}`;
+      $('detailRoom').textContent = isCustom ? displayRoom(event) : `${event.campus} · ${displayRoom(event)}`;
+      $('detailDescription').textContent = event.description || '未填写简介';
+      $('detailDescriptionRow').style.display = isCustom ? '' : 'none';
       $('detailTeacher').textContent = event.teacher;
-      $('detailWeeks').textContent = weeksLabel(event.weeks);
-      $('detailType').textContent = `${event.label} · ${event.credit} 学分`;
-      renderFavoriteButton();
+      $('detailTeacherRow').style.display = isCustom ? 'none' : '';
+      $('detailWeeks').textContent = isCustom ? `${weekLabel(event.week)} · ${formatFull(dayInfo(event.week)[event.day - 1].fullDate)}` : weeksLabel(event.weeks);
+      $('detailType').textContent = isCustom ? '自定义日程' : `${event.label} · ${event.credit} 学分`;
+      $('drawerFavorite').style.display = isCustom ? 'none' : '';
+      $('drawerDeleteCustom').classList.toggle('visible', isCustom);
+      $('drawerNote').textContent = isCustom ? '这条日程仅保存在当前浏览器中，删除后无法恢复。' : '课程数据保存在本地浏览器中。导入新的 PDF 后，可以继续手动修正课程信息。';
+      if (!isCustom) renderFavoriteButton();
       const wasOpen = document.body.classList.contains('drawer-open');
       stopDrawerAnimation();
       if (!wasOpen) setDrawerPosition(drawerWidth());
@@ -1399,7 +1467,7 @@
       $('drawerFavorite').setAttribute('title', active ? '取消收藏' : '收藏课程');
     }
     function toggleFavorite() {
-      if (!activeEvent) return;
+      if (!activeEvent || activeEvent.kind === 'custom') return;
       const index = state.favorites.indexOf(activeEvent.title);
       if (index >= 0) state.favorites.splice(index, 1);
       else state.favorites.push(activeEvent.title);
@@ -1422,6 +1490,103 @@
       openModal('settingsBackdrop');
     }
     function openHelp() { openModal('helpBackdrop'); }
+    function ensureCustomTimetable() {
+      let timetable = currentTimetable();
+      if (timetable) return timetable;
+      timetable = {
+        id: newTimetableId(),
+        name: '我的日程',
+        semester: '',
+        student: { name: '', id: '' },
+        termStartDate: toIso(mondayOf(new Date())),
+        events: [],
+        customEvents: [],
+        updatedAt: Date.now()
+      };
+      state.timetables.push(timetable);
+      state.activeId = timetable.id;
+      return timetable;
+    }
+    function setSelectedCustomColor(color) {
+      selectedCustomColor = CUSTOM_EVENT_COLORS[color] ? color : 'brand';
+      document.querySelectorAll('[data-color]').forEach((button) => {
+        const selected = button.dataset.color === selectedCustomColor;
+        button.classList.toggle('selected', selected);
+        button.setAttribute('aria-checked', String(selected));
+      });
+    }
+    function openCustomModal() {
+      const now = new Date();
+      const today = currentWeekInfo();
+      const roundedStart = Math.min(22 * 60, Math.max(8 * 60, Math.ceil((now.getHours() * 60 + now.getMinutes()) / 30) * 30));
+      $('customTitle').value = '';
+      $('customDescription').value = '';
+      $('customRoom').value = '';
+      $('customWeek').value = String(today.week);
+      $('customDay').value = String(today.day);
+      $('customStart').value = formatClock(roundedStart);
+      $('customEnd').value = formatClock(Math.min(23 * 60, roundedStart + 60));
+      $('customStatus').textContent = '';
+      $('customStatus').className = 'import-status custom-status';
+      setSelectedCustomColor('brand');
+      openModal('customBackdrop');
+      $('customTitle').focus?.();
+    }
+    function closeCustomModal() { closeModalById('customBackdrop'); }
+    function setCustomStatus(message) {
+      $('customStatus').textContent = message;
+      $('customStatus').className = 'import-status custom-status error';
+    }
+    function saveCustomEvent() {
+      const title = $('customTitle').value.trim();
+      const description = $('customDescription').value.trim();
+      const room = $('customRoom').value.trim();
+      const week = Number($('customWeek').value);
+      const day = Number($('customDay').value);
+      const startTime = $('customStart').value;
+      const endTime = $('customEnd').value;
+      if (!title) { setCustomStatus('请填写日程标题。'); $('customTitle').focus?.(); return; }
+      if (!Number.isInteger(week) || week < -52 || week > 99 || !Number.isInteger(day) || day < 1 || day > 7) { setCustomStatus('请选择有效的周次和星期。'); return; }
+      if (!startTime || !endTime || timeToMinutes(endTime) <= timeToMinutes(startTime)) { setCustomStatus('结束时间需要晚于开始时间。'); return; }
+      const timetable = ensureCustomTimetable();
+      if (!Array.isArray(timetable.customEvents)) timetable.customEvents = [];
+      timetable.customEvents.push({
+        id: newCustomEventId(),
+        kind: 'custom',
+        title,
+        description,
+        room,
+        week,
+        day,
+        startTime,
+        endTime,
+        color: selectedCustomColor,
+        type: 'custom',
+        label: '自定义',
+        campus: '',
+        teacher: '',
+        credit: '—',
+        weeks: [{ start: week, end: week, parity: 'all' }]
+      });
+      state.week = week;
+      state.day = day;
+      state.view = 'schedule';
+      state.query = '';
+      $('searchInput').value = '';
+      persist();
+      renderAll();
+      closeCustomModal();
+    }
+    function deleteCustomEvent() {
+      if (!activeEvent || activeEvent.kind !== 'custom') return;
+      const timetable = currentTimetable();
+      if (!timetable || !Array.isArray(timetable.customEvents)) return;
+      timetable.customEvents = timetable.customEvents.filter((event) => event.id !== activeEvent.id);
+      activeEvent = null;
+      persist();
+      closeDrawer();
+      renderAll();
+    }
     function renderSwitchList() {
       $('switchList').innerHTML = state.timetables.length
         ? state.timetables.map((t) => {
@@ -1587,6 +1752,7 @@
           student: result.student || { name: '', id: '' },
           termStartDate: toIso(mondayOf(new Date())),
           events,
+          customEvents: [],
           updatedAt: Date.now()
         };
         state.timetables.push(timetable);
@@ -1632,10 +1798,16 @@
     $('switchBackdrop').addEventListener('click', (event) => { if (event.target === event.currentTarget) closeModalById('switchBackdrop'); });
     $('switchDone').addEventListener('click', () => closeModalById('switchBackdrop'));
     $('switchImport').addEventListener('click', () => { closeModalById('switchBackdrop'); openImportModal(); });
+    $('customClose').addEventListener('click', closeCustomModal);
+    $('customCancel').addEventListener('click', closeCustomModal);
+    $('customBackdrop').addEventListener('click', (event) => { if (event.target === event.currentTarget) closeCustomModal(); });
+    $('customSave').addEventListener('click', saveCustomEvent);
+    document.querySelectorAll('[data-color]').forEach((button) => button.addEventListener('click', () => setSelectedCustomColor(button.dataset.color)));
     $('searchInput').addEventListener('input', (event) => { state.query = event.target.value.trim(); renderAll(); });
     $('drawerClose').addEventListener('click', closeDrawer);
     $('drawerBackdrop').addEventListener('click', closeDrawer);
     $('drawerFavorite').addEventListener('click', toggleFavorite);
+    $('drawerDeleteCustom').addEventListener('click', deleteCustomEvent);
     $('mobileMenuButton').addEventListener('click', openMobileNav);
     $('mobileNavClose').addEventListener('click', closeMobileNav);
     $('mobileNavBackdrop').addEventListener('click', closeMobileNav);
@@ -1646,6 +1818,7 @@
     $('mobileNavSettings').addEventListener('click', () => { closeMobileNav(); openSettings(); });
     $('mobileNavHelp').addEventListener('click', () => { closeMobileNav(); openHelp(); });
     $('importButton').addEventListener('click', openImportModal);
+    $('addCustomButton').addEventListener('click', openCustomModal);
     $('modalClose').addEventListener('click', closeImportModal);
     $('modalCancel').addEventListener('click', closeImportModal);
     $('settingsClose').addEventListener('click', () => closeModalById('settingsBackdrop'));
@@ -1707,6 +1880,7 @@
       closeModalById('settingsBackdrop');
       closeModalById('helpBackdrop');
       closeModalById('switchBackdrop');
+      closeCustomModal();
       closeMobileNav();
     });
     document.addEventListener('touchmove', (event) => {
