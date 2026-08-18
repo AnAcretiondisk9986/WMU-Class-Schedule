@@ -267,13 +267,17 @@
     .settings-note { margin: 2px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
     .data-actions { display: flex; gap: 8px; }
     .switch-list { display: grid; gap: 8px; margin-top: 18px; max-height: 55vh; overflow: auto; }
-    .switch-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: #fff; cursor: pointer; text-align: left; }
+    .switch-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 7px; border: 1px solid var(--line); border-radius: 9px; background: #fff; text-align: left; }
     .switch-item:hover { border-color: #b9dec8; background: #f4faf6; }
     .switch-item.active { border-color: #2f8b68; background: #e8f7ee; }
+    .switch-item-select { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; flex: 1; padding: 5px; border: 0; border-radius: 5px; background: transparent; cursor: pointer; text-align: left; }
+    .switch-item-select:hover { background: rgba(255,255,255,.58); }
     .switch-item-copy { min-width: 0; }
     .switch-item-name { font-size: 13px; font-weight: 700; color: var(--ink); }
     .switch-item-meta { margin-top: 2px; color: var(--muted); font-size: 11px; }
     .switch-item-badge { flex: 0 0 auto; padding: 2px 7px; border-radius: 5px; background: #c8ebd6; color: #1e6747; font-size: 10px; font-weight: 700; }
+    .switch-item-delete { flex: 0 0 auto; width: 30px; height: 30px; color: #9a574b; }
+    .switch-item-delete:hover { border-color: #e3bdb7; background: #fff4f2; color: #8a3428; }
     .help-list { margin: 4px 0 0; padding: 0 0 0 18px; color: var(--ink); font-size: 12px; line-height: 1.7; }
 
     @media (max-width: 1080px) {
@@ -407,6 +411,22 @@
       --line: #e8ddd6;
       --panel: #fffdf9;
     }
+    html.dark-mode {
+      --ink: #eef2ef;
+      --muted: #9ca8a1;
+      --line: #343b38;
+      --paper: #181c1a;
+      --panel: #222825;
+      --canvas: #101311;
+      --brand-soft: #3c2028;
+      --gold-soft: #3a3022;
+      --mint: #243b31;
+      --blue: #263547;
+      --coral: #402c2a;
+      --yellow: #3d321f;
+      --violet: #332d3d;
+      --shadow: 0 14px 34px rgba(0,0,0,.24), 0 2px 6px rgba(0,0,0,.2);
+    }
     body {
       background: var(--canvas);
       color: var(--ink);
@@ -513,6 +533,10 @@
     .custom-add-btn:hover { border-color: var(--brand); background: var(--brand-soft); color: var(--brand); }
 
     .content { max-width: 1580px; padding: 31px 34px 42px; }
+    .site-footer { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 0 34px 26px; color: var(--muted); font-size: 11px; }
+    .site-footer-item { display: inline-flex; align-items: center; gap: 5px; }
+    .site-footer-item + .site-footer-item { padding-left: 18px; border-left: 1px solid var(--line); }
+    .site-footer-item strong { color: var(--ink); font-weight: 750; }
     .page-head { align-items: center; }
     .eyebrow { color: var(--brand); font-weight: 700; letter-spacing: 0; text-transform: none; }
     .eyebrow i { width: 20px; height: 2px; border-radius: 0; background: var(--gold); }
@@ -578,6 +602,7 @@
     .dropzone.dragging { border-color: var(--brand); background: var(--brand-soft); }
     .dropzone svg { color: var(--brand); }
     .switch-item { border-radius: 5px; }
+    .switch-item-select { border-radius: 3px; }
     .switch-item:hover { border-color: #d7a7b2; background: #fcf5f7; }
     .switch-item.active { border-color: var(--brand); background: var(--brand-soft); }
     .switch-item-badge { border-radius: 3px; background: var(--brand); color: #fff; }
@@ -680,6 +705,25 @@
       .course-room-code[data-room-code-length="5"] { font-size: 7px; }
       .course-room-code[data-room-code-length="6"] { font-size: 6px; }
     }
+    html.dark-mode body { color-scheme: dark; }
+    html.dark-mode .topbar { background: rgba(24,28,26,.96); }
+    html.dark-mode h1, html.dark-mode .toolbar h2, html.dark-mode .top-context strong, html.dark-mode .week-value, html.dark-mode .drawer h2, html.dark-mode .modal h2 { color: #f0d6dc; }
+    html.dark-mode .schedule-shell, html.dark-mode .pulse, html.dark-mode .today-btn, html.dark-mode .week-switch, html.dark-mode .icon-btn, html.dark-mode .secondary-btn, html.dark-mode .search input, html.dark-mode .field input, html.dark-mode .field select, html.dark-mode .field textarea, html.dark-mode .modal, html.dark-mode .drawer, html.dark-mode .switch-item { background: var(--panel); color: var(--ink); }
+    html.dark-mode .schedule-head { background: #202522; }
+    html.dark-mode .time-axis { background: #1d211f; }
+    html.dark-mode .day-column { background-color: #181c1a; }
+    html.dark-mode .head-cell.today-column, html.dark-mode .day-column.today-column { background-color: #352127; }
+    html.dark-mode .head-cell.focus { background: #253a30; }
+    html.dark-mode .dropzone { background: #1b211e; border-color: #4d5b52; }
+    html.dark-mode .drawer-note { color: #cbbd9e; }
+    html.dark-mode .switch-item:hover { background: #312126; }
+    html.dark-mode .switch-item.active { background: #3c2028; }
+    html.dark-mode .view-toggle { background: #202522; }
+    html.dark-mode .view-toggle button.active { background: #303733; color: var(--ink); }
+    html.dark-mode .search input::placeholder, html.dark-mode .field input::placeholder, html.dark-mode .field textarea::placeholder { color: #718078; }
+    @media (max-width: 760px) {
+      .site-footer { padding: 0 14px 18px; }
+    }
     @media (prefers-reduced-motion: reduce) {
       .sidebar, .mobile-nav-backdrop, .mobile-nav-panel { transition-duration: 1ms !important; }
       .week-swipe-surface, .drawer { will-change: auto; }
@@ -755,6 +799,7 @@
           <div class="week-swipe-page week-swipe-preview" id="nextWeekPreview" aria-hidden="true"></div>
         </div></div>
       </div>
+      <footer class="site-footer" aria-label="站点统计"><span class="site-footer-item">访问次数 <strong id="visitCountValue">0</strong></span><span class="site-footer-item" title="本机已导入的课表份数">用户数量 <strong id="userCountValue">0</strong></span></footer>
     </main>
   </div>
 
@@ -771,7 +816,7 @@
 
   <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>选择从教务系统导出的课表 PDF。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="query-link-row"><a class="secondary-btn query-link" href="https://jwxt.wmu.edu.cn/jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&amp;layout=default" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i><span>前往教务系统查询课表</span></a></div><label class="dropzone" id="dropZone" for="fileInput"><i data-lucide="upload-cloud"></i><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="import-status" id="importStatus" role="status" aria-live="polite"></div><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button" aria-label="开始识别" title="开始识别"><i data-lucide="scan-line"></i><span>开始识别</span></button></div></section></div>
 
-  <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题与本地数据管理。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option></select></label><p class="settings-note">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。</p><div class="data-actions"><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
+  <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题与本地数据管理。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option><option value="dark">暗色</option></select></label><p class="settings-note">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。</p><div class="data-actions"><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
 
   <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>可在「导入 PDF」弹窗中前往教务系统查询课表；正常导出 PDF 后，回到本页选择该文件。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>「回到今天」定位到当前周次与星期。</li><li>工具栏「新建日程」可快速添加课表外安排，默认定位到当前周和当天。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
 
@@ -836,7 +881,9 @@
       violet: { background: '#eeeaf3', accent: '#78638b', text: '#594569' }
     };
     const STORAGE_KEY = 'wmu-timetable-v1';
+    const VISIT_STORAGE_KEY = 'wmu-visit-count-v1';
     const state = { timetables: [], activeId: null, week: 1, day: 1, query: '', view: 'schedule', favorites: [], updatedAt: 0 };
+    let visitCount = 0;
     let selectedPdfFile = null;
     let activeEvent = null;
     let selectedCustomColor = 'brand';
@@ -1244,6 +1291,16 @@
       $('mobileStorageMeter').style.width = $('storageMeter').style.width;
     }
 
+    function recordVisit() {
+      try {
+        const stored = Number.parseInt(localStorage.getItem(VISIT_STORAGE_KEY) || '0', 10);
+        visitCount = Number.isFinite(stored) && stored >= 0 ? stored + 1 : 1;
+        localStorage.setItem(VISIT_STORAGE_KEY, String(visitCount));
+      } catch (error) {
+        visitCount = 1;
+      }
+    }
+
     function renderStorage() {
       let bytes = 0;
       try {
@@ -1255,7 +1312,21 @@
       $('storageValue').textContent = `${percent}%`;
       $('storageMeter').style.width = `${percent}%`;
       $('profileSub').textContent = state.updatedAt ? '本地数据 · 已保存' : '本地数据 · 示例';
+      $('visitCountValue').textContent = visitCount.toLocaleString('zh-CN');
+      const importedTimetables = state.timetables.filter((timetable) => (timetable.events || []).length > 0).length;
+      $('userCountValue').textContent = importedTimetables.toLocaleString('zh-CN');
       syncMobileNav();
+    }
+
+    function renderThemeButton() {
+      const theme = currentTheme();
+      const nextTheme = theme === 'light' ? 'warm' : theme === 'warm' ? 'dark' : 'light';
+      const labels = { light: '浅色', warm: '暖色', dark: '暗色' };
+      const icons = { light: 'sun', warm: 'sunset', dark: 'moon' };
+      const button = $('themeButton');
+      button.innerHTML = `<i data-lucide="${icons[theme]}"></i>`;
+      button.setAttribute('title', `当前${labels[theme]}主题，切换为${labels[nextTheme]}主题`);
+      button.setAttribute('aria-label', `切换为${labels[nextTheme]}主题`);
     }
 
     function renderAll() {
@@ -1300,6 +1371,7 @@
         ? `第 ${String(state.week).padStart(2, '0')} 周`
         : weekLabel(state.week);
       renderStorage();
+      renderThemeButton();
       renderSchedule();
       renderAgenda();
       renderWeekPreviews();
@@ -1486,7 +1558,7 @@
     function closeModalById(id) { document.getElementById(id).classList.remove('modal-open'); }
     function openSettings() {
       $('termStartInput').value = currentTermStart();
-      $('themeSelect').value = document.documentElement.classList.contains('warm-mode') ? 'warm' : 'light';
+      $('themeSelect').value = currentTheme();
       openModal('settingsBackdrop');
     }
     function openHelp() { openModal('helpBackdrop'); }
@@ -1593,7 +1665,7 @@
             const active = t.id === state.activeId;
             const count = (t.events || []).length;
             const name = t.student?.name || '';
-            return `<button class="switch-item ${active ? 'active' : ''}" data-timetable="${t.id}" type="button"><span class="switch-item-copy"><span class="switch-item-name">${escapeHtml(t.name)}</span><span class="switch-item-meta">${escapeHtml(t.semester)}${name ? ' · ' + escapeHtml(name) : ''} · ${count} 个课次</span></span>${active ? '<span class="switch-item-badge">当前</span>' : ''}</button>`;
+            return `<div class="switch-item ${active ? 'active' : ''}"><button class="switch-item-select" data-timetable="${escapeHtml(t.id)}" type="button"><span class="switch-item-copy"><span class="switch-item-name">${escapeHtml(t.name)}</span><span class="switch-item-meta">${escapeHtml(t.semester)}${name ? ' · ' + escapeHtml(name) : ''} · ${count} 个课次</span></span>${active ? '<span class="switch-item-badge">当前</span>' : ''}</button><button class="icon-btn switch-item-delete" data-delete-timetable="${escapeHtml(t.id)}" type="button" title="删除课表" aria-label="删除课表：${escapeHtml(t.name)}"><i data-lucide="trash-2"></i></button></div>`;
           }).join('')
         : '<div class="empty" style="display:grid;min-height:120px"><div>还没有课表，先导入一个</div></div>';
       document.querySelectorAll('[data-timetable]').forEach((button) => button.addEventListener('click', () => {
@@ -1605,15 +1677,50 @@
         renderAll();
         closeModalById('switchBackdrop');
       }));
+      document.querySelectorAll('[data-delete-timetable]').forEach((button) => button.addEventListener('click', () => deleteTimetable(button.dataset.deleteTimetable)));
+      if (window.lucide) window.lucide.createIcons();
     }
     function openSwitch() {
       renderSwitchList();
       openModal('switchBackdrop');
     }
-    function applyTheme(theme) {
-      document.documentElement.classList.toggle('warm-mode', theme === 'warm');
+    function deleteTimetable(id) {
+      const index = state.timetables.findIndex((timetable) => timetable.id === id);
+      if (index < 0) return;
+      const timetable = state.timetables[index];
+      if (window.confirm?.(`确定删除课表「${timetable.name}」吗？其中的课程和自定义日程都会被删除。`) === false) return;
+      state.timetables.splice(index, 1);
+      const remainingTitles = new Set(state.timetables.flatMap((item) => [
+        ...(item.events || []),
+        ...(item.customEvents || [])
+      ].map((event) => event.title)));
+      state.favorites = state.favorites.filter((title) => remainingTitles.has(title));
+      if (state.activeId === id) {
+        state.activeId = state.timetables[Math.min(index, state.timetables.length - 1)]?.id || null;
+        state.week = 1;
+        state.day = 1;
+        state.view = 'schedule';
+        state.query = '';
+      }
+      persist();
+      renderAll();
+      if (state.timetables.length) renderSwitchList();
+      else closeModalById('switchBackdrop');
+    }
+    function currentTheme() {
+      if (document.documentElement.classList.contains('dark-mode')) return 'dark';
+      if (document.documentElement.classList.contains('warm-mode')) return 'warm';
+      return 'light';
+    }
+    function setThemeClasses(theme) {
+      const normalized = ['light', 'warm', 'dark'].includes(theme) ? theme : 'light';
+      document.documentElement.classList.toggle('warm-mode', normalized === 'warm');
+      document.documentElement.classList.toggle('dark-mode', normalized === 'dark');
       const select = $('themeSelect');
-      if (select) select.value = theme;
+      if (select) select.value = normalized;
+    }
+    function applyTheme(theme) {
+      setThemeClasses(theme);
       persist();
     }
 
@@ -1624,7 +1731,7 @@
         timetables: state.timetables,
         activeId: state.activeId,
         favorites: state.favorites,
-        theme: document.documentElement.classList.contains('warm-mode') ? 'warm' : 'light',
+        theme: currentTheme(),
         week: state.week,
         day: state.day,
         view: state.view,
@@ -1643,6 +1750,7 @@
       state.query = '';
       state.updatedAt = 0;
       document.documentElement.classList.remove('warm-mode');
+      document.documentElement.classList.remove('dark-mode');
       renderAll();
       closeModalById('settingsBackdrop');
     }
@@ -1653,7 +1761,7 @@
         timetables: state.timetables,
         activeId: state.activeId,
         favorites: state.favorites,
-        theme: document.documentElement.classList.contains('warm-mode') ? 'warm' : 'light',
+        theme: currentTheme(),
         week: state.week,
         day: state.day,
         view: state.view,
@@ -1677,8 +1785,7 @@
         state.week = Number.isFinite(data.week) ? data.week : 1;
         state.day = Number.isFinite(data.day) ? data.day : 1;
         state.view = ['schedule', 'list', 'favorites'].includes(data.view) ? data.view : 'schedule';
-        if (data.theme === 'warm') document.documentElement.classList.add('warm-mode');
-        else document.documentElement.classList.remove('warm-mode');
+        setThemeClasses(data.theme);
         persist();
         renderAll();
         return true;
@@ -1697,7 +1804,7 @@
         state.day = Number.isFinite(saved.day) ? saved.day : 1;
         state.view = ['schedule', 'list', 'favorites'].includes(saved.view) ? saved.view : 'schedule';
         state.updatedAt = saved.updatedAt || 0;
-        if (saved.theme === 'warm') document.documentElement.classList.add('warm-mode');
+        setThemeClasses(saved.theme);
         return true;
       }
       // 兼容旧版单课表格式
@@ -1717,7 +1824,7 @@
         state.day = Number.isFinite(saved.day) ? saved.day : 1;
         state.view = ['schedule', 'list', 'favorites'].includes(saved.view) ? saved.view : 'schedule';
         state.updatedAt = saved.updatedAt || 0;
-        if (saved.theme === 'warm') document.documentElement.classList.add('warm-mode');
+        setThemeClasses(saved.theme);
         return true;
       }
       state.timetables = [];
@@ -1846,7 +1953,8 @@
       else alert('备份文件格式不正确，无法导入。');
     });
     $('themeButton').addEventListener('click', () => {
-      applyTheme(document.documentElement.classList.contains('warm-mode') ? 'light' : 'warm');
+      const theme = currentTheme();
+      applyTheme(theme === 'light' ? 'warm' : theme === 'warm' ? 'dark' : 'light');
       renderAll();
     });
     $('fileInput').addEventListener('change', (event) => {
@@ -1894,6 +2002,7 @@
     });
 
     if (window.setInterval) window.setInterval(updateNowIndicator, 15000);
+    recordVisit();
     loadState();
     if (window.lucide) window.lucide.createIcons();
     renderAll();

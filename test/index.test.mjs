@@ -221,9 +221,32 @@ test("index.html 主题切换与收藏视图", () => {
   const s = runScenario(SAVED());
   s.trigger("themeButton");
   assert.equal(s.documentElement.classList.contains("warm-mode"), true);
+  s.trigger("themeButton");
+  assert.equal(s.documentElement.classList.contains("dark-mode"), true);
+  assert.equal(s.documentElement.classList.contains("warm-mode"), false);
+  s.trigger("themeButton");
+  assert.equal(s.documentElement.classList.contains("dark-mode"), false);
+  assert.equal(s.documentElement.classList.contains("warm-mode"), false);
   s.trigger("navFavorites");
   assert.equal(s.$("agenda").style.display, "grid");
   assert.equal(s.$("pageTitle").textContent, "收藏课程");
+});
+
+test("暗色主题与底部本地统计正确恢复", () => {
+  const s = runScenario(SAVED({
+    theme: "dark",
+    timetables: [
+      TT("t1", "2026-2027-1", "2026-2027-1", "甲同学", TEST_EVENTS),
+      TT("t2", "2025-2026-1", "2025-2026-1", "乙同学", [TEST_EVENTS[0]])
+    ]
+  }));
+
+  assert.equal(s.documentElement.classList.contains("dark-mode"), true);
+  assert.equal(s.documentElement.classList.contains("warm-mode"), false);
+  assert.equal(s.$("visitCountValue").textContent, "1");
+  assert.equal(s.$("userCountValue").textContent, "2");
+  assert.equal(s.storage["wmu-visit-count-v1"], "1");
+  assert.match(html, /html\.dark-mode \{[\s\S]*?--canvas: #101311;/);
 });
 
 test("index.html 课程名超九字截断、Y 轴为严格时间标尺", () => {
@@ -310,6 +333,9 @@ test("index.html 切换课表列表渲染", () => {
   assert.ok(s.$("switchList").innerHTML.includes("2026-2027-1"), "列表含第一个课表");
   assert.ok(s.$("switchList").innerHTML.includes("2025-2026-1"), "列表含第二个课表");
   assert.ok(s.$("switchList").innerHTML.includes("当前"), "当前课表有标记");
+  assert.match(s.$("switchList").innerHTML, /data-delete-timetable="t1"[^>]*title="删除课表"/);
+  assert.match(s.$("switchList").innerHTML, /data-delete-timetable="t2"/);
+  assert.match(s.$("switchList").innerHTML, /data-lucide="trash-2"/);
 });
 
 test("周表头同时渲染星期与日期", () => {
