@@ -18,6 +18,7 @@
   <link rel="apple-touch-icon" href="assets/wmu-preview.png">
   <title>温医大课表</title>
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
   <style>
     :root {
       --ink: #17231f;
@@ -145,7 +146,7 @@
 
     .schedule-shell { margin-top: 10px; overflow: hidden; overflow: clip; border: 1px solid var(--line); border-radius: 11px; background: #fff; box-shadow: var(--shadow); }
     .schedule-scroll { overflow: visible; }
-    .schedule { display: grid; grid-template-columns: 68px repeat(7, minmax(0, 1fr)); min-width: 0; }
+    .schedule { display: grid; grid-template-columns: 68px repeat(var(--day-count, 7), minmax(0, 1fr)); min-width: 0; }
     .schedule-head { position: sticky; top: var(--topbar-height); z-index: 8; display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; min-height: 42px; border-bottom: 1px solid var(--line); background: #fafcf9; box-shadow: 0 1px 0 var(--line); }
     .head-cell { display: flex; align-items: center; justify-content: center; border-right: 1px solid var(--line); color: var(--muted); font-size: 11px; font-weight: 700; }
     .head-day { display: grid; place-items: center; gap: 2px; line-height: 1.05; }
@@ -158,6 +159,7 @@
     .time-axis { position: relative; border-right: 1px solid var(--line); background: #fbfcfa; }
     .time { position: relative; padding: 4px 8px 0 0; color: #9aa59e; font-size: 10px; text-align: right; border-bottom: 1px solid var(--line); }
     .day-column { position: relative; isolation: isolate; border-right: 1px solid var(--line); background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--slot-h) - 1px), var(--line) calc(var(--slot-h) - 1px), var(--line) var(--slot-h)); }
+    .day-column.today-column { background-color: #f8e9ed; }
     .course { position: absolute; left: 7px; right: 7px; z-index: 2; padding: 6px 8px; overflow: hidden; border: 1px solid transparent; border-left: 3px solid var(--course-accent); border-radius: 8px; background: var(--course-bg); color: var(--course-text); cursor: pointer; text-align: left; display: flex; flex-direction: column; transition: transform 170ms var(--ease-out), box-shadow 170ms ease, filter 170ms ease; }
     .course-content { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; justify-content: space-evenly; overflow: auto; overscroll-behavior: contain; scrollbar-width: none; }
     .course-content::-webkit-scrollbar { display: none; }
@@ -249,6 +251,24 @@
     .drawer-delete-custom.visible { display: inline-flex; align-items: center; }
     .drawer-delete-custom svg { width: 14px; height: 14px; }
     .settings-body { margin-top: 18px; display: grid; gap: 14px; }
+    .settings-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(168px, .82fr); gap: 16px; align-items: start; }
+    .settings-controls { display: grid; gap: 14px; min-width: 0; }
+    .range-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+    .range-row input[type="range"] { width: 100%; height: 20px; padding: 0; accent-color: var(--brand, #a71f3c); }
+    .range-value { min-width: 52px; color: var(--brand-deep, #512c33); font-size: 12px; font-weight: 750; text-align: right; }
+    .settings-toggle { display: flex; align-items: flex-start; gap: 9px; color: var(--ink); font-size: 12px; line-height: 1.45; cursor: pointer; }
+    .settings-toggle input { width: 16px; height: 16px; margin: 1px 0 0; accent-color: var(--brand, #a71f3c); }
+    .settings-toggle-copy { display: grid; gap: 2px; }
+    .settings-toggle-copy small { color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .slot-preview { display: grid; gap: 7px; padding: 11px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); }
+    .slot-preview-title { color: var(--brand-deep, #512c33); font-size: 11px; font-weight: 750; }
+    .slot-preview-board { display: grid; grid-template-columns: 34px repeat(2, minmax(0, 1fr)); overflow: hidden; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); }
+    .slot-preview-axis, .slot-preview-column { display: grid; grid-auto-rows: var(--preview-slot-h, 24px); }
+    .slot-preview-axis { background: #fbfaf9; }
+    .slot-preview-axis span { padding: 3px 4px 0 0; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 8px; text-align: right; }
+    .slot-preview-column { position: relative; border-left: 1px solid var(--line); background: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--preview-slot-h, 24px) - 1px), var(--line) calc(var(--preview-slot-h, 24px) - 1px), var(--line) var(--preview-slot-h, 24px)); }
+    .slot-preview-card { grid-row: 2 / span 2; margin: 2px; padding: 3px; overflow: hidden; border-left: 2px solid var(--brand, #a71f3c); border-radius: 2px; background: #f7e7eb; color: #68192b; font-size: 8px; font-weight: 700; line-height: 1.2; }
+    .slot-preview-note { color: var(--muted); font-size: 10px; line-height: 1.4; }
     .field { display: grid; gap: 6px; font-size: 12px; color: var(--muted); }
     .field input, .field select, .field textarea { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: var(--ink); font-size: 13px; }
     .field textarea { height: auto; min-height: 74px; padding-block: 9px; resize: vertical; line-height: 1.5; }
@@ -315,7 +335,7 @@
       .toolbar .subtle { display: none; }
       .custom-add-btn { width: 34px; justify-content: center; padding: 0; }
       .custom-add-btn span { display: none; }
-      .schedule { grid-template-columns: 48px repeat(7, minmax(0, 1fr)); min-width: 0; }
+      .schedule { grid-template-columns: 48px repeat(var(--day-count, 7), minmax(0, 1fr)); min-width: 0; }
       .schedule-scroll { overflow: visible; }
       .schedule-shell { display: block; }
       .agenda { display: none; gap: 9px; margin-top: 10px; }
@@ -339,7 +359,7 @@
     }
     @media (max-width: 520px) {
       :root { --slot-h: 104px; }
-      .schedule { grid-template-columns: 38px repeat(7, minmax(0, 1fr)); min-width: 0; }
+      .schedule { grid-template-columns: 38px repeat(var(--day-count, 7), minmax(0, 1fr)); min-width: 0; }
       .schedule-scroll { overflow: visible; }
       .head-cell { font-size: 9px; }
       .head-cell:first-child { font-size: 8px; }
@@ -535,6 +555,7 @@
     .content { max-width: 1580px; padding: 31px 34px 42px; }
     .site-footer { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 0 34px 26px; color: var(--muted); font-size: 11px; }
     .site-footer-item { display: inline-flex; align-items: center; gap: 5px; }
+    .site-footer-item[id^="busuanzi_container_"] { display: inline-flex !important; }
     .site-footer-item + .site-footer-item { padding-left: 18px; border-left: 1px solid var(--line); }
     .site-footer-item strong { color: var(--ink); font-weight: 750; }
     .page-head { align-items: center; }
@@ -569,10 +590,11 @@
     .schedule-head { background: #f7f6f5; }
     .head-cell { color: #786c70; }
     .head-cell.focus { background: var(--brand-soft); color: var(--brand-deep); }
-    .head-cell.today-column { background: #f8e9ed; color: var(--brand-deep); }
+    /* Keep today's column distinct from lecture cards: the column is a deeper, quieter wash. */
+    .head-cell.today-column { background: #efd9df; color: var(--brand-deep); }
     .time-axis { background: #fbfaf9; }
     .day-column { background-color: #fff; }
-    .day-column.today-column { background-color: #f8e9ed; }
+    .day-column.today-column { background-color: #efd9df; }
     .course { border-radius: 5px; transition: transform 160ms var(--ease-out), box-shadow 160ms ease; }
     .course:hover { box-shadow: 0 8px 18px rgba(72,36,45,.13); filter: none; }
     .course.ongoing { --course-bg: #DEBA85; --course-accent: #A71F3C; --course-text: #512C33; box-shadow: inset 0 0 0 1px rgba(167,31,60,.22), 0 6px 15px rgba(97,48,58,.12); }
@@ -712,7 +734,7 @@
     html.dark-mode .schedule-head { background: #202522; }
     html.dark-mode .time-axis { background: #1d211f; }
     html.dark-mode .day-column { background-color: #181c1a; }
-    html.dark-mode .head-cell.today-column, html.dark-mode .day-column.today-column { background-color: #352127; }
+    html.dark-mode .head-cell.today-column, html.dark-mode .day-column.today-column { background-color: #452b32; }
     html.dark-mode .head-cell.focus { background: #253a30; }
     html.dark-mode .dropzone { background: #1b211e; border-color: #4d5b52; }
     html.dark-mode .drawer-note { color: #cbbd9e; }
@@ -723,6 +745,8 @@
     html.dark-mode .search input::placeholder, html.dark-mode .field input::placeholder, html.dark-mode .field textarea::placeholder { color: #718078; }
     @media (max-width: 760px) {
       .site-footer { padding: 0 14px 18px; }
+      .settings-layout { grid-template-columns: 1fr; }
+      .slot-preview { order: -1; }
     }
     @media (prefers-reduced-motion: reduce) {
       .sidebar, .mobile-nav-backdrop, .mobile-nav-panel { transition-duration: 1ms !important; }
@@ -799,7 +823,7 @@
           <div class="week-swipe-page week-swipe-preview" id="nextWeekPreview" aria-hidden="true"></div>
         </div></div>
       </div>
-      <footer class="site-footer" aria-label="站点统计"><span class="site-footer-item">访问次数 <strong id="visitCountValue">0</strong></span><span class="site-footer-item" title="本机已导入的课表份数">用户数量 <strong id="userCountValue">0</strong></span></footer>
+      <footer class="site-footer" aria-label="站点统计"><span class="site-footer-item" id="busuanzi_container_site_pv" title="不蒜子全站访问次数；服务不可用时显示初始值 200">访问次数 <strong id="busuanzi_value_site_pv">200</strong></span><span class="site-footer-item" id="busuanzi_container_site_uv" title="不蒜子全站访客数；服务不可用时显示初始值 200">用户数量 <strong id="busuanzi_value_site_uv">200</strong></span></footer>
     </main>
   </div>
 
@@ -816,7 +840,7 @@
 
   <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>选择从教务系统导出的课表 PDF。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="query-link-row"><a class="secondary-btn query-link" href="https://jwxt.wmu.edu.cn/jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&amp;layout=default" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i><span>前往教务系统查询课表</span></a></div><label class="dropzone" id="dropZone" for="fileInput"><i data-lucide="upload-cloud"></i><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="import-status" id="importStatus" role="status" aria-live="polite"></div><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button" aria-label="开始识别" title="开始识别"><i data-lucide="scan-line"></i><span>开始识别</span></button></div></section></div>
 
-  <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题与本地数据管理。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option><option value="dark">暗色</option></select></label><p class="settings-note">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。</p><div class="data-actions"><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
+  <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题与本地数据管理。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><div class="settings-layout"><div class="settings-controls"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option><option value="dark">暗色</option></select></label><label class="field" for="slotHeightInput"><span>单元格高度</span><div class="range-row"><input id="slotHeightInput" type="range" min="48" max="144" step="4" value="72"><output class="range-value" id="slotHeightValue" for="slotHeightInput">72 px</output></div></label><label class="settings-toggle"><input id="hideEmptyWeekendsInput" type="checkbox"><span class="settings-toggle-copy"><span>自动隐藏无课周末列</span><small>仅隐藏周六、周日中没有课程的列，工作日始终保留。</small></span></label></div><div class="slot-preview" aria-live="polite"><div class="slot-preview-title">实时预览</div><div class="slot-preview-board" id="slotHeightPreview" style="--preview-slot-h:24px"><div class="slot-preview-axis"><span>08:00</span><span>08:45</span><span>09:30</span><span>10:15</span></div><div class="slot-preview-column"><span class="slot-preview-card">课程卡片</span></div><div class="slot-preview-column"><span class="slot-preview-card">今日</span></div></div><div class="slot-preview-note">拖动滑块查看每个 45 分钟单元格的高度变化。</div></div></div><p class="settings-note">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。高度会同时调整时间轴、课程卡片和网格间距。</p><div class="data-actions"><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
 
   <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>可在「导入 PDF」弹窗中前往教务系统查询课表；正常导出 PDF 后，回到本页选择该文件。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>「回到今天」定位到当前周次与星期。</li><li>工具栏「新建日程」可快速添加课表外安排，默认定位到当前周和当天。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
 
@@ -881,9 +905,16 @@
       violet: { background: '#eeeaf3', accent: '#78638b', text: '#594569' }
     };
     const STORAGE_KEY = 'wmu-timetable-v1';
-    const VISIT_STORAGE_KEY = 'wmu-visit-count-v1';
-    const state = { timetables: [], activeId: null, week: 1, day: 1, query: '', view: 'schedule', favorites: [], updatedAt: 0 };
-    let visitCount = 0;
+    const GLOBAL_STAT_FALLBACK = 200;
+    const DEFAULT_SLOT_HEIGHT = 72;
+    const MIN_SLOT_HEIGHT = 48;
+    const MAX_SLOT_HEIGHT = 144;
+    const clampSlotHeight = (value) => {
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric)) return DEFAULT_SLOT_HEIGHT;
+      return Math.min(MAX_SLOT_HEIGHT, Math.max(MIN_SLOT_HEIGHT, Math.round(numeric / 4) * 4));
+    };
+    const state = { timetables: [], activeId: null, week: 1, day: 1, query: '', view: 'schedule', favorites: [], updatedAt: 0, slotHeight: null, hideEmptyWeekends: false };
     let selectedPdfFile = null;
     let activeEvent = null;
     let selectedCustomColor = 'brand';
@@ -894,6 +925,41 @@
     let drawerPosition = 0;
     let drawerSwipeState = null;
     const $ = (id) => document.getElementById(id);
+    function setRootCssVariable(name, value) {
+      const style = document.documentElement?.style;
+      if (!style) return;
+      if (typeof style.setProperty === 'function') style.setProperty(name, value);
+      else style[name] = value;
+    }
+    function renderSlotHeightPreview(value = state.slotHeight) {
+      const height = clampSlotHeight(value);
+      const output = $('slotHeightValue');
+      if (output) output.textContent = `${height} px`;
+      const preview = $('slotHeightPreview');
+      if (preview) {
+        // The miniature board uses 24px for the default 72px slot and scales with it.
+        preview.style.setProperty?.('--preview-slot-h', `${Math.round(height / 3)}px`);
+        if (!preview.style.setProperty) preview.style['--preview-slot-h'] = `${Math.round(height / 3)}px`;
+      }
+    }
+    function setSchedulePreferences(slotHeight = state.slotHeight, hideEmptyWeekends = state.hideEmptyWeekends) {
+      state.slotHeight = slotHeight == null ? null : clampSlotHeight(slotHeight);
+      state.hideEmptyWeekends = Boolean(hideEmptyWeekends);
+      if (state.slotHeight == null) {
+        const style = document.documentElement?.style;
+        if (typeof style?.removeProperty === 'function') style.removeProperty('--slot-h');
+        else if (style) delete style['--slot-h'];
+        renderSlotHeightPreview(DEFAULT_SLOT_HEIGHT);
+      } else {
+        setRootCssVariable('--slot-h', `${state.slotHeight}px`);
+        renderSlotHeightPreview(state.slotHeight);
+      }
+    }
+    function setElementCssVariable(element, name, value) {
+      if (!element) return;
+      if (typeof element.style?.setProperty === 'function') element.style.setProperty(name, value);
+      else if (element.style) element.style[name] = value;
+    }
     const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
     const currentTimetable = () => state.timetables.find((t) => t.id === state.activeId) || null;
     const currentEvents = () => {
@@ -1150,8 +1216,12 @@
     }
 
     function buildScheduleMarkup(week, interactive = true) {
-      const days = dayInfo(week);
+      const allDays = dayInfo(week);
       const events = visibleEventsForWeek(week);
+      const weekEvents = currentEvents().filter((event) => eventInWeek(event, week));
+      const days = state.hideEmptyWeekends
+        ? allDays.filter((day) => day.key <= 5 || weekEvents.some((event) => event.day === day.key))
+        : allDays;
       const slotHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slot-h')) || 72;
       const pxPerMinute = slotHeight / 45;
       const now = new Date();
@@ -1195,13 +1265,14 @@
         const showType = event.kind === 'custom' ? !ultraShort && duration >= 60 : !ultraShort && !fortyMinute;
         return `<${tag} class="course type-${event.type} layer-${courseLayer(event)}${event.kind === 'custom' ? ' custom-event' : ''}${density}${ultraShort ? ' course-ultra-short' : ''}${fortyMinute ? ' course-40min' : ''}${ongoing ? ' ongoing' : ''}"${attributes} style="top:${top}px;height:${height}px;${customColorStyle(event)}" title="${escapeHtml(event.title)}"><span class="course-content">${details}${showType ? `<span class="course-type">${escapeHtml(event.label)}</span>` : ''}</span></${tag}>`;
       }).join('')}</div>`).join('');
-      return { html: `${head}<div class="schedule-body">${axis}${columns}${nowLine}</div>`, events, axis: { start: axisStart, end: axisEnd, pxPerMinute } };
+      return { html: `${head}<div class="schedule-body">${axis}${columns}${nowLine}</div>`, events, dayCount: days.length, axis: { start: axisStart, end: axisEnd, pxPerMinute } };
     }
 
     function renderSchedule() {
       const result = buildScheduleMarkup(state.week);
       const events = result.events;
       scheduleAxis = result.axis;
+      setElementCssVariable($('schedule'), '--day-count', result.dayCount);
       $('schedule').innerHTML = result.html;
       if (!currentEvents().length) {
         $('emptyState').innerHTML = '<div class="empty-guide"><i data-lucide="file-up"></i><h3>还没有课表</h3><p>先在教务系统导出课表 PDF，再在这里导入</p><button class="import-btn" id="emptyImportBtn" type="button"><i data-lucide="scan-line"></i><span>导入课表</span></button></div>';
@@ -1241,7 +1312,7 @@
       const showSchedule = state.view === 'schedule';
       const emptyVisible = !currentEvents().length || !schedule.events.length;
       root.setAttribute('data-preview-week', String(week));
-      root.innerHTML = `<section class="schedule-shell" style="display:${showSchedule ? 'block' : 'none'}"><div class="schedule-scroll"><div class="schedule">${schedule.html}</div></div><div class="empty" style="display:${emptyVisible ? 'grid' : 'none'}"><div>${currentEvents().length ? '没有匹配的课程' : '还没有课表'}</div></div></section><section class="agenda" style="display:${showSchedule ? 'none' : 'grid'}" aria-hidden="true">${agendaMarkup(week, false)}</section>`;
+      root.innerHTML = `<section class="schedule-shell" style="display:${showSchedule ? 'block' : 'none'}"><div class="schedule-scroll"><div class="schedule" style="--day-count:${schedule.dayCount}">${schedule.html}</div></div><div class="empty" style="display:${emptyVisible ? 'grid' : 'none'}"><div>${currentEvents().length ? '没有匹配的课程' : '还没有课表'}</div></div></section><section class="agenda" style="display:${showSchedule ? 'none' : 'grid'}" aria-hidden="true">${agendaMarkup(week, false)}</section>`;
     }
 
     function renderWeekPreviews() {
@@ -1291,14 +1362,11 @@
       $('mobileStorageMeter').style.width = $('storageMeter').style.width;
     }
 
-    function recordVisit() {
-      try {
-        const stored = Number.parseInt(localStorage.getItem(VISIT_STORAGE_KEY) || '0', 10);
-        visitCount = Number.isFinite(stored) && stored >= 0 ? stored + 1 : 1;
-        localStorage.setItem(VISIT_STORAGE_KEY, String(visitCount));
-      } catch (error) {
-        visitCount = 1;
-      }
+    function renderGlobalStats() {
+      const pv = $('busuanzi_value_site_pv');
+      const uv = $('busuanzi_value_site_uv');
+      if (pv && !String(pv.textContent || '').trim()) pv.textContent = String(GLOBAL_STAT_FALLBACK);
+      if (uv && !String(uv.textContent || '').trim()) uv.textContent = String(GLOBAL_STAT_FALLBACK);
     }
 
     function renderStorage() {
@@ -1312,9 +1380,7 @@
       $('storageValue').textContent = `${percent}%`;
       $('storageMeter').style.width = `${percent}%`;
       $('profileSub').textContent = state.updatedAt ? '本地数据 · 已保存' : '本地数据 · 示例';
-      $('visitCountValue').textContent = visitCount.toLocaleString('zh-CN');
-      const importedTimetables = state.timetables.filter((timetable) => (timetable.events || []).length > 0).length;
-      $('userCountValue').textContent = importedTimetables.toLocaleString('zh-CN');
+      renderGlobalStats();
       syncMobileNav();
     }
 
@@ -1559,6 +1625,9 @@
     function openSettings() {
       $('termStartInput').value = currentTermStart();
       $('themeSelect').value = currentTheme();
+      $('slotHeightInput').value = String(state.slotHeight ?? DEFAULT_SLOT_HEIGHT);
+      $('hideEmptyWeekendsInput').checked = state.hideEmptyWeekends;
+      renderSlotHeightPreview(Number($('slotHeightInput').value));
       openModal('settingsBackdrop');
     }
     function openHelp() { openModal('helpBackdrop'); }
@@ -1735,6 +1804,8 @@
         week: state.week,
         day: state.day,
         view: state.view,
+        slotHeight: state.slotHeight,
+        hideEmptyWeekends: state.hideEmptyWeekends,
         updatedAt: state.updatedAt
       };
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); } catch (error) { console.warn('保存失败', error); }
@@ -1749,6 +1820,7 @@
       state.view = 'schedule';
       state.query = '';
       state.updatedAt = 0;
+      setSchedulePreferences(null, false);
       document.documentElement.classList.remove('warm-mode');
       document.documentElement.classList.remove('dark-mode');
       renderAll();
@@ -1765,6 +1837,8 @@
         week: state.week,
         day: state.day,
         view: state.view,
+        slotHeight: state.slotHeight,
+        hideEmptyWeekends: state.hideEmptyWeekends,
         updatedAt: Date.now()
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -1785,6 +1859,7 @@
         state.week = Number.isFinite(data.week) ? data.week : 1;
         state.day = Number.isFinite(data.day) ? data.day : 1;
         state.view = ['schedule', 'list', 'favorites'].includes(data.view) ? data.view : 'schedule';
+        setSchedulePreferences(Number.isFinite(data.slotHeight) ? data.slotHeight : null, data.hideEmptyWeekends === true);
         setThemeClasses(data.theme);
         persist();
         renderAll();
@@ -1803,6 +1878,7 @@
         state.week = Number.isFinite(saved.week) ? saved.week : 1;
         state.day = Number.isFinite(saved.day) ? saved.day : 1;
         state.view = ['schedule', 'list', 'favorites'].includes(saved.view) ? saved.view : 'schedule';
+        setSchedulePreferences(Number.isFinite(saved.slotHeight) ? saved.slotHeight : null, saved.hideEmptyWeekends === true);
         state.updatedAt = saved.updatedAt || 0;
         setThemeClasses(saved.theme);
         return true;
@@ -1823,6 +1899,7 @@
         state.week = Number.isFinite(saved.week) ? saved.week : 1;
         state.day = Number.isFinite(saved.day) ? saved.day : 1;
         state.view = ['schedule', 'list', 'favorites'].includes(saved.view) ? saved.view : 'schedule';
+        setSchedulePreferences(null, false);
         state.updatedAt = saved.updatedAt || 0;
         setThemeClasses(saved.theme);
         return true;
@@ -1831,6 +1908,7 @@
       state.activeId = null;
       state.week = 1;
       state.day = 1;
+      setSchedulePreferences(null, false);
       return false;
     }
 
@@ -1930,6 +2008,7 @@
     $('modalCancel').addEventListener('click', closeImportModal);
     $('settingsClose').addEventListener('click', () => closeModalById('settingsBackdrop'));
     $('settingsBackdrop').addEventListener('click', (event) => { if (event.target === event.currentTarget) closeModalById('settingsBackdrop'); });
+    $('slotHeightInput').addEventListener('input', (event) => renderSlotHeightPreview(event.target.value));
     $('helpClose').addEventListener('click', () => closeModalById('helpBackdrop'));
     $('helpBackdrop').addEventListener('click', (event) => { if (event.target === event.currentTarget) closeModalById('helpBackdrop'); });
     $('helpDone').addEventListener('click', () => closeModalById('helpBackdrop'));
@@ -1937,6 +2016,7 @@
       const value = $('termStartInput').value;
       const tt = currentTimetable();
       if (value && tt) tt.termStartDate = value;
+      setSchedulePreferences(Number($('slotHeightInput').value), $('hideEmptyWeekendsInput').checked);
       applyTheme($('themeSelect').value);
       persist();
       renderAll();
@@ -2002,7 +2082,6 @@
     });
 
     if (window.setInterval) window.setInterval(updateNowIndicator, 15000);
-    recordVisit();
     loadState();
     if (window.lucide) window.lucide.createIcons();
     renderAll();

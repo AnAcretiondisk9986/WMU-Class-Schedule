@@ -144,6 +144,8 @@ test("index.html 空数据显示引导导入", () => {
   assert.equal(s.error, null, s.error?.stack);
   assert.ok(s.$("emptyState").innerHTML.includes("还没有课表"), "空数据显示引导文案");
   assert.ok(s.$("emptyState").innerHTML.includes("emptyImportBtn"), "引导界面含导入按钮");
+  assert.equal(s.$("busuanzi_value_site_pv").textContent, "200");
+  assert.equal(s.$("busuanzi_value_site_uv").textContent, "200");
 });
 
 test("网页仅通过本地 PDF 导入课表", () => {
@@ -232,7 +234,37 @@ test("index.html 主题切换与收藏视图", () => {
   assert.equal(s.$("pageTitle").textContent, "收藏课程");
 });
 
-test("暗色主题与底部本地统计正确恢复", () => {
+test("偏好设置保存单元格高度并隐藏无课周末", () => {
+  const s = runScenario(SAVED());
+  s.trigger("navSettings");
+  s.$("slotHeightInput").value = "104";
+  s.triggerEvent("slotHeightInput", "input", { value: "104" });
+  assert.equal(s.$("slotHeightValue").textContent, "104 px");
+  s.$("hideEmptyWeekendsInput").checked = true;
+  s.trigger("settingsDone");
+
+  const saved = JSON.parse(s.storage["wmu-timetable-v1"]);
+  assert.equal(saved.slotHeight, 104);
+  assert.equal(saved.hideEmptyWeekends, true);
+  assert.equal(String(s.$("schedule").style["--day-count"]), "5");
+  assert.doesNotMatch(s.$("schedule").innerHTML, /data-column="6"|data-column="7"/);
+
+  s.trigger("nextWeek");
+  s.trigger("nextWeek");
+  assert.equal(String(s.$("schedule").style["--day-count"]), "6", "有周日课程时保留周日列");
+  assert.match(s.$("schedule").innerHTML, /data-column="7"/);
+});
+
+test("偏好设置随本地课表状态恢复", () => {
+  const s = runScenario(SAVED({ slotHeight: 120, hideEmptyWeekends: true }));
+  assert.equal(s.documentElement.style["--slot-h"], "120px");
+  assert.equal(String(s.$("schedule").style["--day-count"]), "5");
+  s.trigger("navSettings");
+  assert.equal(s.$("slotHeightInput").value, "120");
+  assert.equal(s.$("hideEmptyWeekendsInput").checked, true);
+});
+
+test("暗色主题与不蒜子统计兜底正确恢复", () => {
   const s = runScenario(SAVED({
     theme: "dark",
     timetables: [
@@ -243,9 +275,10 @@ test("暗色主题与底部本地统计正确恢复", () => {
 
   assert.equal(s.documentElement.classList.contains("dark-mode"), true);
   assert.equal(s.documentElement.classList.contains("warm-mode"), false);
-  assert.equal(s.$("visitCountValue").textContent, "1");
-  assert.equal(s.$("userCountValue").textContent, "2");
-  assert.equal(s.storage["wmu-visit-count-v1"], "1");
+  assert.equal(s.$("busuanzi_value_site_pv").textContent, "200");
+  assert.equal(s.$("busuanzi_value_site_uv").textContent, "200");
+  assert.doesNotMatch(html, /wmu-visit-count-v1|visitCountValue|userCountValue/);
+  assert.ok(html.includes("https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"));
   assert.match(html, /html\.dark-mode \{[\s\S]*?--canvas: #101311;/);
 });
 
