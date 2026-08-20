@@ -1,4 +1,5 @@
 const store = require("../../utils/store.js");
+const time = require("../../utils/time.js");
 
 Page({
   data: {
@@ -8,7 +9,8 @@ Page({
     themes: ["light", "warm"],
     themeLabels: ["浅色", "暖色"],
     hasTimetable: false,
-    timetableName: ""
+    timetableName: "",
+    termStartConfirmed: true
   },
 
   onShow() {
@@ -22,16 +24,22 @@ Page({
       termStartDate: store.currentTermStart(),
       themeIndex: store.state.theme === "warm" ? 1 : 0,
       hasTimetable: !!tt,
-      timetableName: tt ? tt.name : ""
+      timetableName: tt ? tt.name : "",
+      termStartConfirmed: !tt || tt.termStartConfirmed !== false
     });
   },
 
   onTermStartChange(e) {
     const value = e.detail.value;
     const tt = store.currentTimetable();
-    if (tt && value) tt.termStartDate = value;
+    if (tt && value) {
+      tt.termStartDate = time.toIso(time.mondayOf(new Date(`${value}T00:00:00`)));
+      tt.termStartConfirmed = true;
+      store.state.week = 1;
+      store.state.day = 1;
+    }
     store.persist();
-    this.setData({ termStartDate: value });
+    this.setData({ termStartDate: tt ? tt.termStartDate : value });
     wx.showToast({ title: "已保存", icon: "success" });
   },
 

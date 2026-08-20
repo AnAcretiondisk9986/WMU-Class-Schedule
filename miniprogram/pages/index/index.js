@@ -6,12 +6,12 @@ const SLOT = 44;              // 45 分钟对应的像素高度，卡片按真�
 const PX_PER_MINUTE = SLOT / 45;
 const AXIS_START = 8 * 60;    // 08:00
 
-function visibleEvents(events, view, week, query) {
+function visibleEvents(events, view, week, query, timetableId) {
   let list = events;
-  if (view === "favorites") list = list.filter(e => store.isFavorite(e.title));
+  if (view === "favorites") list = list.filter(e => store.isFavorite(e, timetableId));
   if (query) {
     const q = query.toLowerCase();
-    list = list.filter(e => `${e.title} ${e.teacher} ${e.room} ${e.campus}`.toLowerCase().includes(q));
+    list = list.filter(e => `${e.title} ${e.courseCode || ""} ${e.className || ""} ${e.note || ""} ${e.assessment || ""} ${e.teacher} ${e.room} ${e.campus}`.toLowerCase().includes(q));
   }
   if (view !== "favorites") list = list.filter(e => time.eventInWeek(e, week));
   return list;
@@ -22,6 +22,7 @@ Page({
     theme: "light",
     semester: "",
     studentName: "",
+    termStartConfirmed: true,
     week: 1,
     maxWeek: 1,
     view: "schedule", // schedule | list
@@ -58,10 +59,15 @@ Page({
     const tt = store.currentTimetable();
     const events = store.currentEvents();
     const view = store.state.view === "list" ? "list" : "schedule";
-    const week = Math.min(store.state.week, time.maxWeek(events));
+    const maxWeek = time.maxWeek(events);
+    const week = Math.min(maxWeek, Math.max(1, store.state.week));
+    if (week !== store.state.week) {
+      store.state.week = week;
+      store.persist();
+    }
     const query = store.state.query;
 
-    const visible = visibleEvents(events, view, week, query);
+    const visible = visibleEvents(events, view, week, query, store.state.activeId);
     const today = time.weekAndDayForDate(new Date(), store.currentTermStart());
     const days = time.dayInfo(week, store.currentTermStart()).map(d => ({
       ...d,
@@ -109,7 +115,7 @@ Page({
         dayName: dayNameOf(e.day),
         timeText: time.timeLabel(e),
         weeksText: time.weeksLabel(e.weeks),
-        fav: store.isFavorite(e.title)
+        fav: store.isFavorite(e, store.state.activeId)
       }));
 
     // 统计
@@ -119,8 +125,9 @@ Page({
       theme: store.state.theme,
       semester: tt ? tt.semester : "",
       studentName: tt && tt.student ? tt.student.name : "",
+      termStartConfirmed: !tt || tt.termStartConfirmed !== false,
       week,
-      maxWeek: time.maxWeek(events),
+      maxWeek,
       view,
       query,
       hasTimetable: !!tt,
@@ -134,11 +141,29 @@ Page({
   },
 
   computeStats(events) {
-    const titles = [...new Set(events.map(e => e.title))];
-    const credit = events.reduce((sum, e) => {
-      const n = Number(e.credit);
-      return sum + (Number.isFinite(n) ? n : 0);
-    }, 0);
+    const courseKeys = new Set();
+    const courseCredits = new Map();
+    events.forEach((event, index) => {
+      const courseCode = String(event.courseCode || "").trim().toLowerCase();
+      const className = String(event.className || "").trim().toLowerCase();
+      const title = String(event.title || "").trim().toLowerCase();
+      const key = courseCode
+        ? `code:${courseCode}`
+        : className
+          ? `class:${className}`
+          : title
+            ? `title:${title}`
+            : `event:${index}`;
+      courseKeys.add(key);
+      const credit = Number(event.credit);
+      if (!courseCredits.has(key) || (!Number.isFinite(courseCredits.get(key)) && Number.isFinite(credit))) {
+        courseCredits.set(key, credit);
+      }
+    });
+    const credit = [...courseCredits.values()].reduce(
+      (sum, value) => sum + (Number.isFinite(value) ? value : 0),
+      0
+    );
     const campusCounts = {};
     events.forEach(e => {
       if (e.campus && e.campus !== "线上") campusCounts[e.campus] = (campusCounts[e.campus] || 0) + 1;
@@ -146,7 +171,7 @@ Page({
     const mainCampus = Object.entries(campusCounts).sort((a, b) => b[1] - a[1])[0];
     return {
       events: events.length,
-      courses: titles.length,
+      courses: courseKeys.size,
       credit: credit.toFixed(1),
       mainCampus: mainCampus ? mainCampus[0] : "未标注校区",
       next: this.nextCourseToday(events)
@@ -179,7 +204,8 @@ Page({
   },
   onToday() {
     const today = time.weekAndDayForDate(new Date(), store.currentTermStart());
-    store.state.week = Math.max(1, today.week);
+    const maxWeek = time.maxWeek(store.currentEvents());
+    store.state.week = Math.min(maxWeek, Math.max(1, today.week));
     store.state.day = today.day;
     store.state.view = "schedule";
     store.persist();
@@ -216,7 +242,7 @@ Page({
         dayName: time.DAY_NAMES[(event.day - 1) % 7],
         weeksText: time.weeksLabel(event.weeks)
       },
-      isFav: store.isFavorite(event.title),
+      isFav: store.isFavorite(event, store.state.activeId),
       showDetail: true
     });
   },
@@ -226,7 +252,7 @@ Page({
     if (!event) return;
     this.setData({
       detail: event,
-      isFav: store.isFavorite(event.title),
+      isFav: store.isFavorite(event, store.state.activeId),
       showDetail: true
     });
   },
@@ -235,8 +261,7 @@ Page({
   },
   onToggleFavorite() {
     if (!this.data.detail) return;
-    const title = this.data.detail.title;
-    const added = store.toggleFavorite(title);
+    const added = store.toggleFavorite(this.data.detail, store.state.activeId);
     this.setData({ isFav: added });
     this.refresh();
   },
@@ -296,13 +321,33 @@ Page({
           return;
         }
         const tt = store.addTimetable(result);
+        if (!tt) {
+          this.setData({
+            importStatus: "课表已识别，但本地存储失败，请先导出备份后重试。",
+            importStatusKind: "error"
+          });
+          return;
+        }
         this.setData({
           showImport: false,
           importStatus: "",
           importStatusKind: ""
         });
-        wx.showToast({ title: `已识别 ${tt.events.length} 个课次`, icon: "success" });
+        const warnings = Array.isArray(result.warnings) ? result.warnings : [];
+        wx.showToast({
+          title: warnings.length ? `已识别 ${tt.events.length} 个课次，${warnings.length} 条待检查` : `已识别 ${tt.events.length} 个课次`,
+          icon: warnings.length ? "none" : "success"
+        });
         this.refresh();
+        if (!tt.termStartConfirmed) {
+          wx.showModal({
+            title: "请确认学期日期",
+            content: "当前课表暂以本周一作为临时起点。请到偏好设置填写学期第一周周一，否则周次和日期可能不准确。",
+            confirmText: "去设置",
+            cancelText: "稍后设置",
+            success: modal => { if (modal.confirm) wx.switchTab({ url: "/pages/settings/settings" }); }
+          });
+        }
       } catch (error) {
         console.error("解析失败", error);
         this.setData({

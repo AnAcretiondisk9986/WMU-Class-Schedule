@@ -5,6 +5,7 @@
     <view class="header-copy">
       <text class="semester strong">{{semester || '未导入课表'}}</text>
       <text class="muted sub" wx:if="{{studentName}}">{{studentName}}</text>
+      <text class="warning sub" wx:if="{{hasTimetable && !termStartConfirmed}}">学期第一周日期待确认</text>
     </view>
     <button class="btn btn-primary" size="mini" bindtap="onOpenImport">导入 PDF</button>
   </view>

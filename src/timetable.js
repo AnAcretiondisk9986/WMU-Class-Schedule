@@ -306,7 +306,9 @@ function mergeCourses(events) {
   const courses = new Map();
 
   for (const event of events) {
-    const key = event.courseName.toLowerCase();
+    // 同名课程可能属于不同教学班；课程编号和教学班比名称更稳定。
+    const identity = event.courseCode || event.className || event.courseName;
+    const key = compact(identity).toLowerCase();
     let course = courses.get(key);
     if (!course) {
       course = {

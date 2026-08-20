@@ -9,6 +9,7 @@
       </view>
     </picker>
     <view class="group-note muted" wx:if="{{hasTimetable}}">当前课表：{{timetableName}}。用于计算「第几周」与「今天」。</view>
+    <view class="group-note warning" wx:if="{{hasTimetable && !termStartConfirmed}}">请确认学期第一周周一，当前日期仅为临时估算。</view>
   </view>
 
   <view class="settings-group card">

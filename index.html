@@ -840,7 +840,7 @@
 
   <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>选择从教务系统导出的课表 PDF。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="query-link-row"><a class="secondary-btn query-link" href="https://jwxt.wmu.edu.cn/jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&amp;layout=default" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i><span>前往教务系统查询课表</span></a></div><label class="dropzone" id="dropZone" for="fileInput"><i data-lucide="upload-cloud"></i><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="import-status" id="importStatus" role="status" aria-live="polite"></div><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button" aria-label="开始识别" title="开始识别"><i data-lucide="scan-line"></i><span>开始识别</span></button></div></section></div>
 
-  <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题与本地数据管理。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><div class="settings-layout"><div class="settings-controls"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option><option value="dark">暗色</option></select></label><label class="field" for="slotHeightInput"><span>单元格高度</span><div class="range-row"><input id="slotHeightInput" type="range" min="48" max="144" step="4" value="72"><output class="range-value" id="slotHeightValue" for="slotHeightInput">72 px</output></div></label><label class="settings-toggle"><input id="hideEmptyWeekendsInput" type="checkbox"><span class="settings-toggle-copy"><span>自动隐藏无课周末列</span><small>仅隐藏周六、周日中没有课程的列，工作日始终保留。</small></span></label></div><div class="slot-preview" aria-live="polite"><div class="slot-preview-title">实时预览</div><div class="slot-preview-board" id="slotHeightPreview" style="--preview-slot-h:24px"><div class="slot-preview-axis"><span>08:00</span><span>08:45</span><span>09:30</span><span>10:15</span></div><div class="slot-preview-column"><span class="slot-preview-card">课程卡片</span></div><div class="slot-preview-column"><span class="slot-preview-card">今日</span></div></div><div class="slot-preview-note">拖动滑块查看每个 45 分钟单元格的高度变化。</div></div></div><p class="settings-note">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。高度会同时调整时间轴、课程卡片和网格间距。</p><div class="data-actions"><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
+  <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题与本地数据管理。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><div class="settings-layout"><div class="settings-controls"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option><option value="dark">暗色</option></select></label><label class="field" for="slotHeightInput"><span>单元格高度</span><div class="range-row"><input id="slotHeightInput" type="range" min="48" max="144" step="4" value="72"><output class="range-value" id="slotHeightValue" for="slotHeightInput">72 px</output></div></label><label class="settings-toggle"><input id="hideEmptyWeekendsInput" type="checkbox"><span class="settings-toggle-copy"><span>自动隐藏无课周末列</span><small>仅隐藏周六、周日中没有课程的列，工作日始终保留。</small></span></label></div><div class="slot-preview" aria-live="polite"><div class="slot-preview-title">实时预览</div><div class="slot-preview-board" id="slotHeightPreview" style="--preview-slot-h:24px"><div class="slot-preview-axis"><span>08:00</span><span>08:45</span><span>09:30</span><span>10:15</span></div><div class="slot-preview-column"><span class="slot-preview-card">课程卡片</span></div><div class="slot-preview-column"><span class="slot-preview-card">今日</span></div></div><div class="slot-preview-note">拖动滑块查看每个 45 分钟单元格的高度变化。</div></div></div><p class="settings-note" id="settingsNote">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。高度会同时调整时间轴、课程卡片和网格间距。</p><div class="data-actions"><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
 
   <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>可在「导入 PDF」弹窗中前往教务系统查询课表；正常导出 PDF 后，回到本页选择该文件。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>「回到今天」定位到当前周次与星期。</li><li>工具栏「新建日程」可快速添加课表外安排，默认定位到当前周和当天。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
 
@@ -915,6 +915,10 @@
       return Math.min(MAX_SLOT_HEIGHT, Math.max(MIN_SLOT_HEIGHT, Math.round(numeric / 4) * 4));
     };
     const state = { timetables: [], activeId: null, week: 1, day: 1, query: '', view: 'schedule', favorites: [], updatedAt: 0, slotHeight: null, hideEmptyWeekends: false };
+    const VALID_EVENT_TYPES = new Set(['lecture', 'lab', 'online', 'discussion', 'practice', 'independent', 'custom']);
+    const VALID_COLORS = new Set(['brand', 'gold', 'blue', 'mint', 'violet']);
+    const MAX_PERIOD = 19;
+    const MAX_BACKUP_TEXT = 500;
     let selectedPdfFile = null;
     let activeEvent = null;
     let selectedCustomColor = 'brand';
@@ -966,9 +970,110 @@
       const timetable = currentTimetable();
       return timetable ? [...(timetable.events || []), ...(timetable.customEvents || [])] : [];
     };
-    const currentTermStart = () => currentTimetable()?.termStartDate || toIso(mondayOf(new Date()));
+    const fallbackTermStart = () => toIso(mondayOf(new Date()));
+    const currentTermStart = () => currentTimetable()?.termStartDate || fallbackTermStart();
     const newTimetableId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const newCustomEventId = () => `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const safeText = (value, fallback = '', limit = MAX_BACKUP_TEXT) => {
+      const text = String(value ?? fallback).trim();
+      return text.slice(0, limit);
+    };
+    const integerInRange = (value, min, max) => {
+      const number = Number(value);
+      return Number.isInteger(number) && number >= min && number <= max ? number : null;
+    };
+    const validClock = (value) => /^([01]\d|2[0-3]):[0-5]\d$/.test(String(value || ''));
+    const normalizeWeeks = (value, allowNegative = false) => {
+      if (!Array.isArray(value)) return null;
+      const min = allowNegative ? -52 : 1;
+      const ranges = value.map((range) => {
+        if (!range || typeof range !== 'object') return null;
+        const start = integerInRange(range.start, min, 99);
+        const end = integerInRange(range.end, min, 99);
+        const parity = ['all', 'odd', 'even'].includes(range.parity) ? range.parity : null;
+        if (start == null || end == null || end < start || !parity) return null;
+        return { start, end, parity };
+      });
+      return ranges.every(Boolean) ? ranges : null;
+    };
+    const normalizeEvent = (value) => {
+      if (!value || typeof value !== 'object') return null;
+      const custom = value.kind === 'custom' || value.type === 'custom';
+      const title = safeText(value.title ?? value.courseName);
+      const day = integerInRange(value.day ?? value.weekday, 1, 7);
+      if (!title || day == null) return null;
+      if (custom) {
+        const week = integerInRange(value.week ?? value.weeks?.[0]?.start, -52, 99);
+        const startTime = safeText(value.startTime, '', 5);
+        const endTime = safeText(value.endTime, '', 5);
+        if (week == null || !validClock(startTime) || !validClock(endTime) || timeToMinutes(endTime) <= timeToMinutes(startTime)) return null;
+        return {
+          id: safeText(value.id, newCustomEventId(), 120), kind: 'custom', title,
+          description: safeText(value.description, '', 120), room: safeText(value.room, '', 120),
+          week, day, startTime, endTime,
+          color: VALID_COLORS.has(value.color) ? value.color : 'brand', type: 'custom', label: '自定义',
+          campus: '', teacher: '', credit: '—',
+          weeks: [{ start: week, end: week, parity: 'all' }]
+        };
+      }
+      const start = integerInRange(value.start ?? value.periods?.start, 1, MAX_PERIOD);
+      const end = integerInRange(value.end ?? value.periods?.end, 1, MAX_PERIOD);
+      const type = VALID_EVENT_TYPES.has(value.type ?? value.activity) ? (value.type ?? value.activity) : null;
+      const weeks = normalizeWeeks(value.weeks);
+      if (start == null || end == null || end < start || !type || !weeks) return null;
+      return {
+        day, start, end, title, type,
+        label: safeText(value.label ?? value.activityLabel, type === 'lecture' ? '讲课' : '课程', 40),
+        room: safeText(value.room, '', 160) || '待定', campus: safeText(value.campus, '', 80) || '未标注校区',
+        teacher: safeText(value.teacher, '', 120) || '待定', weeks,
+        credit: value.credit == null ? '—' : safeText(value.credit, '—', 30),
+        courseCode: safeText(value.courseCode, '', 80), className: safeText(value.className, '', 180),
+        classComposition: safeText(value.classComposition, '', 180), assessment: safeText(value.assessment, '', 120),
+        note: safeText(value.note, '', 240), courseHours: safeText(value.courseHours, '', 120),
+        weeklyHours: value.weeklyHours == null || !Number.isFinite(Number(value.weeklyHours)) ? null : Number(value.weeklyHours),
+        totalHours: value.totalHours == null || !Number.isFinite(Number(value.totalHours)) ? null : Number(value.totalHours)
+      };
+    };
+    const validDate = (value) => {
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ''));
+      if (!match) return false;
+      const date = new Date(`${value}T00:00:00`);
+      return !Number.isNaN(date.getTime())
+        && date.getFullYear() === Number(match[1])
+        && date.getMonth() + 1 === Number(match[2])
+        && date.getDate() === Number(match[3]);
+    };
+    const normalizeTimetable = (value) => {
+      if (!value || typeof value !== 'object' || !safeText(value.id, '', 120)) return null;
+      if (!Array.isArray(value.events) || !Array.isArray(value.customEvents || [])) return null;
+      const events = value.events.map(normalizeEvent);
+      const customEvents = (value.customEvents || []).map(normalizeEvent);
+      if (events.some((event) => !event) || customEvents.some((event) => !event || event.kind !== 'custom')) return null;
+      const termStartDate = validDate(value.termStartDate) ? value.termStartDate : '';
+      return {
+        id: safeText(value.id, '', 120), name: safeText(value.name, '', 120) || '课表', semester: safeText(value.semester, '', 80),
+        student: { name: safeText(value.student?.name, '', 80), id: safeText(value.student?.id, '', 80) },
+        termStartDate, termStartConfirmed: value.termStartConfirmed !== false && Boolean(termStartDate),
+        events, customEvents, updatedAt: Number.isFinite(Number(value.updatedAt)) ? Number(value.updatedAt) : 0
+      };
+    };
+    const normalizeBackup = (value) => {
+      if (!value || value.version !== 2 || !Array.isArray(value.timetables) || !value.timetables.length) return null;
+      const timetables = value.timetables.map(normalizeTimetable);
+      if (timetables.some((timetable) => !timetable) || new Set(timetables.map((timetable) => timetable.id)).size !== timetables.length) return null;
+      const activeId = timetables.some((timetable) => timetable.id === value.activeId) ? value.activeId : timetables[0].id;
+      return {
+        timetables, activeId,
+        favorites: Array.isArray(value.favorites) ? value.favorites.filter((item) => typeof item === 'string').map((item) => item.slice(0, 420)) : null,
+        theme: ['light', 'warm', 'dark'].includes(value.theme) ? value.theme : 'light',
+        week: value.week == null ? 1 : (integerInRange(value.week, -52, 99) ?? 1),
+        day: integerInRange(value.day, 1, 7) || 1,
+        view: ['schedule', 'list', 'favorites'].includes(value.view) ? value.view : 'schedule',
+        slotHeight: value.slotHeight == null || !Number.isFinite(Number(value.slotHeight)) ? null : Number(value.slotHeight),
+        hideEmptyWeekends: value.hideEmptyWeekends === true,
+        updatedAt: Number.isFinite(Number(value.updatedAt)) ? Number(value.updatedAt) : 0
+      };
+    };
     const uniqueTimetableName = (base) => {
       const names = new Set(state.timetables.map((t) => t.name));
       if (!names.has(base)) return base;
@@ -995,6 +1100,10 @@
     const currentWeekInfo = () => weekAndDayForDate(new Date());
     const minNavigableWeek = () => Math.min(1, currentWeekInfo().week);
     const maxNavigableWeek = () => Math.max(maxWeek(), currentWeekInfo().week);
+    const clampNavigableWeek = (week) => {
+      const numeric = Number.isFinite(Number(week)) ? Math.trunc(Number(week)) : 1;
+      return Math.min(maxNavigableWeek(), Math.max(minNavigableWeek(), numeric));
+    };
     const todayButtonLabel = () => {
       const week = currentWeekInfo().week;
       if (week < 1) return '回到第一周';
@@ -1007,24 +1116,108 @@
       return weekLabel(week);
     };
     const eventFromParsed = (event) => ({
-      day: event.weekday,
-      start: event.periods.start,
-      end: event.periods.end,
-      title: event.courseName,
-      type: event.activity || 'lecture',
-      label: event.activityLabel || '讲课',
-      room: event.room || '待定',
-      campus: event.campus || '未标注校区',
-      teacher: event.teacher || '待定',
+      day: event.weekday ?? event.day,
+      start: event.periods?.start ?? event.start,
+      end: event.periods?.end ?? event.end,
+      title: event.courseName || event.title,
+      type: event.activity || event.type || 'lecture',
+      label: event.activityLabel || event.label || '讲课',
+      room: event.room || '待定', campus: event.campus || '未标注校区', teacher: event.teacher || '待定',
       weeks: event.weeks || [],
-      credit: event.credit == null ? '—' : String(event.credit)
+      credit: event.credit == null ? '—' : String(event.credit),
+      courseCode: event.courseCode || '',
+      className: event.className || '',
+      classComposition: event.classComposition || '',
+      assessment: event.assessment || '',
+      note: event.note || '',
+      courseHours: event.courseHours || '',
+      weeklyHours: event.weeklyHours,
+      totalHours: event.totalHours
     });
+    // 收藏键绑定课表和课程身份，避免不同学期的同名课程互相影响。
+    const normalizeFavoritePart = (value) => safeText(value, '', 240).toLowerCase().replace(/\s+/g, ' ');
+    const favoriteKey = (event, timetableId = currentTimetable()?.id) => {
+      if (!event || typeof event !== 'object') return '';
+      const owner = safeText(timetableId || event.timetableId, '', 120);
+      const courseCode = normalizeFavoritePart(event.courseCode);
+      const className = normalizeFavoritePart(event.className);
+      const title = normalizeFavoritePart(event.title ?? event.courseName);
+      const identity = courseCode
+        ? `code:${courseCode}`
+        : className
+          ? `class:${className}`
+          : title
+            ? `title:${title}`
+            : '';
+      return owner && identity ? `${owner}::${identity}` : identity;
+    };
+    const courseIdentity = (event) => {
+      const code = normalizeFavoritePart(event?.courseCode);
+      const className = normalizeFavoritePart(event?.className);
+      const title = normalizeFavoritePart(event?.title ?? event?.courseName);
+      return code ? `code:${code}` : className ? `class:${className}` : `title:${title}`;
+    };
+    const looksLikeFavoriteKey = (value) => /::(?:code|class|title):/.test(String(value || ''));
+    const migrateFavorites = (favorites, timetables = state.timetables) => {
+      const source = Array.isArray(favorites) ? favorites : [];
+      const knownKeys = new Set();
+      const titleMatches = new Map();
+      (Array.isArray(timetables) ? timetables : []).forEach((timetable) => {
+        const timetableId = safeText(timetable?.id, '', 120);
+        (timetable?.events || []).forEach((event) => {
+          const key = favoriteKey(event, timetableId);
+          if (!key) return;
+          knownKeys.add(key);
+          const title = normalizeFavoritePart(event.title ?? event.courseName);
+          if (!title) return;
+          const matches = titleMatches.get(title) || [];
+          if (!matches.includes(key)) matches.push(key);
+          titleMatches.set(title, matches);
+        });
+      });
+      const result = [];
+      const seen = new Set();
+      const add = (value) => {
+        const item = safeText(value, '', 420);
+        if (!item || seen.has(item)) return;
+        seen.add(item);
+        result.push(item);
+      };
+      source.forEach((value) => {
+        if (typeof value !== 'string') return;
+        const item = safeText(value, '', 420);
+        if (!item) return;
+        if (knownKeys.has(item) || looksLikeFavoriteKey(item)) {
+          add(item);
+          return;
+        }
+        const matches = titleMatches.get(normalizeFavoritePart(item));
+        if (matches?.length) matches.forEach(add);
+        else add(item);
+      });
+      return result;
+    };
+    const favoriteInputKey = (eventOrTitle, timetableId = currentTimetable()?.id) => {
+      if (eventOrTitle && typeof eventOrTitle === 'object') return favoriteKey(eventOrTitle, timetableId);
+      if (typeof eventOrTitle !== 'string') return '';
+      const raw = safeText(eventOrTitle, '', 420);
+      if (!raw) return '';
+      if (looksLikeFavoriteKey(raw)) return raw;
+      const timetable = state.timetables.find((item) => item.id === timetableId);
+      const title = normalizeFavoritePart(raw);
+      const event = timetable?.events?.find((item) => normalizeFavoritePart(item.title ?? item.courseName) === title);
+      return event ? favoriteKey(event, timetableId) : raw;
+    };
+    const isFavoriteEvent = (event, timetableId = currentTimetable()?.id) => {
+      const key = favoriteKey(event, timetableId);
+      return Boolean(key && state.favorites.includes(key));
+    };
     const visibleEventsForWeek = (week) => {
       let events = currentEvents();
-      if (state.view === 'favorites') events = events.filter((event) => event.kind !== 'custom' && state.favorites.includes(event.title));
+      if (state.view === 'favorites') events = events.filter((event) => event.kind !== 'custom' && isFavoriteEvent(event));
       if (state.query) {
         const query = state.query.toLowerCase();
-        events = events.filter((event) => `${event.title} ${event.description || ''} ${event.teacher || ''} ${event.room || ''} ${event.campus || ''}`.toLowerCase().includes(query));
+        events = events.filter((event) => `${event.title} ${event.description || ''} ${event.courseCode || ''} ${event.className || ''} ${event.note || ''} ${event.assessment || ''} ${event.teacher || ''} ${event.room || ''} ${event.campus || ''}`.toLowerCase().includes(query));
       }
       if (state.view !== 'favorites') events = events.filter((event) => eventInWeek(event, week));
       return events;
@@ -1396,6 +1589,7 @@
     }
 
     function renderAll() {
+      state.week = clampNavigableWeek(state.week);
       const days = dayInfo(state.week);
       const tt = currentTimetable();
       const semester = tt?.semester || '';
@@ -1409,21 +1603,27 @@
       $('pageTitle').textContent = state.view === 'favorites' ? '收藏课程' : state.view === 'list' ? '课程清单' : '我的课表';
       $('todayLabel').textContent = todayEyebrowLabel();
       $('todayButton').textContent = todayButtonLabel();
-      $('updatedLabel').textContent = state.updatedAt ? '本地已保存' : '示例数据';
+      $('updatedLabel').textContent = currentTimetable()?.termStartConfirmed === false
+        ? '学期日期待确认'
+        : state.updatedAt ? '本地已保存' : '示例数据';
       const weekEvents = visibleEvents();
+      const favoriteCount = new Set(currentEvents().filter((event) => event.kind !== 'custom' && isFavoriteEvent(event)).map(courseIdentity)).size;
       $('headNote').textContent = state.view === 'favorites'
-        ? `已收藏 ${state.favorites.length} 门课程，共 ${weekEvents.length} 个课次。`
+        ? `已收藏 ${favoriteCount} 门课程，共 ${weekEvents.length} 个课次。`
         : `${weekLabel(state.week)}共有 ${weekEvents.length} 节课。`;
       $('weekRangeLabel').textContent = `${formatFull(days[0].fullDate)} — ${formatFull(days[6].fullDate)}`;
       $('viewTitle').textContent = state.view === 'schedule' ? '周视图' : state.view === 'list' ? '课程清单' : '收藏课程';
       const events = currentEvents();
-      const courseNames = [...new Set(events.map((event) => event.title))];
-      const totalCredit = courseNames.reduce((sum, title) => {
-        const event = events.find((item) => item.title === title);
+      const courseCredits = new Map();
+      events.forEach((event) => {
+        const identity = courseIdentity(event);
         const credit = Number(event.credit);
-        return sum + (Number.isFinite(credit) ? credit : 0);
-      }, 0);
-      $('courseCountValue').textContent = `${events.length} 节课 · ${courseNames.length} 门 · ${totalCredit} 学分`;
+        if (!courseCredits.has(identity) || (!Number.isFinite(courseCredits.get(identity)) && Number.isFinite(credit))) {
+          courseCredits.set(identity, credit);
+        }
+      });
+      const totalCredit = [...courseCredits.values()].reduce((sum, credit) => sum + (Number.isFinite(credit) ? credit : 0), 0);
+      $('courseCountValue').textContent = `${events.length} 节课 · ${courseCredits.size} 门 · ${totalCredit} 学分`;
       const campusCounts = events.reduce((counts, event) => {
         if (event.campus && event.campus !== '线上') counts[event.campus] = (counts[event.campus] || 0) + 1;
         return counts;
@@ -1600,25 +1800,35 @@
     }
     function renderFavoriteButton() {
       if (!activeEvent) return;
-      const active = state.favorites.includes(activeEvent.title);
+      const active = isFavoriteEvent(activeEvent);
       $('drawerFavorite').classList.toggle('active', active);
       $('drawerFavorite').setAttribute('title', active ? '取消收藏' : '收藏课程');
     }
     function toggleFavorite() {
       if (!activeEvent || activeEvent.kind === 'custom') return;
-      const index = state.favorites.indexOf(activeEvent.title);
+      state.favorites = migrateFavorites(state.favorites);
+      const key = favoriteInputKey(activeEvent);
+      if (!key) return;
+      const index = state.favorites.indexOf(key);
       if (index >= 0) state.favorites.splice(index, 1);
-      else state.favorites.push(activeEvent.title);
+      else state.favorites.push(key);
       renderFavoriteButton();
       persist();
       renderAll();
     }
     function openImportModal() {
+      selectedPdfFile = null;
+      if ($('fileInput')) $('fileInput').value = '';
+      $('fileName').textContent = '支持拖放，文件仅在本地处理';
       $('importStatus').textContent = '';
       $('importStatus').className = 'import-status';
       openModal('modalBackdrop');
     }
-    function closeImportModal() { closeModalById('modalBackdrop'); }
+    function closeImportModal() {
+      closeModalById('modalBackdrop');
+      selectedPdfFile = null;
+      if ($('fileInput')) $('fileInput').value = '';
+    }
     function setImportStatus(message, kind = '') { $('importStatus').textContent = message; $('importStatus').className = `import-status ${kind}`.trim(); }
     function openModal(id) { document.getElementById(id).classList.add('modal-open'); }
     function closeModalById(id) { document.getElementById(id).classList.remove('modal-open'); }
@@ -1627,6 +1837,10 @@
       $('themeSelect').value = currentTheme();
       $('slotHeightInput').value = String(state.slotHeight ?? DEFAULT_SLOT_HEIGHT);
       $('hideEmptyWeekendsInput').checked = state.hideEmptyWeekends;
+      const note = $('settingsNote');
+      if (note) note.textContent = currentTimetable()?.termStartConfirmed === false
+        ? '请确认学期第一周周一；未确认前，周次和日期仅为临时估算。高度会同时调整时间轴、课程卡片和网格间距。'
+        : '「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。高度会同时调整时间轴、课程卡片和网格间距。';
       renderSlotHeightPreview(Number($('slotHeightInput').value));
       openModal('settingsBackdrop');
     }
@@ -1738,6 +1952,8 @@
           }).join('')
         : '<div class="empty" style="display:grid;min-height:120px"><div>还没有课表，先导入一个</div></div>';
       document.querySelectorAll('[data-timetable]').forEach((button) => button.addEventListener('click', () => {
+        activeEvent = null;
+        closeDrawer();
         state.activeId = button.dataset.timetable;
         state.week = 1;
         state.day = 1;
@@ -1758,12 +1974,18 @@
       if (index < 0) return;
       const timetable = state.timetables[index];
       if (window.confirm?.(`确定删除课表「${timetable.name}」吗？其中的课程和自定义日程都会被删除。`) === false) return;
+      if (state.activeId === id) {
+        activeEvent = null;
+        closeDrawer();
+      }
+      const removedKeys = new Set((timetable.events || []).map((event) => favoriteKey(event, timetable.id)).filter(Boolean));
       state.timetables.splice(index, 1);
-      const remainingTitles = new Set(state.timetables.flatMap((item) => [
-        ...(item.events || []),
-        ...(item.customEvents || [])
-      ].map((event) => event.title)));
-      state.favorites = state.favorites.filter((title) => remainingTitles.has(title));
+      const remainingTitles = new Set(state.timetables.flatMap((item) => (item.events || []).map((event) => normalizeFavoritePart(event.title))));
+      state.favorites = state.favorites.filter((value) => {
+        if (removedKeys.has(value)) return false;
+        if (looksLikeFavoriteKey(value)) return true;
+        return remainingTitles.has(normalizeFavoritePart(value));
+      });
       if (state.activeId === id) {
         state.activeId = state.timetables[Math.min(index, state.timetables.length - 1)]?.id || null;
         state.week = 1;
@@ -1794,7 +2016,8 @@
     }
 
     function persist() {
-      state.updatedAt = Date.now();
+      state.favorites = migrateFavorites(state.favorites, state.timetables);
+      const updatedAt = Date.now();
       const payload = {
         version: 2,
         timetables: state.timetables,
@@ -1806,12 +2029,21 @@
         view: state.view,
         slotHeight: state.slotHeight,
         hideEmptyWeekends: state.hideEmptyWeekends,
-        updatedAt: state.updatedAt
+        updatedAt
       };
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); } catch (error) { console.warn('保存失败', error); }
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        state.updatedAt = updatedAt;
+        return true;
+      } catch (error) {
+        console.warn('保存失败', error);
+        return false;
+      }
     }
     function resetData() {
       try { localStorage.removeItem(STORAGE_KEY); } catch (error) {}
+      activeEvent = null;
+      closeDrawer();
       state.timetables = [];
       state.activeId = null;
       state.favorites = [];
@@ -1828,6 +2060,7 @@
     }
     function exportData() {
       const tt = currentTimetable();
+      state.favorites = migrateFavorites(state.favorites, state.timetables);
       const payload = {
         version: 2,
         timetables: state.timetables,
@@ -1852,16 +2085,36 @@
     async function importData(file) {
       try {
         const data = JSON.parse(await file.text());
-        if (!data || data.version !== 2 || !Array.isArray(data.timetables)) return false;
-        state.timetables = data.timetables;
-        state.activeId = data.activeId || data.timetables[0]?.id || null;
-        state.favorites = Array.isArray(data.favorites) ? data.favorites : [];
-        state.week = Number.isFinite(data.week) ? data.week : 1;
-        state.day = Number.isFinite(data.day) ? data.day : 1;
-        state.view = ['schedule', 'list', 'favorites'].includes(data.view) ? data.view : 'schedule';
-        setSchedulePreferences(Number.isFinite(data.slotHeight) ? data.slotHeight : null, data.hideEmptyWeekends === true);
-        setThemeClasses(data.theme);
-        persist();
+        const normalized = normalizeBackup(data);
+        if (!normalized) return false;
+        const previous = {
+          timetables: [...state.timetables],
+          activeId: state.activeId,
+          favorites: [...state.favorites],
+          week: state.week,
+          day: state.day,
+          view: state.view,
+          slotHeight: state.slotHeight,
+          hideEmptyWeekends: state.hideEmptyWeekends,
+          updatedAt: state.updatedAt,
+          theme: currentTheme()
+        };
+        state.timetables = normalized.timetables;
+        state.activeId = normalized.activeId;
+        state.favorites = normalized.favorites == null
+          ? migrateFavorites(state.favorites, state.timetables)
+          : migrateFavorites(normalized.favorites, state.timetables);
+        state.week = normalized.week;
+        state.day = normalized.day;
+        state.view = normalized.view;
+        setSchedulePreferences(normalized.slotHeight, normalized.hideEmptyWeekends);
+        setThemeClasses(normalized.theme);
+        if (!persist()) {
+          Object.assign(state, previous);
+          setSchedulePreferences(previous.slotHeight, previous.hideEmptyWeekends);
+          setThemeClasses(previous.theme);
+          return false;
+        }
         renderAll();
         return true;
       } catch (error) {
@@ -1871,44 +2124,55 @@
     function loadState() {
       let saved = null;
       try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (error) {}
-      if (saved && saved.version === 2 && Array.isArray(saved.timetables) && saved.timetables.length) {
-        state.timetables = saved.timetables;
-        state.activeId = saved.activeId || saved.timetables[0].id;
-        state.favorites = Array.isArray(saved.favorites) ? saved.favorites : [];
-        state.week = Number.isFinite(saved.week) ? saved.week : 1;
-        state.day = Number.isFinite(saved.day) ? saved.day : 1;
-        state.view = ['schedule', 'list', 'favorites'].includes(saved.view) ? saved.view : 'schedule';
-        setSchedulePreferences(Number.isFinite(saved.slotHeight) ? saved.slotHeight : null, saved.hideEmptyWeekends === true);
-        state.updatedAt = saved.updatedAt || 0;
-        setThemeClasses(saved.theme);
+      const normalized = normalizeBackup(saved);
+      if (normalized) {
+        state.timetables = normalized.timetables;
+        state.activeId = normalized.activeId;
+        state.favorites = migrateFavorites(normalized.favorites || [], state.timetables);
+        state.week = normalized.week;
+        state.day = normalized.day;
+        state.view = normalized.view;
+        setSchedulePreferences(normalized.slotHeight, normalized.hideEmptyWeekends);
+        state.updatedAt = normalized.updatedAt;
+        setThemeClasses(normalized.theme);
         return true;
       }
       // 兼容旧版单课表格式
       if (saved && saved.version === 1 && Array.isArray(saved.events) && saved.events.length) {
-        state.timetables = [{
-          id: newTimetableId(),
-          name: saved.semester || '课表 1',
-          semester: saved.semester || '',
-          student: saved.student || { name: '', id: '' },
-          termStartDate: saved.termStartDate || toIso(mondayOf(new Date())),
-          events: saved.events,
-          updatedAt: saved.updatedAt || 0
-        }];
-        state.activeId = state.timetables[0].id;
-        state.favorites = Array.isArray(saved.favorites) ? saved.favorites : [];
-        state.week = Number.isFinite(saved.week) ? saved.week : 1;
-        state.day = Number.isFinite(saved.day) ? saved.day : 1;
-        state.view = ['schedule', 'list', 'favorites'].includes(saved.view) ? saved.view : 'schedule';
-        setSchedulePreferences(null, false);
-        state.updatedAt = saved.updatedAt || 0;
-        setThemeClasses(saved.theme);
-        return true;
+        const events = saved.events.map(eventFromParsed).map(normalizeEvent);
+        if (events.every(Boolean)) {
+          state.timetables = [{
+            id: newTimetableId(),
+            name: saved.semester || '课表 1',
+            semester: saved.semester || '',
+            student: saved.student || { name: '', id: '' },
+            termStartDate: validDate(saved.termStartDate) ? saved.termStartDate : fallbackTermStart(),
+            termStartConfirmed: validDate(saved.termStartDate),
+            events,
+            customEvents: [],
+            updatedAt: saved.updatedAt || 0
+          }];
+          state.activeId = state.timetables[0].id;
+          state.favorites = migrateFavorites(Array.isArray(saved.favorites) ? saved.favorites : [], state.timetables);
+          state.week = Number.isFinite(saved.week) ? saved.week : 1;
+          state.day = Number.isFinite(saved.day) ? saved.day : 1;
+          state.view = ['schedule', 'list', 'favorites'].includes(saved.view) ? saved.view : 'schedule';
+          setSchedulePreferences(null, false);
+          state.updatedAt = saved.updatedAt || 0;
+          setThemeClasses(saved.theme);
+          return true;
+        }
       }
       state.timetables = [];
       state.activeId = null;
+      state.favorites = [];
       state.week = 1;
       state.day = 1;
+      state.view = 'schedule';
+      state.query = '';
+      state.updatedAt = 0;
       setSchedulePreferences(null, false);
+      setThemeClasses('light');
       return false;
     }
 
@@ -1924,18 +2188,39 @@
           cMapPacked: true,
           standardFontDataUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/standard_fonts/'
         });
-        if (result.conflicts.length) {
-          setImportStatus(`识别到 ${result.conflicts.length} 个跨校区时间冲突：${result.conflicts.map((conflict) => conflict.message).join('；')}`, 'error');
+        const conflicts = Array.isArray(result.conflicts) ? result.conflicts : [];
+        if (conflicts.length) {
+          setImportStatus(`识别到 ${conflicts.length} 个跨校区时间冲突：${conflicts.map((conflict) => conflict.message).join('；')}`, 'error');
           return;
         }
-        const events = result.events.map(eventFromParsed);
+        const previous = {
+          timetables: [...state.timetables],
+          activeId: state.activeId,
+          favorites: [...state.favorites],
+          week: state.week,
+          day: state.day,
+          view: state.view,
+          query: state.query,
+          updatedAt: state.updatedAt
+        };
+        if (!Array.isArray(result.events) || !result.events.length) {
+          setImportStatus('未识别到有效课程记录。', 'error');
+          return;
+        }
+        const events = result.events.map(eventFromParsed).map(normalizeEvent);
+        if (events.some((event) => !event)) {
+          setImportStatus('课程记录包含无法识别的时间或周次，未导入。', 'error');
+          return;
+        }
         const semester = result.semester || '未设置学期';
+        const inherited = state.timetables.find((item) => item.semester === semester && item.termStartDate);
         const timetable = {
           id: newTimetableId(),
           name: uniqueTimetableName(semester),
           semester,
           student: result.student || { name: '', id: '' },
-          termStartDate: toIso(mondayOf(new Date())),
+          termStartDate: inherited?.termStartDate || fallbackTermStart(),
+          termStartConfirmed: Boolean(inherited?.termStartDate) && inherited?.termStartConfirmed !== false,
           events,
           customEvents: [],
           updatedAt: Date.now()
@@ -1945,12 +2230,20 @@
         state.week = 1;
         state.day = 1;
         state.view = 'schedule';
-        state.favorites = [];
         state.query = '';
-        persist();
+        if (!persist()) {
+          Object.assign(state, previous);
+          setImportStatus('课表已识别，但本地存储失败，请先导出备份后重试。', 'error');
+          return;
+        }
         renderAll();
-        setImportStatus(`已识别 ${events.length} 个课次（${semester}），保存为「${timetable.name}」。`, 'success');
-        setTimeout(closeImportModal, 900);
+        const warnings = Array.isArray(result.warnings) ? result.warnings : [];
+        const warningText = warnings.length ? `；${warnings.length} 条记录需要检查` : '';
+        setImportStatus(`已识别 ${events.length} 个课次（${semester}），保存为「${timetable.name}」${warningText}。`, warnings.length ? 'error' : 'success');
+        setTimeout(() => {
+          closeImportModal();
+          if (!timetable.termStartConfirmed) openSettings();
+        }, 900);
       } catch (error) {
         setImportStatus(`解析失败：${error.message || '文件格式无法识别'}`, 'error');
       } finally {
@@ -2015,14 +2308,26 @@
     $('settingsDone').addEventListener('click', () => {
       const value = $('termStartInput').value;
       const tt = currentTimetable();
-      if (value && tt) tt.termStartDate = value;
+      if (value && tt) {
+        const normalizedDate = toIso(mondayOf(new Date(`${value}T00:00:00`)));
+        const dateChanged = tt.termStartDate !== normalizedDate || tt.termStartConfirmed === false;
+        tt.termStartDate = normalizedDate;
+        tt.termStartConfirmed = true;
+        if (dateChanged) {
+          state.week = 1;
+          state.day = 1;
+        }
+      }
       setSchedulePreferences(Number($('slotHeightInput').value), $('hideEmptyWeekendsInput').checked);
       applyTheme($('themeSelect').value);
       persist();
       renderAll();
       closeModalById('settingsBackdrop');
     });
-    $('resetData').addEventListener('click', resetData);
+    $('resetData').addEventListener('click', () => {
+      if (window.confirm?.('确定清除所有本地课表和收藏吗？此操作无法撤销。') === false) return;
+      resetData();
+    });
     $('exportData').addEventListener('click', exportData);
     $('importDataBtn').addEventListener('click', () => $('importDataInput').click());
     $('importDataInput').addEventListener('change', async (event) => {

@@ -6,13 +6,14 @@
   </view>
 
   <view class="fav-list" wx:if="{{items.length}}">
-    <view class="fav-card card" wx:for="{{items}}" wx:key="title">
+    <view class="fav-card card" wx:for="{{items}}" wx:key="key">
       <view class="fav-head">
         <view class="fav-title">
           <text class="strong">{{item.title}}</text>
+          <text class="muted">{{item.timetableName}}{{item.semester ? ' · ' + item.semester : ''}}</text>
           <text class="muted">{{item.teachers || '未标注教师'}} · {{item.credit}} 学分</text>
         </view>
-        <text class="fav-remove" data-title="{{item.title}}" bindtap="onRemove">取消收藏</text>
+        <text class="fav-remove" data-key="{{item.key}}" bindtap="onRemove">取消收藏</text>
       </view>
       <view class="fav-event" wx:for="{{item.events}}" wx:for-item="ev" wx:key="index">
         <text class="fav-ev-time strong">{{ev.dayName}} {{ev.timeText}}</text>

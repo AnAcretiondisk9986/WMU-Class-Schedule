@@ -234,6 +234,65 @@ test("index.html 主题切换与收藏视图", () => {
   assert.equal(s.$("pageTitle").textContent, "收藏课程");
 });
 
+test("网页收藏键按课表与课程代码隔离，并兼容旧标题收藏", () => {
+  const first = { ...TEST_EVENTS[0], title: "同名课程", courseCode: "CODE-A" };
+  const second = { ...TEST_EVENTS[0], title: "同名课程", courseCode: "CODE-B" };
+  const legacy = runScenario(SAVED({
+    timetables: [
+      TT("t1", "第一张", "2026-2027-1", "甲", [first]),
+      TT("t2", "第二张", "2026-2027-1", "乙", [second])
+    ],
+    activeId: "t2",
+    favorites: ["t1::code:code-a"]
+  }));
+  legacy.trigger("navFavorites");
+  assert.equal(legacy.$("agenda").innerHTML.includes("同名课程"), false, "第一张课表的收藏不应出现在第二张课表");
+
+  const migrated = runScenario(SAVED({
+    timetables: [
+      TT("t1", "第一张", "2026-2027-1", "甲", [first]),
+      TT("t2", "第二张", "2026-2027-1", "乙", [second])
+    ],
+    activeId: "t1",
+    favorites: ["同名课程"]
+  }));
+  migrated.trigger("navFavorites");
+  assert.match(migrated.$("agenda").innerHTML, /同名课程/);
+});
+
+test("网页备份校验保留无周次警告记录，并拒绝非法节次", () => {
+  const warningEvent = { ...TEST_EVENTS[0], weeks: [] };
+  const warning = runScenario(SAVED({ timetables: [TT("t1", "待确认", "2026-2027-1", "甲", [warningEvent])] }));
+  assert.equal(warning.error, null, warning.error?.stack);
+  assert.ok(warning.$("profileName").textContent.includes("甲"));
+
+  const invalid = runScenario(SAVED({ timetables: [TT("t1", "非法", "2026-2027-1", "甲", [{ ...TEST_EVENTS[0], start: 99 }])] }));
+  assert.equal(invalid.error, null, invalid.error?.stack);
+  assert.match(invalid.$("emptyState").innerHTML, /还没有课表/);
+});
+
+test("网页恢复备份会把周次限制在当前课表可浏览范围", () => {
+  const s = runScenario(SAVED({ week: 99 }));
+  assert.equal(s.$("weekValue").textContent, "第 17 周");
+});
+
+test("网页设置会把学期起始日对齐到周一", () => {
+  const s = runScenario(SAVED());
+  s.trigger("navSettings");
+  s.$("termStartInput").value = "2026-09-16";
+  s.trigger("settingsDone");
+  const saved = JSON.parse(s.storage["wmu-timetable-v1"]);
+  assert.equal(saved.timetables[0].termStartDate, "2026-09-14");
+});
+
+test("网页仅调整偏好时不会重置当前周次", () => {
+  const s = runScenario(SAVED({ week: 3 }));
+  s.trigger("navSettings");
+  s.$("slotHeightInput").value = "104";
+  s.trigger("settingsDone");
+  assert.equal(s.$("weekValue").textContent, "第 03 周");
+});
+
 test("偏好设置保存单元格高度并隐藏无课周末", () => {
   const s = runScenario(SAVED());
   s.trigger("navSettings");
@@ -256,6 +315,10 @@ test("偏好设置保存单元格高度并隐藏无课周末", () => {
 });
 
 test("偏好设置随本地课表状态恢复", () => {
+  const defaults = runScenario(SAVED());
+  defaults.trigger("navSettings");
+  assert.equal(defaults.$("slotHeightInput").value, "72", "缺省单元格高度不应被解释为 48px");
+
   const s = runScenario(SAVED({ slotHeight: 120, hideEmptyWeekends: true }));
   assert.equal(s.documentElement.style["--slot-h"], "120px");
   assert.equal(String(s.$("schedule").style["--day-count"]), "5");

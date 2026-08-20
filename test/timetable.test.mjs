@@ -90,7 +90,10 @@ test("直接解析高强度合成测试 PDF", { skip: !existsSync(stressSampleUr
   assert.equal(result.semester, "2026-2027-1");
   assert.deepEqual(result.student, { name: "边界测试", id: "TEST2600001" });
   assert.equal(result.events.length, 28);
-  assert.equal(result.courses.length, 26);
+  // 同名但不同课程编号的教学班应保持为独立课程实体。
+  assert.equal(result.courses.length, 28);
+  assert.equal(result.courses.filter(course => course.name === "人体寄生虫学").length, 2);
+  assert.equal(result.courses.filter(course => course.name === "医学微生物学").length, 2);
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(new Set(result.events.map(event => event.activity)), new Set([
     "independent", "online", "lecture", "lab", "discussion", "practice"
