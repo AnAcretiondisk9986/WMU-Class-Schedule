@@ -160,10 +160,18 @@ test("网页仅通过本地 PDF 导入课表", () => {
   assert.match(html, /选择从教务系统导出的课表 PDF/);
   assert.match(html, /href="https:\/\/jwxt\.wmu\.edu\.cn\/jwglxt\/kbcx\/xskbcx_cxXskbcxIndex\.html\?gnmkdm=N2151&amp;layout=default" target="_blank" rel="noopener noreferrer"/);
   assert.match(html, /<link rel="manifest" href="manifest\.webmanifest">/);
-  assert.match(html, /id="navInstall"[^>]*添加为手机APP/);
-  assert.match(html, /id="mobileNavInstall"[^>]*添加为手机APP/);
+  assert.match(html, /id="navInstall"[^>]*aria-label="添加到主屏幕"[^>]*><svg class="install-app-icon"/);
+  assert.match(html, /id="mobileNavInstall"[^>]*aria-label="添加到主屏幕"[^>]*><svg class="install-app-icon"/);
+  assert.doesNotMatch(html, /id="(?:navInstall|mobileNavInstall)"[^>]*\shidden(?:\s|>)/);
   assert.match(html, /beforeinstallprompt/);
   assert.match(html, /serviceWorker\.register\('\.\/sw\.js'\)/);
+});
+
+test("桌面侧栏的添加入口会打开手机 APP 引导", () => {
+  const s = runScenario(SAVED());
+  s.trigger("navInstall");
+  assert.equal(s.$("installBackdrop").classList.contains("modal-open"), true);
+  assert.equal(s.$("installPlatformTitle").textContent, "桌面设备");
 });
 
 test("手机 APP 引导覆盖 iOS 浏览器与 Android 一键安装", () => {

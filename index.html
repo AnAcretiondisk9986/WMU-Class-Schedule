@@ -795,7 +795,7 @@
           <button type="button" id="navSwitch"><i data-lucide="repeat"></i><span>切换课表</span></button>
           <button type="button" id="navSettings"><i data-lucide="settings-2"></i><span>偏好设置</span></button>
           <button type="button" id="navHelp"><i data-lucide="circle-help"></i><span>帮助</span></button>
-          <button class="install-nav-item" data-install-action type="button" id="navInstall" hidden title="添加为手机APP" aria-label="添加为手机APP"><i data-lucide="download"></i><span>添加为手机APP</span></button>
+          <button class="install-nav-item" data-install-action type="button" id="navInstall" title="添加到主屏幕" aria-label="添加到主屏幕"><svg class="install-app-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5.5" y="2.5" width="13" height="19" rx="2.5"></rect><path d="M9 5.5h6M12 9v6M9 12h6M10.5 18.5h3"></path></svg><span>添加为手机APP</span></button>
         </nav>
       </div>
       <div class="sidebar-foot">
@@ -852,7 +852,7 @@
   <aside class="mobile-nav-panel" id="mobileNavPanel" aria-label="完整导航" aria-hidden="true">
     <div class="mobile-nav-head"><img class="mobile-nav-brand" src="assets/wmu-logo-white.png" alt="温州医科大学"><button class="icon-btn mobile-nav-close" id="mobileNavClose" type="button" title="关闭导航" aria-label="关闭导航"><i data-lucide="x"></i></button></div>
     <div class="mobile-nav-group"><div class="mobile-nav-label">学习安排</div><button type="button" data-mobile-action="schedule" id="mobileNavSchedule"><i data-lucide="calendar-days"></i><span>我的课表</span></button><button type="button" data-mobile-action="list" id="mobileNavList"><i data-lucide="list-todo"></i><span>课程清单</span></button><button type="button" data-mobile-action="favorites" id="mobileNavFavorites"><i data-lucide="bookmark"></i><span>收藏课程</span></button></div>
-    <div class="mobile-nav-group"><div class="mobile-nav-label">课表管理</div><button type="button" data-mobile-action="switch" id="mobileNavSwitch"><i data-lucide="repeat"></i><span>切换课表</span></button><button type="button" data-mobile-action="settings" id="mobileNavSettings"><i data-lucide="settings-2"></i><span>偏好设置</span></button><button type="button" data-mobile-action="help" id="mobileNavHelp"><i data-lucide="circle-help"></i><span>帮助</span></button><button class="install-nav-item" data-install-action type="button" id="mobileNavInstall" hidden title="添加为手机APP" aria-label="添加为手机APP"><i data-lucide="download"></i><span>添加为手机APP</span></button></div>
+    <div class="mobile-nav-group"><div class="mobile-nav-label">课表管理</div><button type="button" data-mobile-action="switch" id="mobileNavSwitch"><i data-lucide="repeat"></i><span>切换课表</span></button><button type="button" data-mobile-action="settings" id="mobileNavSettings"><i data-lucide="settings-2"></i><span>偏好设置</span></button><button type="button" data-mobile-action="help" id="mobileNavHelp"><i data-lucide="circle-help"></i><span>帮助</span></button><button class="install-nav-item" data-install-action type="button" id="mobileNavInstall" title="添加到主屏幕" aria-label="添加到主屏幕"><svg class="install-app-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5.5" y="2.5" width="13" height="19" rx="2.5"></rect><path d="M9 5.5h6M12 9v6M9 12h6M10.5 18.5h3"></path></svg><span>添加为手机APP</span></button></div>
     <div class="mobile-nav-foot"><div class="mobile-storage"><div class="storage-row"><span>本地存储</span><strong id="mobileStorageValue">0%</strong></div><div class="meter"><i id="mobileStorageMeter"></i></div></div><div class="mobile-profile"><div class="avatar" id="mobileProfileAvatar">黄</div><div class="mobile-profile-copy"><div class="mobile-profile-name" id="mobileProfileName">我的课表</div><div class="mobile-profile-sub" id="mobileProfileSub">本地数据 · 示例</div></div></div></div>
   </aside>
 
@@ -1032,7 +1032,7 @@
 
     function openInstallGuide() {
       const env = renderInstallGuide();
-      if (!env.isMobile || env.isStandalone) return;
+      if (env.isStandalone) return;
       markInstallSeen();
       openModal('installBackdrop');
     }
@@ -1054,7 +1054,7 @@
 
     function setupInstallExperience() {
       const env = getInstallEnvironment();
-      const shouldOffer = env.isMobile && !env.isStandalone;
+      const shouldOffer = !env.isStandalone;
       setInstallButtonsVisible(shouldOffer);
       window.addEventListener?.('beforeinstallprompt', (event) => {
         event.preventDefault?.();
@@ -1066,7 +1066,7 @@
         closeInstallGuide();
         setInstallButtonsVisible(false);
       });
-      if (!shouldOffer || hasInstallSeen()) return;
+      if (!env.isMobile || env.isStandalone || hasInstallSeen()) return;
       window.setTimeout?.(() => {
         if (!hasInstallSeen()) openInstallGuide();
       }, 700);
