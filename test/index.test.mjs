@@ -6,9 +6,16 @@ import test from "node:test";
 // 用于防止前端渲染/状态逻辑回归。
 const indexUrl = new URL("../index.html", import.meta.url);
 const html = readFileSync(indexUrl, "utf8");
+const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 const scriptMatch = html.match(/<script type="module">([\s\S]*?)<\/script>/);
 if (!scriptMatch) throw new Error("index.html 中未找到模块脚本");
 const code = scriptMatch[1].replace(/^\s*import .*$/gm, "");
+
+test("内联脚本引用的固定 DOM 元素均存在", () => {
+  const referencedIds = [...code.matchAll(/\$\('([^']+)'\)/g)].map((match) => match[1]);
+  const missingIds = [...new Set(referencedIds)].filter((id) => !new RegExp(`id=["']${id}["']`).test(html));
+  assert.deepEqual(missingIds, []);
+});
 
 function makeClassList() {
   const set = new Set();
@@ -164,6 +171,13 @@ test("手机 APP 引导覆盖 iOS 浏览器与 Android 一键安装", () => {
   assert.match(html, /\['Safari', 'Chrome', 'Edge'\]\.includes\(browser\)/);
   assert.match(html, /当前浏览器暂未适配 iOS 添加流程，请切换到 Safari、Chrome 或 Edge/);
   assert.match(html, /一键添加到桌面/);
+});
+
+test("PWA 页面导航优先读取网络并仅清理自身旧缓存", () => {
+  assert.match(serviceWorker, /event\.request\.mode === "navigate"/);
+  assert.match(serviceWorker, /fetch\(event\.request\)[\s\S]*catch\(\(\) => caches\.match\("\.\/index\.html"\)\)/);
+  assert.match(serviceWorker, /key\.startsWith\(CACHE_PREFIX\) && key !== CACHE_NAME/);
+  assert.doesNotMatch(serviceWorker, /keys\.filter\(key => key !== CACHE_NAME\)/);
 });
 
 test("index.html 预填充数据正确渲染课表", () => {
