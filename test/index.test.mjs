@@ -152,7 +152,18 @@ test("网页仅通过本地 PDF 导入课表", () => {
   assert.match(html, /id="importButton" aria-label="导入 PDF" title="导入 PDF"/);
   assert.match(html, /选择从教务系统导出的课表 PDF/);
   assert.match(html, /href="https:\/\/jwxt\.wmu\.edu\.cn\/jwglxt\/kbcx\/xskbcx_cxXskbcxIndex\.html\?gnmkdm=N2151&amp;layout=default" target="_blank" rel="noopener noreferrer"/);
-  assert.doesNotMatch(html, /jwxt-bridge|manifest\.webmanifest|快捷导入|一键导入|书签栏|系统分享|serviceWorker|postMessage|downForm/);
+  assert.match(html, /<link rel="manifest" href="manifest\.webmanifest">/);
+  assert.match(html, /id="navInstall"[^>]*添加为手机APP/);
+  assert.match(html, /id="mobileNavInstall"[^>]*添加为手机APP/);
+  assert.match(html, /beforeinstallprompt/);
+  assert.match(html, /serviceWorker\.register\('\.\/sw\.js'\)/);
+});
+
+test("手机 APP 引导覆盖 iOS 浏览器与 Android 一键安装", () => {
+  assert.match(html, /const isIOS = \/iPad\|iPhone\|iPod\/i/);
+  assert.match(html, /\['Safari', 'Chrome', 'Edge'\]\.includes\(browser\)/);
+  assert.match(html, /当前浏览器暂未适配 iOS 添加流程，请切换到 Safari、Chrome 或 Edge/);
+  assert.match(html, /一键添加到桌面/);
 });
 
 test("index.html 预填充数据正确渲染课表", () => {

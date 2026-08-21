@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#7b182e">
   <meta name="description" content="温州医科大学课表 PDF 导入与周视图工具">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="温医大课表">
   <meta property="og:title" content="温医大课表">
@@ -16,6 +18,7 @@
   <meta name="twitter:image" content="https://acretiondisk.top/WMU-Class-Schedule/assets/wmu-preview.png">
   <link rel="icon" type="image/png" sizes="512x512" href="assets/wmu-preview.png">
   <link rel="apple-touch-icon" href="assets/wmu-preview.png">
+  <link rel="manifest" href="manifest.webmanifest">
   <title>温医大课表</title>
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
@@ -207,6 +210,21 @@
     .empty-guide h3 { margin: 4px 0 0; color: var(--ink); font-size: 16px; }
     .empty-guide p { margin: 0; color: var(--muted); font-size: 12px; }
     .empty-guide .import-btn { margin-top: 10px; }
+
+    .install-nav-item[hidden] { display: none; }
+    .install-nav-item svg { color: var(--gold); }
+    .install-modal { width: min(460px, 100%); }
+    .install-platform { display: flex; align-items: flex-start; gap: 12px; margin-top: 22px; padding: 13px; border: 1px solid var(--line); background: var(--brand-soft); }
+    .install-platform-icon { display: grid; width: 34px; height: 34px; flex: 0 0 auto; place-items: center; border-radius: 5px; background: var(--brand); color: #fff; }
+    .install-platform-icon svg { width: 18px; height: 18px; }
+    .install-platform-copy { min-width: 0; }
+    .install-platform-copy strong { display: block; color: var(--brand-deep); font-size: 13px; }
+    .install-platform-copy p { margin: 3px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .install-steps { margin-top: 18px; padding-left: 20px; color: var(--ink); font-size: 12px; line-height: 1.7; }
+    .install-steps li + li { margin-top: 8px; }
+    .install-steps strong { color: var(--brand-deep); }
+    .install-tip { margin-top: 14px; padding: 10px 12px; border-left: 2px solid var(--gold); background: var(--gold-soft); color: #6f5a3f; font-size: 11px; line-height: 1.55; }
+    .install-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
 
     .drawer-backdrop { position: fixed; inset: 0; z-index: 10; background: rgba(12,24,18,.26); opacity: 0; pointer-events: none; }
     .drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 11; width: min(420px, 100vw); padding: 28px; overflow: auto; background: #fff; box-shadow: -15px 0 40px rgba(17,32,24,.12); transform: translate3d(100%, 0, 0); touch-action: pan-y; will-change: transform; }
@@ -686,6 +704,8 @@
       .mobile-nav-group button { display: flex; width: 100%; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border: 0; border-radius: 5px; background: transparent; color: rgba(255,255,255,.72); font-weight: 650; text-align: left; }
       .mobile-nav-group button svg { width: 18px; height: 18px; }
       .mobile-nav-group button.active { background: #fff; color: var(--brand-deep); box-shadow: inset 3px 0 0 var(--gold); }
+      .mobile-nav-group button.install-nav-item { color: #fff; }
+      .mobile-nav-group button.install-nav-item svg { color: var(--gold); }
       .mobile-nav-foot { display: grid; gap: 12px; margin-top: auto; }
       .mobile-storage { padding: 12px; border: 1px solid rgba(255,255,255,.16); border-radius: 5px; background: rgba(255,255,255,.05); }
       .mobile-storage .storage-row { color: rgba(255,255,255,.68); }
@@ -775,6 +795,7 @@
           <button type="button" id="navSwitch"><i data-lucide="repeat"></i><span>切换课表</span></button>
           <button type="button" id="navSettings"><i data-lucide="settings-2"></i><span>偏好设置</span></button>
           <button type="button" id="navHelp"><i data-lucide="circle-help"></i><span>帮助</span></button>
+          <button class="install-nav-item" data-install-action type="button" id="navInstall" hidden title="添加为手机APP" aria-label="添加为手机APP"><i data-lucide="download"></i><span>添加为手机APP</span></button>
         </nav>
       </div>
       <div class="sidebar-foot">
@@ -831,7 +852,7 @@
   <aside class="mobile-nav-panel" id="mobileNavPanel" aria-label="完整导航" aria-hidden="true">
     <div class="mobile-nav-head"><img class="mobile-nav-brand" src="assets/wmu-logo-white.png" alt="温州医科大学"><button class="icon-btn mobile-nav-close" id="mobileNavClose" type="button" title="关闭导航" aria-label="关闭导航"><i data-lucide="x"></i></button></div>
     <div class="mobile-nav-group"><div class="mobile-nav-label">学习安排</div><button type="button" data-mobile-action="schedule" id="mobileNavSchedule"><i data-lucide="calendar-days"></i><span>我的课表</span></button><button type="button" data-mobile-action="list" id="mobileNavList"><i data-lucide="list-todo"></i><span>课程清单</span></button><button type="button" data-mobile-action="favorites" id="mobileNavFavorites"><i data-lucide="bookmark"></i><span>收藏课程</span></button></div>
-    <div class="mobile-nav-group"><div class="mobile-nav-label">课表管理</div><button type="button" data-mobile-action="switch" id="mobileNavSwitch"><i data-lucide="repeat"></i><span>切换课表</span></button><button type="button" data-mobile-action="settings" id="mobileNavSettings"><i data-lucide="settings-2"></i><span>偏好设置</span></button><button type="button" data-mobile-action="help" id="mobileNavHelp"><i data-lucide="circle-help"></i><span>帮助</span></button></div>
+    <div class="mobile-nav-group"><div class="mobile-nav-label">课表管理</div><button type="button" data-mobile-action="switch" id="mobileNavSwitch"><i data-lucide="repeat"></i><span>切换课表</span></button><button type="button" data-mobile-action="settings" id="mobileNavSettings"><i data-lucide="settings-2"></i><span>偏好设置</span></button><button type="button" data-mobile-action="help" id="mobileNavHelp"><i data-lucide="circle-help"></i><span>帮助</span></button><button class="install-nav-item" data-install-action type="button" id="mobileNavInstall" hidden title="添加为手机APP" aria-label="添加为手机APP"><i data-lucide="download"></i><span>添加为手机APP</span></button></div>
     <div class="mobile-nav-foot"><div class="mobile-storage"><div class="storage-row"><span>本地存储</span><strong id="mobileStorageValue">0%</strong></div><div class="meter"><i id="mobileStorageMeter"></i></div></div><div class="mobile-profile"><div class="avatar" id="mobileProfileAvatar">黄</div><div class="mobile-profile-copy"><div class="mobile-profile-name" id="mobileProfileName">我的课表</div><div class="mobile-profile-sub" id="mobileProfileSub">本地数据 · 示例</div></div></div></div>
   </aside>
 
@@ -846,7 +867,7 @@
 
   <div class="modal-backdrop" id="switchBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="switchTitle"><div class="modal-head"><div><h2 id="switchTitle">切换课表</h2><p>选择要查看的课表。</p></div><button class="icon-btn" id="switchClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="switch-list" id="switchList"></div><div class="modal-foot"><button class="secondary-btn" id="switchImport" type="button">导入新课表</button><button class="import-btn" id="switchDone" type="button">完成</button></div></section></div>
 
-  <div class="modal-backdrop" id="customBackdrop"><section class="modal custom-modal" role="dialog" aria-modal="true" aria-labelledby="customTitleHeading"><div class="modal-head"><div><h2 id="customTitleHeading">添加自定义日程</h2><p>记录不在课表里的安排，保存后会显示在最上层。</p></div><button class="icon-btn" id="customClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body custom-form"><label class="field"><span>标题 <b aria-hidden="true">*</b></span><input id="customTitle" type="text" maxlength="40" placeholder="例如：实验室组会" autocomplete="off"></label><label class="field"><span>简介</span><textarea id="customDescription" rows="3" maxlength="120" placeholder="补充提醒或待办内容"></textarea></label><label class="field"><span>地点</span><input id="customRoom" type="text" maxlength="50" placeholder="例如：求知楼 204"></label><div class="custom-grid"><label class="field"><span>周次</span><input id="customWeek" type="number" min="-52" max="99" step="1"></label><label class="field"><span>星期</span><select id="customDay"><option value="1">周一</option><option value="2">周二</option><option value="3">周三</option><option value="4">周四</option><option value="5">周五</option><option value="6">周六</option><option value="7">周日</option></select></label></div><div class="custom-grid"><label class="field"><span>开始时间</span><input id="customStart" type="time"></label><label class="field"><span>结束时间</span><input id="customEnd" type="time"></label></div><div class="field"><span>卡片颜色</span><div class="color-options" id="customColorOptions" role="radiogroup" aria-label="卡片颜色"><button type="button" class="color-option selected" data-color="brand" title="校红" aria-label="校红"><i></i></button><button type="button" class="color-option" data-color="gold" title="金色" aria-label="金色"><i></i></button><button type="button" class="color-option" data-color="blue" title="蓝色" aria-label="蓝色"><i></i></button><button type="button" class="color-option" data-color="mint" title="青绿" aria-label="青绿"><i></i></button><button type="button" class="color-option" data-color="violet" title="紫灰" aria-label="紫灰"><i></i></button></div></div><div class="import-status" id="customStatus" role="status" aria-live="polite"></div></div><div class="modal-foot"><button class="secondary-btn" id="customCancel" type="button">取消</button><button class="import-btn" id="customSave" type="button"><i data-lucide="check"></i><span>保存日程</span></button></div></section></div>
+  <div class="modal-backdrop" id="installBackdrop"><section class="modal install-modal" role="dialog" aria-modal="true" aria-labelledby="installTitle"><div class="modal-head"><div><h2 id="installTitle">添加为手机 APP</h2><p id="installSubtitle">把课表放到手机桌面，打开更方便。</p></div><button class="icon-btn" id="installClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="install-platform"><div class="install-platform-icon"><i id="installPlatformIcon" data-lucide="smartphone"></i></div><div class="install-platform-copy"><strong id="installPlatformTitle">检测设备中</strong><p id="installPlatformDescription">正在准备适合当前设备的添加方式。</p></div></div><ol class="install-steps" id="installSteps"></ol><div class="install-tip" id="installTip"></div><div class="install-actions"><button class="secondary-btn" id="installLater" type="button">稍后再说</button><button class="import-btn" id="installAction" type="button"><i data-lucide="download"></i><span>添加到手机桌面</span></button></div></section></div>
 
   <script type="module">
     import { parseTimetablePdf } from './src/timetable.js';
@@ -905,6 +926,7 @@
       violet: { background: '#eeeaf3', accent: '#78638b', text: '#594569' }
     };
     const STORAGE_KEY = 'wmu-timetable-v1';
+    const INSTALL_SEEN_KEY = 'wmu-pwa-install-guide-seen-v1';
     const GLOBAL_STAT_FALLBACK = 200;
     const DEFAULT_SLOT_HEIGHT = 72;
     const MIN_SLOT_HEIGHT = 48;
@@ -928,7 +950,131 @@
     let drawerAnimationFrame = 0;
     let drawerPosition = 0;
     let drawerSwipeState = null;
+    let deferredInstallPrompt = null;
     const $ = (id) => document.getElementById(id);
+
+    function getInstallEnvironment() {
+      const nav = globalThis.navigator || {};
+      const ua = String(nav.userAgent || '');
+      const platform = String(nav.userAgentData?.platform || nav.platform || '');
+      const isIOS = /iPad|iPhone|iPod/i.test(ua) || (platform === 'MacIntel' && Number(nav.maxTouchPoints) > 1);
+      const isAndroid = /Android/i.test(ua);
+      const isMobile = isIOS || isAndroid || /Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+      const isStandalone = Boolean(nav.standalone) || Boolean(window.matchMedia?.('(display-mode: standalone)').matches);
+      let browser = '其他浏览器';
+      if (/EdgiOS/i.test(ua) || /EdgA/i.test(ua)) browser = 'Edge';
+      else if (/CriOS/i.test(ua) || /Chrome/i.test(ua)) browser = 'Chrome';
+      else if (/FxiOS/i.test(ua) || /Firefox/i.test(ua)) browser = 'Firefox';
+      else if (/Safari/i.test(ua)) browser = 'Safari';
+      return { nav, ua, browser, isIOS, isAndroid, isMobile, isStandalone, iosSupported: ['Safari', 'Chrome', 'Edge'].includes(browser) };
+    }
+
+    function hasInstallSeen() {
+      try { return localStorage.getItem(INSTALL_SEEN_KEY) === '1'; } catch (error) { return false; }
+    }
+
+    function markInstallSeen() {
+      try { localStorage.setItem(INSTALL_SEEN_KEY, '1'); } catch (error) {}
+    }
+
+    function setInstallButtonsVisible(visible) {
+      document.querySelectorAll('[data-install-action]').forEach((button) => { button.hidden = !visible; });
+    }
+
+    function renderInstallGuide() {
+      const env = getInstallEnvironment();
+      const title = $('installTitle');
+      const subtitle = $('installSubtitle');
+      const platformTitle = $('installPlatformTitle');
+      const platformDescription = $('installPlatformDescription');
+      const platformIcon = $('installPlatformIcon');
+      const steps = $('installSteps');
+      const tip = $('installTip');
+      const action = $('installAction');
+      if (!title || !subtitle || !platformTitle || !platformDescription || !steps || !tip || !action) return env;
+
+      title.textContent = env.isIOS ? '添加为手机 APP' : env.isAndroid ? '把课表添加到桌面' : '请使用手机浏览器';
+      subtitle.textContent = env.isIOS ? '添加后可以像普通 APP 一样打开课表。' : env.isAndroid ? '添加后可从桌面直接打开课表。' : '当前设备不是手机，暂不需要添加手机 APP。';
+      platformIcon?.setAttribute('data-lucide', env.isIOS ? 'share' : env.isAndroid ? 'smartphone' : 'monitor');
+      platformTitle.textContent = env.isIOS ? `iOS · ${env.browser}` : env.isAndroid ? `Android · ${env.browser}` : '桌面设备';
+      platformDescription.textContent = env.isIOS && !env.iosSupported
+        ? '当前浏览器不在适配范围内。'
+        : env.isAndroid && deferredInstallPrompt
+          ? '当前浏览器支持一键添加。'
+          : env.isAndroid
+            ? '请使用支持 PWA 的 Chrome 或 Edge 打开本页。'
+            : '手机端入口只在手机浏览器中提供。';
+
+      action.hidden = true;
+      if (env.isAndroid && deferredInstallPrompt) {
+        action.hidden = false;
+        action.querySelector?.('span')?.replaceChildren?.('一键添加到桌面');
+        steps.innerHTML = '<li>点击下方「一键添加到桌面」。</li><li>在系统确认框中点击「添加」即可完成。</li>';
+        tip.textContent = '安装后，课表数据仍只保存在本机浏览器中。';
+      } else if (env.isIOS && env.iosSupported) {
+        steps.innerHTML = '<li>点击浏览器底部或顶部的「分享」按钮。</li><li>在分享菜单中选择「添加到主屏幕」。</li><li>确认名称后点击右上角「添加」。</li>';
+        tip.textContent = `${env.browser} 的 iOS 版本需要通过分享菜单完成添加。`;
+      } else if (env.isIOS) {
+        steps.innerHTML = '<li>请复制当前网址，在 Safari、Chrome 或 Edge 中打开。</li><li>再按对应浏览器的「分享」按钮，选择「添加到主屏幕」。</li>';
+        tip.textContent = '当前浏览器暂未适配 iOS 添加流程，请切换到 Safari、Chrome 或 Edge。';
+      } else if (env.isAndroid) {
+        steps.innerHTML = '<li>请在 Chrome 或 Edge 中打开本页。</li><li>使用浏览器菜单选择「安装应用」或「添加到主屏幕」。</li>';
+        tip.textContent = '当前浏览器没有提供一键安装能力。';
+      } else {
+        steps.innerHTML = '<li>请使用手机浏览器打开本页。</li>';
+        tip.textContent = '这个入口只针对手机端添加 APP。';
+      }
+      if (window.lucide) window.lucide.createIcons();
+      return env;
+    }
+
+    function openInstallGuide() {
+      const env = renderInstallGuide();
+      if (!env.isMobile || env.isStandalone) return;
+      markInstallSeen();
+      openModal('installBackdrop');
+    }
+
+    function closeInstallGuide() { closeModalById('installBackdrop'); }
+
+    async function installApp() {
+      if (!deferredInstallPrompt) { renderInstallGuide(); return; }
+      const prompt = deferredInstallPrompt;
+      deferredInstallPrompt = null;
+      try {
+        await prompt.prompt();
+        const choice = await prompt.userChoice;
+        if (choice?.outcome === 'accepted') closeInstallGuide();
+      } catch (error) {
+        renderInstallGuide();
+      }
+    }
+
+    function setupInstallExperience() {
+      const env = getInstallEnvironment();
+      const shouldOffer = env.isMobile && !env.isStandalone;
+      setInstallButtonsVisible(shouldOffer);
+      window.addEventListener?.('beforeinstallprompt', (event) => {
+        event.preventDefault?.();
+        deferredInstallPrompt = event;
+        if ($('installBackdrop')?.classList?.contains('modal-open')) renderInstallGuide();
+      });
+      window.addEventListener?.('appinstalled', () => {
+        deferredInstallPrompt = null;
+        closeInstallGuide();
+        setInstallButtonsVisible(false);
+      });
+      if (!shouldOffer || hasInstallSeen()) return;
+      window.setTimeout?.(() => {
+        if (!hasInstallSeen()) openInstallGuide();
+      }, 700);
+    }
+
+    function registerServiceWorker() {
+      const serviceWorker = (globalThis.navigator || {}).serviceWorker;
+      if (!serviceWorker?.register) return;
+      serviceWorker.register('./sw.js').catch(() => {});
+    }
     function setRootCssVariable(name, value) {
       const style = document.documentElement?.style;
       if (!style) return;
@@ -2272,6 +2418,7 @@
     $('navSettings').addEventListener('click', openSettings);
     $('navHelp').addEventListener('click', openHelp);
     $('navSwitch').addEventListener('click', openSwitch);
+    $('navInstall').addEventListener('click', openInstallGuide);
     $('switchClose').addEventListener('click', () => closeModalById('switchBackdrop'));
     $('switchBackdrop').addEventListener('click', (event) => { if (event.target === event.currentTarget) closeModalById('switchBackdrop'); });
     $('switchDone').addEventListener('click', () => closeModalById('switchBackdrop'));
@@ -2295,6 +2442,7 @@
     $('mobileNavSwitch').addEventListener('click', () => { closeMobileNav(); openSwitch(); });
     $('mobileNavSettings').addEventListener('click', () => { closeMobileNav(); openSettings(); });
     $('mobileNavHelp').addEventListener('click', () => { closeMobileNav(); openHelp(); });
+    $('mobileNavInstall').addEventListener('click', () => { closeMobileNav(); openInstallGuide(); });
     $('importButton').addEventListener('click', openImportModal);
     $('addCustomButton').addEventListener('click', openCustomModal);
     $('modalClose').addEventListener('click', closeImportModal);
@@ -2305,6 +2453,10 @@
     $('helpClose').addEventListener('click', () => closeModalById('helpBackdrop'));
     $('helpBackdrop').addEventListener('click', (event) => { if (event.target === event.currentTarget) closeModalById('helpBackdrop'); });
     $('helpDone').addEventListener('click', () => closeModalById('helpBackdrop'));
+    $('installClose').addEventListener('click', closeInstallGuide);
+    $('installLater').addEventListener('click', closeInstallGuide);
+    $('installBackdrop').addEventListener('click', (event) => { if (event.target === event.currentTarget) closeInstallGuide(); });
+    $('installAction').addEventListener('click', installApp);
     $('settingsDone').addEventListener('click', () => {
       const value = $('termStartInput').value;
       const tt = currentTimetable();
@@ -2374,6 +2526,7 @@
       closeModalById('helpBackdrop');
       closeModalById('switchBackdrop');
       closeCustomModal();
+      closeInstallGuide();
       closeMobileNav();
     });
     document.addEventListener('touchmove', (event) => {
@@ -2390,6 +2543,8 @@
     loadState();
     if (window.lucide) window.lucide.createIcons();
     renderAll();
+    setupInstallExperience();
+    registerServiceWorker();
   </script>
 </body>
 </html>
