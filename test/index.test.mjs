@@ -252,6 +252,21 @@ test("index.html 周次切换按单双周过滤", () => {
   assert.equal(s.$("weekValue").textContent, "第 02 周");
 });
 
+test("index.html 月视图按当月日期分周并支持月份切换", () => {
+  const s = runScenario(SAVED({ month: "2026-09" }));
+  s.trigger("monthViewButton");
+  assert.equal(s.error, null, s.error?.stack);
+  assert.equal(s.$("viewTitle").textContent, "月视图");
+  assert.equal(s.$("weekValue").textContent, "2026 年 9 月");
+  assert.match(s.$("monthView").innerHTML, /month-week/);
+  assert.match(s.$("monthView").innerHTML, /month-empty/);
+  s.trigger("nextWeek");
+  assert.equal(s.$("weekValue").textContent, "2026 年 10 月");
+  const saved = JSON.parse(s.storage["wmu-timetable-v1"]);
+  assert.equal(saved.month, "2026-10");
+  assert.equal(saved.view, "month");
+});
+
 test("index.html 主题切换与收藏视图", () => {
   const s = runScenario(SAVED());
   s.trigger("themeButton");

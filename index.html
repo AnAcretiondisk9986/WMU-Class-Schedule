@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#7b182e">
-  <meta name="description" content="温州医科大学课表 PDF 导入与周视图工具">
+  <meta name="description" content="温州医科大学课表 PDF 导入与周/月视图工具">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta property="og:type" content="website">
@@ -203,6 +203,30 @@
     .type-discussion { --course-bg: #ffe5dd; --course-accent: #d97658; --course-text: #793c2a; }
 
     .agenda { display: none; }
+    .month-view { margin-top: 10px; overflow: hidden; border: 1px solid var(--line); border-radius: 11px; background: #fff; box-shadow: var(--shadow); }
+    .month-weekdays, .month-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    .month-weekdays { min-height: 42px; border-bottom: 1px solid var(--line); background: #fafcf9; }
+    .month-weekday { display: grid; place-items: center; border-right: 1px solid var(--line); color: var(--muted); font-size: 11px; font-weight: 750; }
+    .month-weekday:last-child, .month-cell:last-child { border-right: 0; }
+    .month-week { min-height: 132px; border-bottom: 1px solid var(--line); }
+    .month-week:last-child { border-bottom: 0; }
+    .month-cell { position: relative; min-width: 0; min-height: 132px; padding: 8px; border-right: 1px solid var(--line); background: #fff; }
+    .month-cell.today { background: #f8e9ed; }
+    .month-cell.week-focus { box-shadow: inset 0 2px 0 #4ca878; }
+    .month-cell-date { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 12px; font-weight: 750; }
+    .month-cell.today .month-cell-date { color: var(--brand-deep, #512c33); }
+    .month-events { display: grid; gap: 4px; margin-top: 7px; max-height: 94px; overflow: auto; scrollbar-width: none; }
+    .month-events::-webkit-scrollbar { display: none; }
+    .month-event { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px; width: 100%; min-width: 0; padding: 4px 5px; overflow: hidden; border: 1px solid transparent; border-left: 3px solid var(--course-accent); border-radius: 4px; background: var(--course-bg); color: var(--course-text); cursor: pointer; text-align: left; }
+    .month-event-time { overflow: hidden; font-size: 9px; font-weight: 750; opacity: .8; white-space: nowrap; }
+    .month-event-title { min-width: 0; overflow: hidden; font-size: 10px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+    .month-event.type-custom { box-shadow: 0 2px 5px rgba(49, 31, 36, .1); }
+    .month-more { margin-top: 4px; color: var(--muted); font-size: 9px; text-align: right; }
+    .month-empty { min-height: 132px; }
+    .month-view.preview-month { margin-top: 0; border: 0; border-radius: 0; box-shadow: none; pointer-events: none; }
+    .month-view.preview-month .month-cell { min-height: 100px; padding: 6px; }
+    .month-view.preview-month .month-week { min-height: 100px; }
+    .month-view.preview-month .month-events { max-height: 65px; }
     .empty { display: none; place-items: center; min-height: 430px; color: var(--muted); text-align: center; }
     .empty svg { width: 26px; height: 26px; margin-bottom: 8px; color: #9aaba1; }
     .empty-guide { display: grid; justify-items: center; gap: 6px; }
@@ -363,6 +387,13 @@
       .agenda-event .event-time { color: var(--course-text); font-size: 11px; font-weight: 750; }
       .agenda-event .event-title { color: var(--course-text); font-size: 12px; font-weight: 800; }
       .agenda-event .event-room { margin-top: 3px; color: var(--course-text); font-size: 10px; opacity: .75; }
+      .month-cell { min-height: 104px; padding: 6px 4px; }
+      .month-week { min-height: 104px; }
+      .month-events { gap: 3px; max-height: 76px; margin-top: 5px; }
+      .month-event { display: block; padding: 3px 4px; border-left-width: 2px; }
+      .month-event-time { display: none; }
+      .month-event-title { display: block; font-size: 9px; }
+      .month-more { font-size: 8px; }
       .week-swipe-surface { touch-action: pan-y; }
       .course { left: 3px; right: 3px; padding: 7px 6px; }
       .course-title { display: -webkit-box; min-height: 0; max-height: none; margin: 0; overflow: hidden; font-size: 10px; line-height: 1.2; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; word-break: break-all; -webkit-box-orient: vertical; -webkit-line-clamp: 4; }
@@ -371,6 +402,13 @@
       .course-room { display: grid; min-height: auto; margin: 0; overflow: visible; font-size: 8px; line-height: 1.15; white-space: normal; -webkit-box-orient: initial; -webkit-line-clamp: unset; }
       .course-room svg { width: 10px; height: 10px; flex: 0 0 auto; margin-top: 1px; }
       .course-meta { display: none; }
+      .month-cell { min-height: 92px; padding: 5px 3px; }
+      .month-week { min-height: 92px; }
+      .month-weekdays { min-height: 34px; }
+      .month-weekday { font-size: 9px; }
+      .month-cell-date { font-size: 10px; }
+      .month-events { max-height: 68px; }
+      .month-event-title { font-size: 8px; }
       .course.course-compact .course-title { -webkit-line-clamp: 3; }
       .course.course-tiny .course-meta { display: none; }
       .course.course-tiny .course-title { -webkit-line-clamp: 2; }
@@ -754,6 +792,9 @@
     html.dark-mode .schedule-head { background: #202522; }
     html.dark-mode .time-axis { background: #1d211f; }
     html.dark-mode .day-column { background-color: #181c1a; }
+    html.dark-mode .month-view, html.dark-mode .month-cell { background: #181c1a; }
+    html.dark-mode .month-weekdays { background: #202522; }
+    html.dark-mode .month-cell.today { background: #452b32; }
     html.dark-mode .head-cell.today-column, html.dark-mode .day-column.today-column { background-color: #452b32; }
     html.dark-mode .head-cell.focus { background: #253a30; }
     html.dark-mode .dropzone { background: #1b211e; border-color: #4d5b52; }
@@ -822,8 +863,8 @@
             <p class="head-note" id="headNote">这一周有 17 节课，安排得刚刚好。</p>
           </div>
           <div class="head-actions">
-            <button class="today-btn" id="todayButton" type="button">回到今天</button>
-            <div class="week-switch" aria-label="切换周次"><button id="prevWeek" type="button" title="上一周" aria-label="上一周"><i data-lucide="chevron-left"></i></button><span class="week-value" id="weekValue">第 03 周</span><button id="nextWeek" type="button" title="下一周" aria-label="下一周"><i data-lucide="chevron-right"></i></button></div>
+          <button class="today-btn" id="todayButton" type="button">回到今天</button>
+          <div class="week-switch" id="weekSwitch" aria-label="切换周次"><button id="prevWeek" type="button" title="上一周" aria-label="上一周"><i data-lucide="chevron-left"></i></button><span class="week-value" id="weekValue">第 03 周</span><button id="nextWeek" type="button" title="下一周" aria-label="下一周"><i data-lucide="chevron-right"></i></button></div>
           </div>
         </section>
 
@@ -833,13 +874,14 @@
           <div class="pulse"><div class="pulse-icon"><i data-lucide="map-pin"></i></div><div class="pulse-copy"><div class="pulse-label">主要校区</div><div class="pulse-value" id="campusValue">滨海校区 · 求知楼</div></div></div>
         </section>
 
-        <section class="toolbar"><div><h2 id="viewTitle">周视图</h2><span class="subtle" id="weekRangeLabel">…</span></div><div class="toolbar-spacer"></div><button class="custom-add-btn" id="addCustomButton" type="button" title="添加自定义日程"><i data-lucide="plus"></i><span>新建日程</span></button><div class="view-toggle" role="group" aria-label="视图切换"><button class="active" id="weekViewButton" type="button"><i data-lucide="table-2"></i>周视图</button><button id="listViewButton" type="button"><i data-lucide="list"></i>列表</button></div></section>
+        <section class="toolbar"><div><h2 id="viewTitle">周视图</h2><span class="subtle" id="weekRangeLabel">…</span></div><div class="toolbar-spacer"></div><button class="custom-add-btn" id="addCustomButton" type="button" title="添加自定义日程"><i data-lucide="plus"></i><span>新建日程</span></button><div class="view-toggle" role="group" aria-label="视图切换"><button class="active" id="weekViewButton" type="button"><i data-lucide="table-2"></i>周视图</button><button id="monthViewButton" type="button"><i data-lucide="calendar-days"></i>月视图</button><button id="listViewButton" type="button"><i data-lucide="list"></i>列表</button></div></section>
 
         <div class="week-swipe-viewport" id="weekSwipeViewport"><div class="week-swipe-surface" id="weekSwipeSurface">
           <div class="week-swipe-page week-swipe-preview" id="previousWeekPreview" aria-hidden="true"></div>
           <div class="week-swipe-page" id="currentWeekPage">
             <section class="schedule-shell" id="scheduleShell"><div class="schedule-scroll"><div class="schedule" id="schedule"></div></div><div class="empty" id="emptyState"><div><i data-lucide="calendar-off"></i><div>没有匹配的课程</div></div></div></section>
             <section class="agenda" id="agenda" aria-label="课程列表"></section>
+            <section class="month-view" id="monthView" aria-label="月视图"></section>
           </div>
           <div class="week-swipe-page week-swipe-preview" id="nextWeekPreview" aria-hidden="true"></div>
         </div></div>
@@ -863,7 +905,7 @@
 
   <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题与本地数据管理。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><div class="settings-layout"><div class="settings-controls"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option><option value="dark">暗色</option></select></label><label class="field" for="slotHeightInput"><span>单元格高度</span><div class="range-row"><input id="slotHeightInput" type="range" min="48" max="144" step="4" value="72"><output class="range-value" id="slotHeightValue" for="slotHeightInput">72 px</output></div></label><label class="settings-toggle"><input id="hideEmptyWeekendsInput" type="checkbox"><span class="settings-toggle-copy"><span>自动隐藏无课周末列</span><small>仅隐藏周六、周日中没有课程的列，工作日始终保留。</small></span></label></div><div class="slot-preview" aria-live="polite"><div class="slot-preview-title">实时预览</div><div class="slot-preview-board" id="slotHeightPreview" style="--preview-slot-h:24px"><div class="slot-preview-axis"><span>08:00</span><span>08:45</span><span>09:30</span><span>10:15</span></div><div class="slot-preview-column"><span class="slot-preview-card">课程卡片</span></div><div class="slot-preview-column"><span class="slot-preview-card">今日</span></div></div><div class="slot-preview-note">拖动滑块查看每个 45 分钟单元格的高度变化。</div></div></div><p class="settings-note" id="settingsNote">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。高度会同时调整时间轴、课程卡片和网格间距。</p><div class="data-actions"><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
 
-  <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>可在「导入 PDF」弹窗中前往教务系统查询课表；正常导出 PDF 后，回到本页选择该文件。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>「回到今天」定位到当前周次与星期。</li><li>工具栏「新建日程」可快速添加课表外安排，默认定位到当前周和当天。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
+  <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>可在「导入 PDF」弹窗中前往教务系统查询课表；正常导出 PDF 后，回到本页选择该文件。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>切换到「月视图」可按日查看当前月份，月初和月末不足一周的日期会保留在独立行中。</li><li>「回到今天」定位到当前周次与星期，月视图下定位到当前月份。</li><li>工具栏「新建日程」可快速添加课表外安排，默认定位到当前周和当天。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
 
   <div class="modal-backdrop" id="switchBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="switchTitle"><div class="modal-head"><div><h2 id="switchTitle">切换课表</h2><p>选择要查看的课表。</p></div><button class="icon-btn" id="switchClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="switch-list" id="switchList"></div><div class="modal-foot"><button class="secondary-btn" id="switchImport" type="button">导入新课表</button><button class="import-btn" id="switchDone" type="button">完成</button></div></section></div>
 
@@ -938,7 +980,7 @@
       if (!Number.isFinite(numeric)) return DEFAULT_SLOT_HEIGHT;
       return Math.min(MAX_SLOT_HEIGHT, Math.max(MIN_SLOT_HEIGHT, Math.round(numeric / 4) * 4));
     };
-    const state = { timetables: [], activeId: null, week: 1, day: 1, query: '', view: 'schedule', favorites: [], updatedAt: 0, slotHeight: null, hideEmptyWeekends: false };
+    const state = { timetables: [], activeId: null, week: 1, day: 1, month: '', query: '', view: 'schedule', favorites: [], updatedAt: 0, slotHeight: null, hideEmptyWeekends: false };
     const VALID_EVENT_TYPES = new Set(['lecture', 'lab', 'online', 'discussion', 'practice', 'independent', 'custom']);
     const VALID_COLORS = new Set(['brand', 'gold', 'blue', 'mint', 'violet']);
     const MAX_PERIOD = 19;
@@ -1131,6 +1173,12 @@
       return Number.isInteger(number) && number >= min && number <= max ? number : null;
     };
     const validClock = (value) => /^([01]\d|2[0-3]):[0-5]\d$/.test(String(value || ''));
+    const validMonth = (value) => {
+      const match = /^(\d{4})-(\d{2})$/.exec(String(value || ''));
+      if (!match) return false;
+      const date = new Date(`${value}-01T00:00:00`);
+      return !Number.isNaN(date.getTime()) && date.getFullYear() === Number(match[1]) && date.getMonth() + 1 === Number(match[2]);
+    };
     const normalizeWeeks = (value, allowNegative = false) => {
       if (!Array.isArray(value)) return null;
       const min = allowNegative ? -52 : 1;
@@ -1216,7 +1264,8 @@
         theme: ['light', 'warm', 'dark'].includes(value.theme) ? value.theme : 'light',
         week: value.week == null ? 1 : (integerInRange(value.week, -52, 99) ?? 1),
         day: integerInRange(value.day, 1, 7) || 1,
-        view: ['schedule', 'list', 'favorites'].includes(value.view) ? value.view : 'schedule',
+        view: ['schedule', 'month', 'list', 'favorites'].includes(value.view) ? value.view : 'schedule',
+        month: validMonth(value.month) ? value.month : '',
         slotHeight: value.slotHeight == null || !Number.isFinite(Number(value.slotHeight)) ? null : Number(value.slotHeight),
         hideEmptyWeekends: value.hideEmptyWeekends === true,
         updatedAt: Number.isFinite(Number(value.updatedAt)) ? Number(value.updatedAt) : 0
@@ -1251,6 +1300,19 @@
     const clampNavigableWeek = (week) => {
       const numeric = Number.isFinite(Number(week)) ? Math.trunc(Number(week)) : 1;
       return Math.min(maxNavigableWeek(), Math.max(minNavigableWeek(), numeric));
+    };
+    const monthCursor = () => {
+      if (validMonth(state.month)) return new Date(`${state.month}-01T00:00:00`);
+      const today = new Date();
+      state.month = `${today.getFullYear()}-${pad2(today.getMonth() + 1)}`;
+      return new Date(`${state.month}-01T00:00:00`);
+    };
+    const monthLabel = (date = monthCursor()) => `${date.getFullYear()} 年 ${date.getMonth() + 1} 月`;
+    const monthBounds = (date = monthCursor()) => ({ start: new Date(date.getFullYear(), date.getMonth(), 1), end: new Date(date.getFullYear(), date.getMonth() + 1, 0) });
+    const shiftMonth = (delta) => {
+      const date = monthCursor();
+      date.setMonth(date.getMonth() + delta, 1);
+      state.month = `${date.getFullYear()}-${pad2(date.getMonth() + 1)}`;
     };
     const todayButtonLabel = () => {
       const week = currentWeekInfo().week;
@@ -1483,6 +1545,12 @@
       renderAll();
       return true;
     }
+    function navigateMonth(delta) {
+      shiftMonth(delta);
+      persist();
+      renderAll();
+      return true;
+    }
     function finishWeekSwipe(delta, releaseVelocity) {
       const changed = navigateWeek(delta);
       if (!changed) { animateSwipeTo(0, releaseVelocity * 1000); return; }
@@ -1518,7 +1586,7 @@
         event.preventDefault?.();
         const width = weekSwipeWidth();
         let position = swipeState.origin + dx;
-        if ((dx < 0 && state.week >= maxNavigableWeek()) || (dx > 0 && state.week <= minNavigableWeek())) {
+        if (state.view !== 'month' && ((dx < 0 && state.week >= maxNavigableWeek()) || (dx > 0 && state.week <= minNavigableWeek()))) {
           position = swipeState.origin + rubberband(dx, width);
         }
         setSwipeTransform(Math.max(-width, Math.min(width, position)));
@@ -1537,6 +1605,10 @@
         if (!shouldCommit) { animateSwipeTo(0, velocity * 1000, () => surface.setAttribute('aria-busy', 'false')); return; }
         const direction = Math.abs(velocity) > .32 ? Math.sign(velocity) : Math.sign(projected || dx);
         const delta = direction < 0 ? 1 : -1;
+        if (state.view === 'month') {
+          animateSwipeTo(delta > 0 ? -width : width, velocity * 1000, () => { navigateMonth(delta); surface.setAttribute('aria-busy', 'false'); });
+          return;
+        }
         const next = state.week + delta;
         if (next < minNavigableWeek() || next > maxNavigableWeek()) {
           animateSwipeTo(0, velocity * 1000, () => surface.setAttribute('aria-busy', 'false'));
@@ -1647,8 +1719,65 @@
       document.querySelectorAll('.agenda-event[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(currentEvents()[Number(button.dataset.event)])));
     }
 
+    function monthEventsForDate(date) {
+      const target = weekAndDayForDate(date);
+      return visibleEventsForWeek(target.week).filter((event) => event.day === target.day).sort((a, b) => eventStartMinute(a) - eventStartMinute(b));
+    }
+    function monthEventCount() {
+      const { start, end } = monthBounds();
+      let count = 0;
+      for (let date = new Date(start); date <= end; date = addDays(date, 1)) count += monthEventsForDate(date).length;
+      return count;
+    }
+
+    function monthMarkup(interactive = true, preview = false, monthValue = '') {
+      const cursor = validMonth(monthValue) ? new Date(`${monthValue}-01T00:00:00`) : monthCursor();
+      const { start, end } = monthBounds(cursor);
+      const offset = (start.getDay() + 6) % 7;
+      const totalDays = end.getDate();
+      const rowCount = Math.ceil((offset + totalDays) / 7);
+      const today = new Date();
+      const todayIso = toIso(today);
+      const weekdays = DAY_NAMES.map((name) => `<div class="month-weekday">${name}</div>`).join('');
+      const rows = Array.from({ length: rowCount }, (_, rowIndex) => {
+        const cells = Array.from({ length: 7 }, (_, columnIndex) => {
+          const dayNumber = rowIndex * 7 + columnIndex - offset + 1;
+          if (dayNumber < 1 || dayNumber > totalDays) return '<div class="month-cell month-empty" aria-hidden="true"></div>';
+          const date = new Date(cursor.getFullYear(), cursor.getMonth(), dayNumber);
+          const iso = toIso(date);
+          const target = weekAndDayForDate(date);
+          const events = monthEventsForDate(date);
+          const eventMarkup = events.slice(0, preview ? 3 : 5).map((event) => {
+            const tag = interactive ? 'button' : 'div';
+            const attributes = interactive ? ` data-event="${currentEvents().indexOf(event)}" type="button"` : '';
+            return `<${tag} class="month-event type-${event.type} layer-${courseLayer(event)}${event.kind === 'custom' ? ' type-custom' : ''}"${attributes} style="${customColorStyle(event)}" title="${escapeHtml(event.title)}"><span class="month-event-time">${escapeHtml(timeLabel(event).split('–')[0])}</span><span class="month-event-title">${escapeHtml(truncateTitle(event.title))}</span></${tag}>`;
+          }).join('');
+          const more = events.length > (preview ? 3 : 5) ? `<div class="month-more">还有 ${events.length - (preview ? 3 : 5)} 节</div>` : '';
+          const classes = ["month-cell", iso === todayIso ? 'today' : '', target.week === state.week ? 'week-focus' : ''].filter(Boolean).join(' ');
+          return `<div class="${classes}"><div class="month-cell-date"><span>${dayNumber}</span><small>${events.length ? `${events.length}节` : ''}</small></div><div class="month-events">${eventMarkup}${more}</div></div>`;
+        }).join('');
+        return `<div class="month-week">${cells}</div>`;
+      }).join('');
+      return `<div class="month-weekdays">${weekdays}</div>${rows}`;
+    }
+
+    function renderMonthView() {
+      const root = $('monthView');
+      if (!root) return;
+      root.innerHTML = monthMarkup(true);
+      document.querySelectorAll('#monthView .month-event[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(currentEvents()[Number(button.dataset.event)])));
+    }
+
     function renderWeekPreview(id, week) {
       const root = $(id);
+      if (state.view === 'month') {
+        const cursor = monthCursor();
+        cursor.setMonth(cursor.getMonth() + (id === 'previousWeekPreview' ? -1 : 1), 1);
+        const previewMonth = `${cursor.getFullYear()}-${pad2(cursor.getMonth() + 1)}`;
+        root.setAttribute('data-preview-month', previewMonth);
+        root.innerHTML = `<section class="month-view preview-month" aria-hidden="true">${monthMarkup(false, true, previewMonth)}</section>`;
+        return;
+      }
       const schedule = buildScheduleMarkup(week, false);
       const showSchedule = state.view === 'schedule';
       const emptyVisible = !currentEvents().length || !schedule.events.length;
@@ -1657,6 +1786,11 @@
     }
 
     function renderWeekPreviews() {
+      if (state.view === 'month') {
+        renderWeekPreview('previousWeekPreview', state.week);
+        renderWeekPreview('nextWeekPreview', state.week);
+        return;
+      }
       renderWeekPreview('previousWeekPreview', Math.max(minNavigableWeek(), state.week - 1));
       renderWeekPreview('nextWeekPreview', Math.min(maxNavigableWeek(), state.week + 1));
     }
@@ -1756,11 +1890,12 @@
         : state.updatedAt ? '本地已保存' : '示例数据';
       const weekEvents = visibleEvents();
       const favoriteCount = new Set(currentEvents().filter((event) => event.kind !== 'custom' && isFavoriteEvent(event)).map(courseIdentity)).size;
+      const periodEventCount = state.view === 'month' ? monthEventCount() : weekEvents.length;
       $('headNote').textContent = state.view === 'favorites'
         ? `已收藏 ${favoriteCount} 门课程，共 ${weekEvents.length} 个课次。`
-        : `${weekLabel(state.week)}共有 ${weekEvents.length} 节课。`;
-      $('weekRangeLabel').textContent = `${formatFull(days[0].fullDate)} — ${formatFull(days[6].fullDate)}`;
-      $('viewTitle').textContent = state.view === 'schedule' ? '周视图' : state.view === 'list' ? '课程清单' : '收藏课程';
+        : state.view === 'month' ? `${monthLabel()} · 共 ${periodEventCount} 节课。` : `${weekLabel(state.week)}共有 ${weekEvents.length} 节课。`;
+      $('weekRangeLabel').textContent = state.view === 'month' ? monthLabel() : `${formatFull(days[0].fullDate)} — ${formatFull(days[6].fullDate)}`;
+      $('viewTitle').textContent = state.view === 'schedule' ? '周视图' : state.view === 'month' ? '月视图' : state.view === 'list' ? '课程清单' : '收藏课程';
       const events = currentEvents();
       const courseCredits = new Map();
       events.forEach((event) => {
@@ -1781,22 +1916,30 @@
       const next = nextCourseToday();
       $('nextCourseLabel').textContent = next.label;
       $('nextCourseValue').textContent = next.value;
-      $('weekValue').textContent = state.week >= 1 && state.week <= maxWeek()
+      $('weekValue').textContent = state.view === 'month' ? monthLabel() : state.week >= 1 && state.week <= maxWeek()
         ? `第 ${String(state.week).padStart(2, '0')} 周`
         : weekLabel(state.week);
+      $('prevWeek').setAttribute('title', state.view === 'month' ? '上个月' : '上一周');
+      $('prevWeek').setAttribute('aria-label', state.view === 'month' ? '上个月' : '上一周');
+      $('nextWeek').setAttribute('title', state.view === 'month' ? '下个月' : '下一周');
+      $('nextWeek').setAttribute('aria-label', state.view === 'month' ? '下个月' : '下一周');
+      $('weekSwitch').setAttribute('aria-label', state.view === 'month' ? '切换月份' : '切换周次');
       renderStorage();
       renderThemeButton();
       renderSchedule();
       renderAgenda();
+      renderMonthView();
       renderWeekPreviews();
       setSwipeTransform(0);
       attachWeekSwipe();
       attachDrawerSwipe();
-      document.body.classList.toggle('list-mode', state.view !== 'schedule');
+      document.body.classList.toggle('list-mode', state.view !== 'schedule' && state.view !== 'month');
       $('scheduleShell').style.display = state.view === 'schedule' ? '' : 'none';
-      $('agenda').style.display = state.view === 'schedule' ? '' : 'grid';
+      $('agenda').style.display = state.view === 'list' || state.view === 'favorites' ? 'grid' : 'none';
+      $('monthView').style.display = state.view === 'month' ? '' : 'none';
       $('weekViewButton').classList.toggle('active', state.view === 'schedule');
-      $('listViewButton').classList.toggle('active', state.view !== 'schedule');
+      $('monthViewButton').classList.toggle('active', state.view === 'month');
+      $('listViewButton').classList.toggle('active', state.view === 'list' || state.view === 'favorites');
       $('navSchedule').classList.toggle('active', state.view === 'schedule');
       $('navList').classList.toggle('active', state.view === 'list');
       $('navFavorites').classList.toggle('active', state.view === 'favorites');
@@ -2174,6 +2317,7 @@
         theme: currentTheme(),
         week: state.week,
         day: state.day,
+        month: state.month,
         view: state.view,
         slotHeight: state.slotHeight,
         hideEmptyWeekends: state.hideEmptyWeekends,
@@ -2241,6 +2385,7 @@
           favorites: [...state.favorites],
           week: state.week,
           day: state.day,
+          month: state.month,
           view: state.view,
           slotHeight: state.slotHeight,
           hideEmptyWeekends: state.hideEmptyWeekends,
@@ -2254,6 +2399,7 @@
           : migrateFavorites(normalized.favorites, state.timetables);
         state.week = normalized.week;
         state.day = normalized.day;
+        state.month = normalized.month;
         state.view = normalized.view;
         setSchedulePreferences(normalized.slotHeight, normalized.hideEmptyWeekends);
         setThemeClasses(normalized.theme);
@@ -2279,6 +2425,7 @@
         state.favorites = migrateFavorites(normalized.favorites || [], state.timetables);
         state.week = normalized.week;
         state.day = normalized.day;
+        state.month = normalized.month;
         state.view = normalized.view;
         setSchedulePreferences(normalized.slotHeight, normalized.hideEmptyWeekends);
         state.updatedAt = normalized.updatedAt;
@@ -2304,7 +2451,8 @@
           state.favorites = migrateFavorites(Array.isArray(saved.favorites) ? saved.favorites : [], state.timetables);
           state.week = Number.isFinite(saved.week) ? saved.week : 1;
           state.day = Number.isFinite(saved.day) ? saved.day : 1;
-          state.view = ['schedule', 'list', 'favorites'].includes(saved.view) ? saved.view : 'schedule';
+          state.view = ['schedule', 'month', 'list', 'favorites'].includes(saved.view) ? saved.view : 'schedule';
+          state.month = validMonth(saved.month) ? saved.month : '';
           setSchedulePreferences(null, false);
           state.updatedAt = saved.updatedAt || 0;
           setThemeClasses(saved.theme);
@@ -2316,6 +2464,7 @@
       state.favorites = [];
       state.week = 1;
       state.day = 1;
+      state.month = '';
       state.view = 'schedule';
       state.query = '';
       state.updatedAt = 0;
@@ -2347,6 +2496,7 @@
           favorites: [...state.favorites],
           week: state.week,
           day: state.day,
+          month: state.month,
           view: state.view,
           query: state.query,
           updatedAt: state.updatedAt
@@ -2377,6 +2527,7 @@
         state.activeId = timetable.id;
         state.week = 1;
         state.day = 1;
+        state.month = `${new Date().getFullYear()}-${pad2(new Date().getMonth() + 1)}`;
         state.view = 'schedule';
         state.query = '';
         if (!persist()) {
@@ -2399,20 +2550,23 @@
       }
     }
 
-    $('prevWeek').addEventListener('click', () => { navigateWeek(-1); });
-    $('nextWeek').addEventListener('click', () => { navigateWeek(1); });
+    $('prevWeek').addEventListener('click', () => { state.view === 'month' ? navigateMonth(-1) : navigateWeek(-1); });
+    $('nextWeek').addEventListener('click', () => { state.view === 'month' ? navigateMonth(1) : navigateWeek(1); });
     $('todayButton').addEventListener('click', () => {
       const today = weekAndDayForDate(new Date());
+      const wasMonth = state.view === 'month';
       const last = maxWeek();
       if (today.week < 1) state.week = 1;
       else if (today.week > last) state.week = last;
       else state.week = today.week;
       state.day = today.day;
-      state.view = 'schedule';
+      state.month = `${new Date().getFullYear()}-${pad2(new Date().getMonth() + 1)}`;
+      state.view = wasMonth ? 'month' : 'schedule';
       persist();
       renderAll();
     });
     $('weekViewButton').addEventListener('click', () => { state.view = 'schedule'; persist(); renderAll(); });
+    $('monthViewButton').addEventListener('click', () => { state.view = 'month'; monthCursor(); persist(); renderAll(); });
     $('listViewButton').addEventListener('click', () => { state.view = 'list'; persist(); renderAll(); });
     $('navSchedule').addEventListener('click', () => { state.view = 'schedule'; persist(); renderAll(); });
     $('navList').addEventListener('click', () => { state.view = 'list'; persist(); renderAll(); });
