@@ -6,7 +6,7 @@
 
 - 代码仓库：`git@github.com:AnAcretiondisk9986/WMU-Class-Schedule.git`
 - 默认分支：`main`
-- 当前功能提交：`5a6b9ef feat: add minute-precise current-time indicator line and out-of-range week labels`
+- 当前功能提交：`524cf3e fix: show PWA install actions in navigation`
 - 在线地址：
   - <https://acretiondisk.top/WMU-Class-Schedule/>
   - <https://anacretiondisk9986.github.io/WMU-Class-Schedule/>
@@ -46,7 +46,7 @@ pnpm-lock.yaml                pnpm 依赖锁文件
 
 ### PDF 导入
 
-页面通过 ES module 加载 `src/timetable.js`，并从 jsDelivr 加载 PDF.js 5.4.149。用户选择或拖放 PDF 后，文件在浏览器本地解析，不上传服务器。
+页面通过 ES module 加载 `src/timetable.js`，并从仓库内 `vendor/pdfjs/` 加载 PDF.js 5.7.284 的浏览器构建产物。用户选择或拖放 PDF 后，文件在浏览器本地解析，不上传服务器。
 
 解析器不依赖 OCR，使用 PDF 文本层与文字坐标恢复星期列；已处理真实样本中的横向/旋转坐标、课程类型标记、分页、课程字段、单双周与学生信息。
 
@@ -80,9 +80,30 @@ pnpm-lock.yaml                pnpm 依赖锁文件
 - 偏好设置：学期第一周周一、浅色 / 暖色主题。
 - 响应式布局：桌面 / 移动 / 竖屏自适应。
 
+### PWA 与移动端安装引导
+
+- `manifest.webmanifest` 已配置应用名称、图标、主题色、`standalone` 显示模式和启动地址；`index.html` 已通过 `<link rel="manifest">` 接入。
+- 页面启动时检测平台与浏览器，区分 iOS、Android、Safari、Chrome、Edge 及其他浏览器。
+- Android 在浏览器支持 `beforeinstallprompt` 时支持弹窗内一键添加到手机桌面；用户点击后调用系统安装提示，并处理取消、已安装和不可用状态。
+- iOS 适配 Safari、Chrome、Edge 的添加流程，统一提示通过浏览器分享菜单选择“添加到主屏幕”。其他 iOS 浏览器会提示用户改用 Safari、Chrome 或 Edge。
+- 首次进入的移动端用户会自动打开安装引导；侧栏、移动底栏和移动端完整侧栏均提供“添加为手机APP”入口。入口在 PWA 已安装或当前环境不适用时隐藏。
+- 导航入口使用与现有线性图标一致的自绘手机加号 SVG，类名为 `.install-app-icon`，避免依赖额外图标资源。
+- 引导是否已展示通过 `localStorage` 键 `wmu-pwa-install-guide-seen-v1` 保存；安装引导不读取、覆盖或删除课表数据。
+
 ### 本地持久化与备份
 
 数据保存在浏览器 localStorage（键 `wmu-timetable-v1`，数据格式 `version: 2`，兼容旧版 v1 单课表格式并自动迁移）。支持导出 / 恢复 JSON 数据备份。
+
+### Service Worker 与数据安全
+
+- `sw.js` 当前使用缓存名 `wmu-timetable-shell-v2`。升级缓存版本时只清理自身 `wmu-timetable-shell-*` 缓存，不触碰 localStorage、用户 PDF 或其他站点数据。
+- 页面导航采用 network-first，优先获取线上最新 `index.html`，网络不可用时才回退到缓存，避免旧缓存长期覆盖修复。
+- 静态资源采用缓存优先并保留网络回退，保证已安装 PWA 在离线时仍能打开应用壳。
+- 课表内容仍只保存在当前浏览器的 `localStorage['wmu-timetable-v1']`；PWA 安装、Service Worker 更新和缓存清理均不应调用 `localStorage.clear()` 或删除该键。
+
+### 事故复盘
+
+PWA 更新期间曾误删 `customBackdrop` 固定 DOM 节点。页面初始化在 `loadState()` 前因找不到该节点而抛错，用户看到的表现是课表为空；实际的 `wmu-timetable-v1` 数据没有被删除。提交 `bff5838 fix: restore timetable startup after PWA update` 已恢复自定义日程弹窗，并增加固定 DOM ID 完整性测试。后续修改初始化流程或 PWA 相关 DOM 时，应先运行完整测试，并用已有浏览器数据验证刷新后课表仍能恢复。
 
 ### 当前时间指示线
 
@@ -102,7 +123,7 @@ pnpm install
 pnpm test
 ```
 
-测试覆盖：单双周解析、滨海/茶山真实样本回归、跨校区冲突（含多范围周次）；以及 index.html 的空态引导、渲染、周过滤、主题 / 收藏、课程名截断、localStorage 恢复、多课表切换。真实样本缺失时对应样本测试会自动跳过，因此干净克隆仍可运行测试。
+测试覆盖：单双周解析、滨海/茶山真实样本回归、跨校区冲突（含多范围周次）；以及 index.html 的空态引导、渲染、周过滤、主题 / 收藏、课程名截断、localStorage 恢复、多课表切换、固定 DOM ID 完整性和 PWA 安装入口相关 DOM。当前 `npm test` 共 52 个测试全部通过；真实样本缺失时对应样本测试会自动跳过，因此干净克隆仍可运行测试。
 
 本地预览建议使用能返回正确 JavaScript MIME 类型的静态服务器：
 
@@ -129,7 +150,7 @@ git push origin main
 gh run list --limit 5
 ```
 
-PDF.js 和 worker 使用 CDN（`cdn.jsdelivr.net`），图标库 lucide 从 `unpkg.com` 加载（加载失败时页面仍可用，仅图标不显示）。若需完全离线或避免第三方 CDN，应将 PDF.js 构建产物和 lucide 纳入仓库或增加打包工具。
+PDF.js、worker、CMap 和标准字体已纳入 `vendor/pdfjs/`，网页端使用同源路径，Service Worker 会预缓存这些资源并在版本更新时清理旧的 `wmu-timetable-shell-*` 缓存。图标库 lucide 仍从 `unpkg.com` 加载（加载失败时页面仍可用，仅图标不显示）。
 
 ## 6. 继续开发时的注意事项
 
@@ -141,7 +162,16 @@ PDF.js 和 worker 使用 CDN（`cdn.jsdelivr.net`），图标库 lucide 从 `unp
 
 ## 7. 交接验收记录
 
-- `node --test`：12 个测试全部通过（解析器 5 个 + DOM 冒烟 7 个）。
+- `npm test`：52/52 通过。
+- `node --check sw.js`：通过；PWA 同源 PDF.js 资源与版本敏感资源缓存策略已覆盖测试。
 - 真实样本回归：滨海校区（黄映焜）、茶山校区（崔艺鑫）样本均可直接解析。
 - 浏览器端导入茶山 / 滨海样本可生成课表并渲染周视图。
-- GitHub Actions Pages：推送 main 自动部署，两个线上地址均返回 HTTP 200。
+- 浏览器验收：390×844 移动视口底栏 7 个按钮完整显示、无横向溢出，新手机加号 SVG 正常显示；桌面侧栏入口可见并能打开安装引导。
+- PWA 安装引导已验证 Android 一键安装分支、iOS Safari / Chrome / Edge 说明分支和其他 iOS 浏览器提示分支。
+- GitHub Actions Pages 最近部署成功，两个线上地址均返回 HTTP 200。
+
+最近提交：
+
+- `48cee47 feat: add mobile PWA installation guide`
+- `bff5838 fix: restore timetable startup after PWA update`
+- `524cf3e fix: show PWA install actions in navigation`

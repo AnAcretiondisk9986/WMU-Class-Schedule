@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 
 // 读取 index.html 的内联模块脚本，并在最小 DOM mock 中实际执行，
@@ -181,11 +181,31 @@ test("手机 APP 引导覆盖 iOS 浏览器与 Android 一键安装", () => {
   assert.match(html, /一键添加到桌面/);
 });
 
-test("PWA 页面导航优先读取网络并仅清理自身旧缓存", () => {
+test("PWA 页面导航优先读取网络并缓存本地 PDF.js 依赖", () => {
+  assert.match(serviceWorker, /const CACHE_NAME = `\$\{CACHE_PREFIX\}v3`/);
   assert.match(serviceWorker, /event\.request\.mode === "navigate"/);
   assert.match(serviceWorker, /fetch\(event\.request\)[\s\S]*catch\(\(\) => caches\.match\("\.\/index\.html"\)\)/);
   assert.match(serviceWorker, /key\.startsWith\(CACHE_PREFIX\) && key !== CACHE_NAME/);
   assert.doesNotMatch(serviceWorker, /keys\.filter\(key => key !== CACHE_NAME\)/);
+  assert.match(serviceWorker, /\.\/vendor\/pdfjs\/build\/pdf\.min\.mjs/);
+  assert.match(serviceWorker, /\.\/vendor\/pdfjs\/build\/pdf\.worker\.min\.mjs/);
+  assert.match(serviceWorker, /vendor\/pdfjs\/cmaps\//);
+  assert.match(serviceWorker, /vendor\/pdfjs\/standard_fonts\//);
+  assert.match(serviceWorker, /isVersionSensitive/);
+});
+
+test("网页端 PDF.js 及辅助资源使用同源路径", () => {
+  assert.match(html, /import \* as pdfjsLib from '\.\/vendor\/pdfjs\/build\/pdf\.min\.mjs'/);
+  assert.match(html, /workerSrc = '\.\/vendor\/pdfjs\/build\/pdf\.worker\.min\.mjs'/);
+  assert.match(html, /cMapUrl: '\.\/vendor\/pdfjs\/cmaps\/'/);
+  assert.match(html, /standardFontDataUrl: '\.\/vendor\/pdfjs\/standard_fonts\/'/);
+  assert.doesNotMatch(html, /cdn\.jsdelivr\.net\/npm\/pdfjs-dist/);
+});
+
+test("Service Worker 预缓存清单中的同源资源均存在", () => {
+  const entries = [...serviceWorker.matchAll(/"(\.\/[^\"]+)"/g)].map((match) => match[1]);
+  const missing = entries.filter((entry) => !existsSync(new URL(entry, indexUrl)));
+  assert.deepEqual(missing, []);
 });
 
 test("index.html 预填充数据正确渲染课表", () => {

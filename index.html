@@ -915,9 +915,9 @@
 
   <script type="module">
     import { parseTimetablePdf } from './src/timetable.js';
-    import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/build/pdf.mjs';
+    import * as pdfjsLib from './vendor/pdfjs/build/pdf.min.mjs';
 
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/build/pdf.worker.mjs';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = './vendor/pdfjs/build/pdf.worker.min.mjs';
 
     const DAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
     const pad2 = (value) => String(value).padStart(2, '0');
@@ -2481,9 +2481,9 @@
       setImportStatus('正在读取 PDF 并识别课程，请稍候……');
       try {
         const result = await parseTimetablePdf(file, pdfjsLib, {
-          cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/cmaps/',
+          cMapUrl: './vendor/pdfjs/cmaps/',
           cMapPacked: true,
-          standardFontDataUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/standard_fonts/'
+          standardFontDataUrl: './vendor/pdfjs/standard_fonts/'
         });
         const conflicts = Array.isArray(result.conflicts) ? result.conflicts : [];
         if (conflicts.length) {
