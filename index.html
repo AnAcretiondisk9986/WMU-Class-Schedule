@@ -944,7 +944,9 @@
       ['13:30', '14:10'], ['14:15', '14:55'], ['15:00', '15:40'],
       ['15:45', '16:25'], ['16:30', '17:10'], ['17:15', '17:55'],
       ['18:20', '19:00'], ['19:05', '19:45'], ['19:50', '20:30'],
-      ['20:35', '21:15'], ['21:20', '22:00'], ['22:05', '22:45']
+      ['20:35', '21:15'], ['21:20', '22:00'], ['22:05', '22:45'],
+      // WMU 导出课表存在 20–22 节，文件未附作息表，使用连续晚间时段兜底。
+      ['22:50', '23:30'], ['23:35', '00:15'], ['00:20', '01:00']
     ];
     const CHASHAN_PERIODS = [
       ['08:00', '08:40'], ['08:45', '09:25'], ['09:40', '10:20'],
@@ -983,7 +985,7 @@
     const state = { timetables: [], activeId: null, week: 1, day: 1, month: '', query: '', view: 'schedule', favorites: [], updatedAt: 0, slotHeight: null, hideEmptyWeekends: false };
     const VALID_EVENT_TYPES = new Set(['lecture', 'lab', 'online', 'discussion', 'practice', 'independent', 'custom']);
     const VALID_COLORS = new Set(['brand', 'gold', 'blue', 'mint', 'violet']);
-    const MAX_PERIOD = 19;
+    const MAX_PERIOD = 22;
     const MAX_BACKUP_TEXT = 500;
     let selectedPdfFile = null;
     let activeEvent = null;
