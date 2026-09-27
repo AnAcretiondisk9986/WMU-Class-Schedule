@@ -17,6 +17,7 @@ const ACTIVITY_LABELS = Object.freeze({
 });
 
 const DAY_CHARS = Object.freeze(["一", "二", "三", "四", "五", "六", "日"]);
+// This list only gates cross-campus warnings where bell schedules are known; parsed campus text is free-form.
 const PHYSICAL_CAMPUSES = Object.freeze(["茶山校区", "学院路校区", "滨海校区"]);
 const SHARED_AFTERNOON_PERIODS = Object.freeze([
   ["13:30", "14:10"], ["14:15", "14:55"], ["15:00", "15:40"],
@@ -176,7 +177,7 @@ function parseColumn(source, weekday, warnings) {
         end: Number(schedule[2] ?? schedule[1])
       },
       weeks: weekRanges,
-      campus: fields["校区"] ?? "",
+      campus: fields["校区"] ?? "", // Preserve arbitrary values such as hospital placements; do not whitelist campus names.
       room: fields["场地"] ?? "",
       teacher: fields["教师"] ?? "",
       className: fields["教学班"] ?? "",

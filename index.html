@@ -292,6 +292,21 @@
     .drawer-delete-custom { display: none; float: left; gap: 6px; height: 34px; padding-inline: 10px; color: #9a574b; }
     .drawer-delete-custom.visible { display: inline-flex; align-items: center; }
     .drawer-delete-custom svg { width: 14px; height: 14px; }
+    .drawer-alias-origin { margin: 6px 0 0; color: var(--muted); font-size: 11px; }
+    .drawer-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+    .drawer-action[hidden] { display: none; }
+    .drawer-action.danger { color: #9a574b; }
+    .drawer-card-tools { display: grid; gap: 8px; margin-top: 20px; }
+    .drawer-tools-label { color: var(--muted); font-size: 11px; font-weight: 700; }
+    .drawer-color-options { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+    .drawer-color-option { display: grid; min-width: 32px; height: 32px; padding: 0 8px; place-items: center; border: 1px solid transparent; border-radius: 16px; background: transparent; color: var(--muted); cursor: pointer; font-size: 10px; }
+    .drawer-color-option i { display: block; width: 20px; height: 20px; border: 3px solid var(--panel); border-radius: 50%; box-shadow: 0 0 0 1px rgba(40,40,40,.2); }
+    .drawer-color-option.selected { border-color: var(--ink); }
+    .drawer-color-option[data-drawer-color="brand"] i { background: #a71f3c; }
+    .drawer-color-option[data-drawer-color="gold"] i { background: #b48a4c; }
+    .drawer-color-option[data-drawer-color="blue"] i { background: #587797; }
+    .drawer-color-option[data-drawer-color="mint"] i { background: #4f7d6e; }
+    .drawer-color-option[data-drawer-color="violet"] i { background: #78638b; }
     .settings-body { margin-top: 18px; display: grid; gap: 14px; }
     .settings-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(168px, .82fr); gap: 16px; align-items: start; }
     .settings-controls { display: grid; gap: 14px; min-width: 0; }
@@ -899,17 +914,19 @@
   </aside>
 
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
-  <aside class="drawer" id="drawer" aria-label="课程详情" aria-hidden="true"><button class="icon-btn drawer-favorite" id="drawerFavorite" type="button" title="收藏课程" aria-label="收藏课程"><i data-lucide="bookmark"></i></button><button class="secondary-btn drawer-delete-custom" id="drawerDeleteCustom" type="button" title="删除自定义日程"><i data-lucide="trash-2"></i><span>删除日程</span></button><button class="icon-btn drawer-close" id="drawerClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button><div class="drawer-kicker" id="drawerKicker">课程详情</div><h2 id="drawerTitle">课程名称</h2><p class="drawer-sub" id="drawerSub">周二 · 第 1–2 节</p><dl class="detail-list"><div class="detail-row"><dt>上课时间</dt><dd id="detailTime">08:00–09:25</dd></div><div class="detail-row"><dt>上课地点</dt><dd id="detailRoom">滨海校区 · 求知楼</dd></div><div class="detail-row" id="detailDescriptionRow"><dt>简介</dt><dd id="detailDescription">—</dd></div><div class="detail-row" id="detailTeacherRow"><dt>任课教师</dt><dd id="detailTeacher">教师姓名</dd></div><div class="detail-row"><dt>周次</dt><dd id="detailWeeks">第 1–16 周</dd></div><div class="detail-row"><dt>课程类型</dt><dd id="detailType">讲课</dd></div></dl><div class="drawer-note" id="drawerNote">课程数据保存在本地浏览器中。导入新的 PDF 后，可以继续手动修正课程信息。</div></aside>
+  <aside class="drawer" id="drawer" aria-label="课程详情" aria-hidden="true"><button class="icon-btn drawer-favorite" id="drawerFavorite" type="button" title="收藏课程" aria-label="收藏课程"><i data-lucide="bookmark"></i></button><button class="icon-btn drawer-close" id="drawerClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button><div class="drawer-kicker" id="drawerKicker">课程详情</div><h2 id="drawerTitle">课程名称</h2><p class="drawer-alias-origin" id="drawerAliasOrigin" hidden></p><p class="drawer-sub" id="drawerSub">周二 · 第 1–2 节</p><dl class="detail-list"><div class="detail-row"><dt>上课时间</dt><dd id="detailTime">08:00–09:25</dd></div><div class="detail-row"><dt>上课地点</dt><dd id="detailRoom">滨海校区 · 求知楼</dd></div><div class="detail-row" id="detailDescriptionRow"><dt>简介</dt><dd id="detailDescription">—</dd></div><div class="detail-row" id="detailTeacherRow"><dt>任课教师</dt><dd id="detailTeacher">教师姓名</dd></div><div class="detail-row"><dt>周次</dt><dd id="detailWeeks">第 1–16 周</dd></div><div class="detail-row"><dt>课程类型</dt><dd id="detailType">讲课</dd></div></dl><div class="drawer-actions"><button class="secondary-btn drawer-action" id="drawerEditCustom" type="button" hidden>&#x7F16;&#x8F91;&#x65E5;&#x7A0B;</button><button class="secondary-btn drawer-action" id="drawerCourseAlias" type="button" hidden>&#x7F16;&#x8F91;&#x8BFE;&#x7A0B;&#x522B;&#x540D;</button><button class="secondary-btn drawer-action" id="drawerHideEvent" type="button">&#x9690;&#x85CF;&#x6B64;&#x5361;&#x7247;</button><button class="secondary-btn drawer-action danger" id="drawerDeleteCustom" type="button" hidden>&#x5220;&#x9664;&#x65E5;&#x7A0B;</button></div><div class="drawer-card-tools"><div class="drawer-tools-label">&#x5361;&#x7247;&#x989C;&#x8272;</div><div class="drawer-color-options" role="group" aria-label="&#x9009;&#x62E9;&#x5361;&#x7247;&#x989C;&#x8272;"><button class="drawer-color-option" id="drawerColorDefault" type="button" data-drawer-color="default" aria-label="&#x9ED8;&#x8BA4;&#x989C;&#x8272;">&#x9ED8;&#x8BA4;</button><button class="drawer-color-option" id="drawerColorBrand" type="button" data-drawer-color="brand" aria-label="&#x6821;&#x7EA2;"><i></i></button><button class="drawer-color-option" id="drawerColorGold" type="button" data-drawer-color="gold" aria-label="&#x91D1;&#x8272;"><i></i></button><button class="drawer-color-option" id="drawerColorBlue" type="button" data-drawer-color="blue" aria-label="&#x84DD;&#x8272;"><i></i></button><button class="drawer-color-option" id="drawerColorMint" type="button" data-drawer-color="mint" aria-label="&#x9752;&#x7EFF;"><i></i></button><button class="drawer-color-option" id="drawerColorViolet" type="button" data-drawer-color="violet" aria-label="&#x7D2B;&#x7070;"><i></i></button></div></div><div class="drawer-note" id="drawerNote">课程数据保存在本地浏览器中。导入新的 PDF 后，可以继续手动修正课程信息。</div></aside>
 
   <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>选择从教务系统导出的课表 PDF。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="query-link-row"><a class="secondary-btn query-link" href="https://jwxt.wmu.edu.cn/jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&amp;layout=default" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i><span>前往教务系统查询课表</span></a></div><label class="dropzone" id="dropZone" for="fileInput"><i data-lucide="upload-cloud"></i><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="import-status" id="importStatus" role="status" aria-live="polite"></div><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button" aria-label="开始识别" title="开始识别"><i data-lucide="scan-line"></i><span>开始识别</span></button></div></section></div>
 
-  <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题与本地数据管理。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><div class="settings-layout"><div class="settings-controls"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option><option value="dark">暗色</option></select></label><label class="field" for="slotHeightInput"><span>单元格高度</span><div class="range-row"><input id="slotHeightInput" type="range" min="48" max="144" step="4" value="72"><output class="range-value" id="slotHeightValue" for="slotHeightInput">72 px</output></div></label><label class="settings-toggle"><input id="hideEmptyWeekendsInput" type="checkbox"><span class="settings-toggle-copy"><span>自动隐藏无课周末列</span><small>仅隐藏周六、周日中没有课程的列，工作日始终保留。</small></span></label></div><div class="slot-preview" aria-live="polite"><div class="slot-preview-title">实时预览</div><div class="slot-preview-board" id="slotHeightPreview" style="--preview-slot-h:24px"><div class="slot-preview-axis"><span>08:00</span><span>08:45</span><span>09:30</span><span>10:15</span></div><div class="slot-preview-column"><span class="slot-preview-card">课程卡片</span></div><div class="slot-preview-column"><span class="slot-preview-card">今日</span></div></div><div class="slot-preview-note">拖动滑块查看每个 45 分钟单元格的高度变化。</div></div></div><p class="settings-note" id="settingsNote">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。高度会同时调整时间轴、课程卡片和网格间距。</p><div class="data-actions"><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
+  <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题与本地数据管理。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><div class="settings-layout"><div class="settings-controls"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option><option value="dark">暗色</option></select></label><label class="field" for="slotHeightInput"><span>单元格高度</span><div class="range-row"><input id="slotHeightInput" type="range" min="48" max="144" step="4" value="72"><output class="range-value" id="slotHeightValue" for="slotHeightInput">72 px</output></div></label><label class="settings-toggle"><input id="hideEmptyWeekendsInput" type="checkbox"><span class="settings-toggle-copy"><span>自动隐藏无课周末列</span><small>仅隐藏周六、周日中没有课程的列，工作日始终保留。</small></span></label></div><div class="slot-preview" aria-live="polite"><div class="slot-preview-title">实时预览</div><div class="slot-preview-board" id="slotHeightPreview" style="--preview-slot-h:24px"><div class="slot-preview-axis"><span>08:00</span><span>08:45</span><span>09:30</span><span>10:15</span></div><div class="slot-preview-column"><span class="slot-preview-card">课程卡片</span></div><div class="slot-preview-column"><span class="slot-preview-card">今日</span></div></div><div class="slot-preview-note">拖动滑块查看每个 45 分钟单元格的高度变化。</div></div></div><p class="settings-note" id="settingsNote">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。高度会同时调整时间轴、课程卡片和网格间距。</p><div class="data-actions"><button class="secondary-btn" id="unhideAllButton" type="button">解除所有隐藏（<span id="hiddenEventCount">0</span>）</button><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
 
-  <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>可在「导入 PDF」弹窗中前往教务系统查询课表；正常导出 PDF 后，回到本页选择该文件。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>切换到「月视图」可按日查看当前月份，月初和月末不足一周的日期会保留在独立行中。</li><li>「回到今天」定位到当前周次与星期，月视图下定位到当前月份。</li><li>工具栏「新建日程」可快速添加课表外安排，默认定位到当前周和当天。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
+  <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>可在「导入 PDF」弹窗中前往教务系统查询课表；正常导出 PDF 后，回到本页选择该文件。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>切换到「月视图」可按日查看当前月份，月初和月末不足一周的日期会保留在独立行中。</li><li>「回到今天」定位到当前周次与星期，月视图下定位到当前月份。</li><li>工具栏「新建日程」可快速添加课表外安排，默认定位到当前周和当天；打开自定义日程卡片可再次编辑。</li><li>课程卡片详情可修改别名（本课表全局或当前周）、选择卡片颜色或隐藏卡片；设置中可解除所有隐藏。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
 
   <div class="modal-backdrop" id="switchBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="switchTitle"><div class="modal-head"><div><h2 id="switchTitle">切换课表</h2><p>选择要查看的课表。</p></div><button class="icon-btn" id="switchClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="switch-list" id="switchList"></div><div class="modal-foot"><button class="secondary-btn" id="switchImport" type="button">导入新课表</button><button class="import-btn" id="switchDone" type="button">完成</button></div></section></div>
 
-  <div class="modal-backdrop" id="customBackdrop"><section class="modal custom-modal" role="dialog" aria-modal="true" aria-labelledby="customTitleHeading"><div class="modal-head"><div><h2 id="customTitleHeading">添加自定义日程</h2><p>记录不在课表里的安排，保存后会显示在最上层。</p></div><button class="icon-btn" id="customClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body custom-form"><label class="field"><span>标题 <b aria-hidden="true">*</b></span><input id="customTitle" type="text" maxlength="40" placeholder="例如：实验室组会" autocomplete="off"></label><label class="field"><span>简介</span><textarea id="customDescription" rows="3" maxlength="120" placeholder="补充提醒或待办内容"></textarea></label><label class="field"><span>地点</span><input id="customRoom" type="text" maxlength="50" placeholder="例如：求知楼 204"></label><div class="custom-grid"><label class="field"><span>周次</span><input id="customWeek" type="number" min="-52" max="99" step="1"></label><label class="field"><span>星期</span><select id="customDay"><option value="1">周一</option><option value="2">周二</option><option value="3">周三</option><option value="4">周四</option><option value="5">周五</option><option value="6">周六</option><option value="7">周日</option></select></label></div><div class="custom-grid"><label class="field"><span>开始时间</span><input id="customStart" type="time"></label><label class="field"><span>结束时间</span><input id="customEnd" type="time"></label></div><div class="field"><span>卡片颜色</span><div class="color-options" id="customColorOptions" role="radiogroup" aria-label="卡片颜色"><button type="button" class="color-option selected" data-color="brand" title="校红" aria-label="校红"><i></i></button><button type="button" class="color-option" data-color="gold" title="金色" aria-label="金色"><i></i></button><button type="button" class="color-option" data-color="blue" title="蓝色" aria-label="蓝色"><i></i></button><button type="button" class="color-option" data-color="mint" title="青绿" aria-label="青绿"><i></i></button><button type="button" class="color-option" data-color="violet" title="紫灰" aria-label="紫灰"><i></i></button></div></div><div class="import-status" id="customStatus" role="status" aria-live="polite"></div></div><div class="modal-foot"><button class="secondary-btn" id="customCancel" type="button">取消</button><button class="import-btn" id="customSave" type="button"><i data-lucide="check"></i><span>保存日程</span></button></div></section></div>
+  <div class="modal-backdrop" id="aliasBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="aliasTitle"><div class="modal-head"><div><h2 id="aliasTitle">&#x7F16;&#x8F91;&#x8BFE;&#x7A0B;&#x522B;&#x540D;</h2><p id="aliasDescription">&#x522B;&#x540D;&#x53EA;&#x6539;&#x53D8;&#x8BFE;&#x8868;&#x663E;&#x793A;&#xFF0C;&#x4E0D;&#x4F1A;&#x4FEE;&#x6539;&#x5BFC;&#x5165;&#x7684;&#x539F;&#x59CB;&#x8BFE;&#x7A0B;&#x540D;&#x3002;</p></div><button class="icon-btn" id="aliasClose" type="button" title="&#x5173;&#x95ED;" aria-label="&#x5173;&#x95ED;"><i data-lucide="x"></i></button></div><div class="settings-body"><label class="field"><span>&#x663E;&#x793A;&#x522B;&#x540D;</span><input id="courseAliasInput" type="text" maxlength="80" placeholder="&#x7559;&#x7A7A;&#x5219;&#x6062;&#x590D;&#x539F;&#x540D;" autocomplete="off"></label><label class="field"><span>&#x5E94;&#x7528;&#x8303;&#x56F4;</span><select id="courseAliasScope"><option value="global">&#x672C;&#x8BFE;&#x8868;&#x5168;&#x90E8;&#x5468;&#x6B21;</option><option value="week" id="courseAliasWeekOption">&#x4EC5;&#x5F53;&#x524D;&#x5468;</option></select></label><p class="settings-note" id="courseAliasScopeNote"></p><div class="import-status" id="aliasStatus" role="status" aria-live="polite"></div></div><div class="modal-foot"><button class="secondary-btn" id="aliasCancel" type="button">&#x53D6;&#x6D88;</button><button class="import-btn" id="aliasSave" type="button">&#x4FDD;&#x5B58;&#x522B;&#x540D;</button></div></section></div>
+
+  <div class="modal-backdrop" id="customBackdrop"><section class="modal custom-modal" role="dialog" aria-modal="true" aria-labelledby="customTitleHeading"><div class="modal-head"><div><h2 id="customTitleHeading">添加自定义日程</h2><p id="customModalDescription">记录不在课表里的安排，保存后会显示在最上层。</p></div><button class="icon-btn" id="customClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body custom-form"><label class="field"><span>标题 <b aria-hidden="true">*</b></span><input id="customTitle" type="text" maxlength="40" placeholder="例如：实验室组会" autocomplete="off"></label><label class="field"><span>简介</span><textarea id="customDescription" rows="3" maxlength="120" placeholder="补充提醒或待办内容"></textarea></label><label class="field"><span>地点</span><input id="customRoom" type="text" maxlength="50" placeholder="例如：求知楼 204"></label><div class="custom-grid"><label class="field"><span>周次</span><input id="customWeek" type="number" min="-52" max="99" step="1"></label><label class="field"><span>星期</span><select id="customDay"><option value="1">周一</option><option value="2">周二</option><option value="3">周三</option><option value="4">周四</option><option value="5">周五</option><option value="6">周六</option><option value="7">周日</option></select></label></div><div class="custom-grid"><label class="field"><span>开始时间</span><input id="customStart" type="time"></label><label class="field"><span>结束时间</span><input id="customEnd" type="time"></label></div><div class="field"><span>卡片颜色</span><div class="color-options" id="customColorOptions" role="radiogroup" aria-label="卡片颜色"><button type="button" class="color-option selected" data-color="brand" title="校红" aria-label="校红"><i></i></button><button type="button" class="color-option" data-color="gold" title="金色" aria-label="金色"><i></i></button><button type="button" class="color-option" data-color="blue" title="蓝色" aria-label="蓝色"><i></i></button><button type="button" class="color-option" data-color="mint" title="青绿" aria-label="青绿"><i></i></button><button type="button" class="color-option" data-color="violet" title="紫灰" aria-label="紫灰"><i></i></button></div></div><div class="import-status" id="customStatus" role="status" aria-live="polite"></div></div><div class="modal-foot"><button class="secondary-btn" id="customCancel" type="button">取消</button><button class="import-btn" id="customSave" type="button"><i data-lucide="check"></i><span>保存日程</span></button></div></section></div>
 
   <div class="modal-backdrop" id="installBackdrop"><section class="modal install-modal" role="dialog" aria-modal="true" aria-labelledby="installTitle"><div class="modal-head"><div><h2 id="installTitle">添加为手机 APP</h2><p id="installSubtitle">把课表放到手机桌面，打开更方便。</p></div><button class="icon-btn" id="installClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="install-platform"><div class="install-platform-icon"><i id="installPlatformIcon" data-lucide="smartphone"></i></div><div class="install-platform-copy"><strong id="installPlatformTitle">检测设备中</strong><p id="installPlatformDescription">正在准备适合当前设备的添加方式。</p></div></div><ol class="install-steps" id="installSteps"></ol><div class="install-tip" id="installTip"></div><div class="install-actions"><button class="secondary-btn" id="installLater" type="button">稍后再说</button><button class="import-btn" id="installAction" type="button"><i data-lucide="download"></i><span>添加到手机桌面</span></button></div></section></div>
 
@@ -989,6 +1006,10 @@
     const MAX_BACKUP_TEXT = 500;
     let selectedPdfFile = null;
     let activeEvent = null;
+    let activeEventWeek = 1;
+    let editingCustomEventId = null;
+    let aliasEditingEvent = null;
+    let aliasEditingWeek = null;
     let selectedCustomColor = 'brand';
     let swipeAnimationFrame = 0;
     let swipeState = null;
@@ -1211,6 +1232,7 @@
           week, day, startTime, endTime,
           color: VALID_COLORS.has(value.color) ? value.color : 'brand', type: 'custom', label: '自定义',
           campus: '', teacher: '', credit: '—',
+          hidden: value.hidden === true,
           weeks: [{ start: week, end: week, parity: 'all' }]
         };
       }
@@ -1229,7 +1251,9 @@
         classComposition: safeText(value.classComposition, '', 180), assessment: safeText(value.assessment, '', 120),
         note: safeText(value.note, '', 240), courseHours: safeText(value.courseHours, '', 120),
         weeklyHours: value.weeklyHours == null || !Number.isFinite(Number(value.weeklyHours)) ? null : Number(value.weeklyHours),
-        totalHours: value.totalHours == null || !Number.isFinite(Number(value.totalHours)) ? null : Number(value.totalHours)
+        totalHours: value.totalHours == null || !Number.isFinite(Number(value.totalHours)) ? null : Number(value.totalHours),
+        cardColor: CUSTOM_EVENT_COLORS[value.cardColor] ? value.cardColor : '',
+        hidden: value.hidden === true
       };
     };
     const validDate = (value) => {
@@ -1240,6 +1264,23 @@
         && date.getFullYear() === Number(match[1])
         && date.getMonth() + 1 === Number(match[2])
         && date.getDate() === Number(match[3]);
+    };
+    const normalizeCourseAliases = (value) => {
+      if (!Array.isArray(value)) return [];
+      return value.slice(0, 1000).map((entry) => {
+        if (!entry || typeof entry !== 'object') return null;
+        const key = safeText(entry.key, '', 320);
+        const global = safeText(entry.global, '', 80);
+        const weeks = {};
+        if (entry.weeks && typeof entry.weeks === 'object' && !Array.isArray(entry.weeks)) {
+          Object.entries(entry.weeks).forEach(([week, alias]) => {
+            const number = integerInRange(week, -52, 99);
+            const text = safeText(alias, '', 80);
+            if (number != null && text) weeks[String(number)] = text;
+          });
+        }
+        return key && (global || Object.keys(weeks).length) ? { key, global, weeks } : null;
+      }).filter(Boolean);
     };
     const normalizeTimetable = (value) => {
       if (!value || typeof value !== 'object' || !safeText(value.id, '', 120)) return null;
@@ -1252,7 +1293,7 @@
         id: safeText(value.id, '', 120), name: safeText(value.name, '', 120) || '课表', semester: safeText(value.semester, '', 80),
         student: { name: safeText(value.student?.name, '', 80), id: safeText(value.student?.id, '', 80) },
         termStartDate, termStartConfirmed: value.termStartConfirmed !== false && Boolean(termStartDate),
-        events, customEvents, updatedAt: Number.isFinite(Number(value.updatedAt)) ? Number(value.updatedAt) : 0
+        events, customEvents, courseAliases: normalizeCourseAliases(value.courseAliases), updatedAt: Number.isFinite(Number(value.updatedAt)) ? Number(value.updatedAt) : 0
       };
     };
     const normalizeBackup = (value) => {
@@ -1425,16 +1466,46 @@
       return Boolean(key && state.favorites.includes(key));
     };
     const visibleEventsForWeek = (week) => {
-      let events = currentEvents();
+      let events = currentEvents().filter((event) => !event.hidden);
       if (state.view === 'favorites') events = events.filter((event) => event.kind !== 'custom' && isFavoriteEvent(event));
       if (state.query) {
         const query = state.query.toLowerCase();
-        events = events.filter((event) => `${event.title} ${event.description || ''} ${event.courseCode || ''} ${event.className || ''} ${event.note || ''} ${event.assessment || ''} ${event.teacher || ''} ${event.room || ''} ${event.campus || ''}`.toLowerCase().includes(query));
+        events = events.filter((event) => `${event.title} ${eventDisplayTitle(event, week)} ${event.description || ''} ${event.courseCode || ''} ${event.className || ''} ${event.note || ''} ${event.assessment || ''} ${event.teacher || ''} ${event.room || ''} ${event.campus || ''}`.toLowerCase().includes(query));
       }
       if (state.view !== 'favorites') events = events.filter((event) => eventInWeek(event, week));
       return events;
     };
     const visibleEvents = () => visibleEventsForWeek(state.week);
+    const courseAliasKey = (event) => {
+      const part = normalizeFavoritePart(event?.courseCode) || normalizeFavoritePart(event?.className) || normalizeFavoritePart(event?.title);
+      return part ? `${event?.courseCode ? 'code' : event?.className ? 'class' : 'title'}:${part}` : '';
+    };
+    const aliasEntryFor = (event, timetable = currentTimetable()) => {
+      const key = courseAliasKey(event);
+      return key ? (timetable?.courseAliases || []).find((entry) => entry.key === key) || null : null;
+    };
+    const eventDisplayTitle = (event, week = state.week) => {
+      if (event.kind === 'custom') return event.title;
+      const entry = aliasEntryFor(event);
+      return entry?.weeks?.[String(week)] || entry?.global || event.title;
+    };
+    function setCourseAlias(event, alias, scope, week) {
+      const timetable = currentTimetable();
+      const key = courseAliasKey(event);
+      if (!timetable || !key) return false;
+      if (!Array.isArray(timetable.courseAliases)) timetable.courseAliases = [];
+      let entry = timetable.courseAliases.find((item) => item.key === key);
+      if (!entry) { entry = { key, global: '', weeks: {} }; timetable.courseAliases.push(entry); }
+      if (scope === 'global') {
+        entry.global = alias;
+        entry.weeks = {};
+      } else if (alias) entry.weeks[String(week)] = alias;
+      else delete entry.weeks[String(week)];
+      if (!entry.global && !Object.keys(entry.weeks).length) {
+        timetable.courseAliases = timetable.courseAliases.filter((item) => item !== entry);
+      }
+      return true;
+    }
     const timeLabel = (event) => {
       if (event.kind === 'custom') return `${event.startTime}–${event.endTime}`;
       const periods = CAMPUS_PERIODS[event.campus] || CAMPUS_PERIODS['滨海校区'];
@@ -1491,10 +1562,11 @@
       const periods = CAMPUS_PERIODS[event.campus] || CAMPUS_PERIODS['滨海校区'];
       return timeToMinutes(periods[event.end - 1][1]);
     };
-    const customColorStyle = (event) => {
-      if (event.kind !== 'custom') return '';
-      const color = CUSTOM_EVENT_COLORS[event.color] || CUSTOM_EVENT_COLORS.brand;
-      return `--course-bg:${color.background};--course-accent:${color.accent};--course-text:${color.text};`;
+    const eventColorStyle = (event) => {
+      const key = event.kind === 'custom' ? event.color : event.cardColor;
+      if (!key) return '';
+      const color = CUSTOM_EVENT_COLORS[key];
+      return color ? `--course-bg:${color.background};--course-accent:${color.accent};--course-text:${color.text};` : '';
     };
     const truncateTitle = (title) => (title.length > 9 ? `${title.slice(0, 9)}..` : title);
 
@@ -1633,7 +1705,7 @@
     function buildScheduleMarkup(week, interactive = true) {
       const allDays = dayInfo(week);
       const events = visibleEventsForWeek(week);
-      const weekEvents = currentEvents().filter((event) => eventInWeek(event, week));
+      const weekEvents = currentEvents().filter((event) => !event.hidden && eventInWeek(event, week));
       const days = state.hideEmptyWeekends
         ? allDays.filter((day) => day.key <= 5 || weekEvents.some((event) => event.day === day.key))
         : allDays;
@@ -1667,18 +1739,18 @@
         const fortyMinute = duration === 40;
         const ongoing = isCurrentWeek && event.day === todayKey && nowMinutes >= eventStartMinute(event) && nowMinutes < eventEndMinute(event);
         const tag = interactive ? 'button' : 'div';
-        const attributes = interactive ? ` data-event="${currentEvents().indexOf(event)}" type="button"` : '';
+        const attributes = interactive ? ` data-event="${currentEvents().indexOf(event)}" data-event-week="${week}" type="button"` : '';
         const details = event.kind === 'custom'
           ? ultraShort
-            ? `<span class="course-title">${escapeHtml(truncateTitle(event.title))}</span>`
-            : `<span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room">${roomMarkup(event, false)}</span>${event.description ? `<span class="course-description">${escapeHtml(event.description)}</span>` : ''}`
+            ? `<span class="course-title">${escapeHtml(truncateTitle(eventDisplayTitle(event, week)))}</span>`
+            : `<span class="course-title">${escapeHtml(truncateTitle(eventDisplayTitle(event, week)))}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room">${roomMarkup(event, false)}</span>${event.description ? `<span class="course-description">${escapeHtml(event.description)}</span>` : ''}`
           : ultraShort
-            ? `<span class="course-title">${escapeHtml(truncateTitle(event.title))}</span>`
+            ? `<span class="course-title">${escapeHtml(truncateTitle(eventDisplayTitle(event, week)))}</span>`
             : fortyMinute
-              ? `<span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-room">${roomMarkup(event, false)}</span>`
-              : `<span class="course-title">${escapeHtml(truncateTitle(event.title))}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room">${roomMarkup(event)}</span><span class="course-meta"><span class="course-campus">${escapeHtml(event.campus)}</span><span class="course-teacher"> · ${escapeHtml(event.teacher)}</span></span>`;
+              ? `<span class="course-title">${escapeHtml(truncateTitle(eventDisplayTitle(event, week)))}</span><span class="course-room">${roomMarkup(event, false)}</span>`
+              : `<span class="course-title">${escapeHtml(truncateTitle(eventDisplayTitle(event, week)))}</span><span class="course-time">${timeLabel(event)}</span><span class="course-room">${roomMarkup(event)}</span><span class="course-meta"><span class="course-campus">${escapeHtml(event.campus)}</span><span class="course-teacher"> · ${escapeHtml(event.teacher)}</span></span>`;
         const showType = event.kind === 'custom' ? !ultraShort && duration >= 60 : !ultraShort && !fortyMinute;
-        return `<${tag} class="course type-${event.type} layer-${courseLayer(event)}${event.kind === 'custom' ? ' custom-event' : ''}${density}${ultraShort ? ' course-ultra-short' : ''}${fortyMinute ? ' course-40min' : ''}${ongoing ? ' ongoing' : ''}"${attributes} style="top:${top}px;height:${height}px;${customColorStyle(event)}" title="${escapeHtml(event.title)}"><span class="course-content">${details}${showType ? `<span class="course-type">${escapeHtml(event.label)}</span>` : ''}</span></${tag}>`;
+        return `<${tag} class="course type-${event.type} layer-${courseLayer(event)}${event.kind === 'custom' ? ' custom-event' : ''}${density}${ultraShort ? ' course-ultra-short' : ''}${fortyMinute ? ' course-40min' : ''}${ongoing ? ' ongoing' : ''}"${attributes} style="top:${top}px;height:${height}px;${eventColorStyle(event)}" title="${escapeHtml(eventDisplayTitle(event, week))}"><span class="course-content">${details}${showType ? `<span class="course-type">${escapeHtml(event.label)}</span>` : ''}</span></${tag}>`;
       }).join('')}</div>`).join('');
       return { html: `${head}<div class="schedule-body">${axis}${columns}${nowLine}</div>`, events, dayCount: days.length, axis: { start: axisStart, end: axisEnd, pxPerMinute } };
     }
@@ -1698,7 +1770,7 @@
       }
       const emptyImport = $('emptyImportBtn');
       if (emptyImport) emptyImport.addEventListener('click', openImportModal);
-      document.querySelectorAll('[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(currentEvents()[Number(button.dataset.event)])));
+      document.querySelectorAll('[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(currentEvents()[Number(button.dataset.event)], Number(button.dataset.eventWeek || state.week))));
       if (window.lucide) window.lucide.createIcons();
     }
 
@@ -1708,17 +1780,17 @@
       const isFavorites = state.view === 'favorites';
       return days.filter((day) => events.some((event) => event.day === day.key)).map((day) => `<section class="agenda-day"><div class="agenda-day-title"><span>${isFavorites ? day.name : `${day.name} · ${day.date}`}</span><span>${events.filter((event) => event.day === day.key).length} 节</span></div>${events.filter((event) => event.day === day.key).map((event) => {
         const tag = interactive ? 'button' : 'div';
-        const attributes = interactive ? ` data-event="${currentEvents().indexOf(event)}" type="button"` : '';
+        const attributes = interactive ? ` data-event="${currentEvents().indexOf(event)}" data-event-week="${week}" type="button"` : '';
         const meta = event.kind === 'custom'
           ? `${escapeHtml(displayRoom(event))}${event.description ? ' · ' + escapeHtml(event.description) : ''}`
           : `${escapeHtml(displayRoom(event))} · ${escapeHtml(event.teacher)}${isFavorites ? ' · ' + weeksLabel(event.weeks) : ''}`;
-        return `<${tag} class="agenda-event type-${event.type}${event.kind === 'custom' ? ' custom-event' : ''}"${attributes} style="${customColorStyle(event)}"><span class="event-time">${timeLabel(event)}</span><span><span class="event-title">${escapeHtml(truncateTitle(event.title))}</span><span class="event-room">${meta}</span></span></${tag}>`;
+        return `<${tag} class="agenda-event type-${event.type}${event.kind === 'custom' ? ' custom-event' : ''}"${attributes} style="${eventColorStyle(event)}"><span class="event-time">${timeLabel(event)}</span><span><span class="event-title">${escapeHtml(truncateTitle(eventDisplayTitle(event, week)))}</span><span class="event-room">${meta}</span></span></${tag}>`;
       }).join('')}</section>`).join('') || '<div class="empty" style="display:grid"><div>没有匹配的课程</div></div>';
     }
 
     function renderAgenda() {
       $('agenda').innerHTML = agendaMarkup(state.week);
-      document.querySelectorAll('.agenda-event[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(currentEvents()[Number(button.dataset.event)])));
+      document.querySelectorAll('.agenda-event[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(currentEvents()[Number(button.dataset.event)], Number(button.dataset.eventWeek || state.week))));
     }
 
     function monthEventsForDate(date) {
@@ -1751,8 +1823,8 @@
           const events = monthEventsForDate(date);
           const eventMarkup = events.slice(0, preview ? 3 : 5).map((event) => {
             const tag = interactive ? 'button' : 'div';
-            const attributes = interactive ? ` data-event="${currentEvents().indexOf(event)}" type="button"` : '';
-            return `<${tag} class="month-event type-${event.type} layer-${courseLayer(event)}${event.kind === 'custom' ? ' type-custom' : ''}"${attributes} style="${customColorStyle(event)}" title="${escapeHtml(event.title)}"><span class="month-event-time">${escapeHtml(timeLabel(event).split('–')[0])}</span><span class="month-event-title">${escapeHtml(truncateTitle(event.title))}</span></${tag}>`;
+            const attributes = interactive ? ` data-event="${currentEvents().indexOf(event)}" data-event-week="${target.week}" type="button"` : '';
+            return `<${tag} class="month-event type-${event.type} layer-${courseLayer(event)}${event.kind === 'custom' ? ' type-custom' : ''}"${attributes} style="${eventColorStyle(event)}" title="${escapeHtml(eventDisplayTitle(event, target.week))}"><span class="month-event-time">${escapeHtml(timeLabel(event).split('–')[0])}</span><span class="month-event-title">${escapeHtml(truncateTitle(eventDisplayTitle(event, target.week)))}</span></${tag}>`;
           }).join('');
           const more = events.length > (preview ? 3 : 5) ? `<div class="month-more">还有 ${events.length - (preview ? 3 : 5)} 节</div>` : '';
           const classes = ["month-cell", iso === todayIso ? 'today' : '', target.week === state.week ? 'week-focus' : ''].filter(Boolean).join(' ');
@@ -1767,7 +1839,7 @@
       const root = $('monthView');
       if (!root) return;
       root.innerHTML = monthMarkup(true);
-      document.querySelectorAll('#monthView .month-event[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(currentEvents()[Number(button.dataset.event)])));
+      document.querySelectorAll('#monthView .month-event[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(currentEvents()[Number(button.dataset.event)], Number(button.dataset.eventWeek || state.week))));
     }
 
     function renderWeekPreview(id, week) {
@@ -1887,6 +1959,7 @@
       $('pageTitle').textContent = state.view === 'favorites' ? '收藏课程' : state.view === 'list' ? '课程清单' : '我的课表';
       $('todayLabel').textContent = todayEyebrowLabel();
       $('todayButton').textContent = todayButtonLabel();
+      updateUnhideAllButton();
       $('updatedLabel').textContent = currentTimetable()?.termStartConfirmed === false
         ? '学期日期待确认'
         : state.updatedAt ? '本地已保存' : '示例数据';
@@ -1953,12 +2026,12 @@
       const today = weekAndDayForDate(new Date());
       const now = new Date();
       const nowMinutes = now.getHours() * 60 + now.getMinutes();
-      const todayEvents = currentEvents().filter((event) => event.day === today.day && eventInWeek(event, today.week)).sort((a, b) => eventStartMinute(a) - eventStartMinute(b));
+      const todayEvents = currentEvents().filter((event) => !event.hidden && event.day === today.day && eventInWeek(event, today.week)).sort((a, b) => eventStartMinute(a) - eventStartMinute(b));
       const prefix = `今天 ${DAY_NAMES[today.day - 1]}`;
       if (!todayEvents.length) return { label: `${prefix} · 无课`, value: '今天没有课程安排' };
       const next = todayEvents.find((event) => timeToMinutes(timeLabel(event).split('–')[0]) > nowMinutes);
-      if (next) return { label: `${prefix} · 下一节 ${timeLabel(next).split('–')[0]}`, value: `${next.title} · ${displayRoom(next)}` };
-      return { label: `${prefix} · 已结束`, value: `${todayEvents[todayEvents.length - 1].title} 已下课` };
+      if (next) return { label: `${prefix} · 下一节 ${timeLabel(next).split('–')[0]}`, value: `${eventDisplayTitle(next, today.week)} · ${displayRoom(next)}` };
+      return { label: `${prefix} · 已结束`, value: `${eventDisplayTitle(todayEvents[todayEvents.length - 1], today.week)} 已下课` };
     }
 
     function drawerWidth() {
@@ -2066,11 +2139,14 @@
       }, true);
     }
 
-    function openDrawer(event) {
+    function openDrawer(event, week = state.week) {
       activeEvent = event;
+      activeEventWeek = week;
       const isCustom = event.kind === 'custom';
       $('drawerKicker').textContent = isCustom ? '自定义日程' : '课程详情';
-      $('drawerTitle').textContent = event.title;
+      $('drawerTitle').textContent = eventDisplayTitle(event, activeEventWeek);
+      $('drawerAliasOrigin').hidden = event.kind === 'custom' || $('drawerTitle').textContent === event.title;
+      $('drawerAliasOrigin').textContent = $('drawerAliasOrigin').hidden ? '' : `原课程名：${event.title}`;
       $('drawerSub').textContent = isCustom ? `${weekLabel(event.week)} · ${DAY_NAMES[event.day - 1]}` : `${DAY_NAMES[event.day - 1]} · 第 ${event.start}–${event.end} 节`;
       $('detailTime').textContent = timeLabel(event);
       $('detailRoom').textContent = isCustom ? displayRoom(event) : `${event.campus} · ${displayRoom(event)}`;
@@ -2081,7 +2157,11 @@
       $('detailWeeks').textContent = isCustom ? `${weekLabel(event.week)} · ${formatFull(dayInfo(event.week)[event.day - 1].fullDate)}` : weeksLabel(event.weeks);
       $('detailType').textContent = isCustom ? '自定义日程' : `${event.label} · ${event.credit} 学分`;
       $('drawerFavorite').style.display = isCustom ? 'none' : '';
-      $('drawerDeleteCustom').classList.toggle('visible', isCustom);
+      $('drawerEditCustom').hidden = !isCustom;
+      $('drawerCourseAlias').hidden = isCustom;
+      $('drawerDeleteCustom').hidden = !isCustom;
+      $('drawerHideEvent').textContent = event.hidden ? '\u663e\u793a\u6b64\u5361\u7247' : '\u9690\u85cf\u6b64\u5361\u7247';
+      renderDrawerCardColor();
       $('drawerNote').textContent = isCustom ? '这条日程仅保存在当前浏览器中，删除后无法恢复。' : '课程数据保存在本地浏览器中。导入新的 PDF 后，可以继续手动修正课程信息。';
       if (!isCustom) renderFavoriteButton();
       const wasOpen = document.body.classList.contains('drawer-open');
@@ -2130,6 +2210,7 @@
       $('themeSelect').value = currentTheme();
       $('slotHeightInput').value = String(state.slotHeight ?? DEFAULT_SLOT_HEIGHT);
       $('hideEmptyWeekendsInput').checked = state.hideEmptyWeekends;
+      updateUnhideAllButton();
       const note = $('settingsNote');
       if (note) note.textContent = currentTimetable()?.termStartConfirmed === false
         ? '请确认学期第一周周一；未确认前，周次和日期仅为临时估算。高度会同时调整时间轴、课程卡片和网格间距。'
@@ -2157,30 +2238,41 @@
     }
     function setSelectedCustomColor(color) {
       selectedCustomColor = CUSTOM_EVENT_COLORS[color] ? color : 'brand';
-      document.querySelectorAll('[data-color]').forEach((button) => {
+      document.querySelectorAll('#customColorOptions [data-color]').forEach((button) => {
         const selected = button.dataset.color === selectedCustomColor;
         button.classList.toggle('selected', selected);
         button.setAttribute('aria-checked', String(selected));
       });
     }
-    function openCustomModal() {
+    function openCustomModal(event = null) {
       const now = new Date();
       const today = currentWeekInfo();
       const roundedStart = Math.min(22 * 60, Math.max(8 * 60, Math.ceil((now.getHours() * 60 + now.getMinutes()) / 30) * 30));
-      $('customTitle').value = '';
-      $('customDescription').value = '';
-      $('customRoom').value = '';
-      $('customWeek').value = String(today.week);
-      $('customDay').value = String(today.day);
-      $('customStart').value = formatClock(roundedStart);
-      $('customEnd').value = formatClock(Math.min(23 * 60, roundedStart + 60));
+      editingCustomEventId = event?.kind === 'custom' ? event.id : null;
+      $('customTitleHeading').textContent = editingCustomEventId ? '\u7f16\u8f91\u81ea\u5b9a\u4e49\u65e5\u7a0b' : '\u6dfb\u52a0\u81ea\u5b9a\u4e49\u65e5\u7a0b';
+      $('customModalDescription').textContent = editingCustomEventId ? '\u4fee\u6539\u5b8c\u540e\u4fdd\u5b58\uff0c\u65e5\u7a0b\u5361\u7247\u7684\u5468\u6b21\u548c\u65f6\u95f4\u4f1a\u540c\u6b65\u66f4\u65b0\u3002' : '\u8bb0\u5f55\u4e0d\u5728\u8bfe\u8868\u91cc\u7684\u5b89\u6392\uff0c\u4fdd\u5b58\u540e\u4f1a\u663e\u793a\u5728\u6700\u4e0a\u5c42\u3002';
+      $('customSave').querySelector?.('span') && ($('customSave').querySelector('span').textContent = editingCustomEventId ? '\u4fdd\u5b58\u4fee\u6539' : '\u4fdd\u5b58\u65e5\u7a0b');
+      $('customTitle').value = event?.title || '';
+      $('customDescription').value = event?.description || '';
+      $('customRoom').value = event?.room || '';
+      $('customWeek').value = String(event?.week ?? today.week);
+      $('customDay').value = String(event?.day ?? today.day);
+      $('customStart').value = event?.startTime || formatClock(roundedStart);
+      $('customEnd').value = event?.endTime || formatClock(Math.min(23 * 60, roundedStart + 60));
       $('customStatus').textContent = '';
       $('customStatus').className = 'import-status custom-status';
-      setSelectedCustomColor('brand');
+      setSelectedCustomColor(event?.color || 'brand');
       openModal('customBackdrop');
       $('customTitle').focus?.();
     }
-    function closeCustomModal() { closeModalById('customBackdrop'); }
+    function closeCustomModal() {
+      closeModalById('customBackdrop');
+      editingCustomEventId = null;
+      $('customTitleHeading').textContent = '\u6dfb\u52a0\u81ea\u5b9a\u4e49\u65e5\u7a0b';
+      $('customModalDescription').textContent = '\u8bb0\u5f55\u4e0d\u5728\u8bfe\u8868\u91cc\u7684\u5b89\u6392\uff0c\u4fdd\u5b58\u540e\u4f1a\u663e\u793a\u5728\u6700\u4e0a\u5c42\u3002';
+      const label = $('customSave').querySelector?.('span');
+      if (label) label.textContent = '\u4fdd\u5b58\u65e5\u7a0b';
+    }
     function setCustomStatus(message) {
       $('customStatus').textContent = message;
       $('customStatus').className = 'import-status custom-status error';
@@ -2193,37 +2285,110 @@
       const day = Number($('customDay').value);
       const startTime = $('customStart').value;
       const endTime = $('customEnd').value;
-      if (!title) { setCustomStatus('请填写日程标题。'); $('customTitle').focus?.(); return; }
-      if (!Number.isInteger(week) || week < -52 || week > 99 || !Number.isInteger(day) || day < 1 || day > 7) { setCustomStatus('请选择有效的周次和星期。'); return; }
-      if (!startTime || !endTime || timeToMinutes(endTime) <= timeToMinutes(startTime)) { setCustomStatus('结束时间需要晚于开始时间。'); return; }
+      if (!title) { setCustomStatus('\u8bf7\u586b\u5199\u65e5\u7a0b\u6807\u9898\u3002'); $('customTitle').focus?.(); return; }
+      if (!Number.isInteger(week) || week < -52 || week > 99 || !Number.isInteger(day) || day < 1 || day > 7) { setCustomStatus('\u8bf7\u9009\u62e9\u6709\u6548\u7684\u5468\u6b21\u548c\u661f\u671f\u3002'); return; }
+      if (!startTime || !endTime || timeToMinutes(endTime) <= timeToMinutes(startTime)) { setCustomStatus('\u7ed3\u675f\u65f6\u95f4\u9700\u8981\u665a\u4e8e\u5f00\u59cb\u65f6\u95f4\u3002'); return; }
       const timetable = ensureCustomTimetable();
       if (!Array.isArray(timetable.customEvents)) timetable.customEvents = [];
-      timetable.customEvents.push({
-        id: newCustomEventId(),
-        kind: 'custom',
-        title,
-        description,
-        room,
-        week,
-        day,
-        startTime,
-        endTime,
-        color: selectedCustomColor,
-        type: 'custom',
-        label: '自定义',
-        campus: '',
-        teacher: '',
-        credit: '—',
-        weeks: [{ start: week, end: week, parity: 'all' }]
-      });
+      const fields = { title, description, room, week, day, startTime, endTime, color: selectedCustomColor, type: 'custom', label: '\u81ea\u5b9a\u4e49', campus: '', teacher: '', credit: '—', weeks: [{ start: week, end: week, parity: 'all' }] };
+      if (editingCustomEventId) {
+        const existing = timetable.customEvents.find((item) => item.id === editingCustomEventId);
+        if (!existing) { setCustomStatus('\u6ca1\u6709\u627e\u5230\u8981\u4fee\u6539\u7684\u65e5\u7a0b\u3002'); return; }
+        Object.assign(existing, fields);
+      } else {
+        timetable.customEvents.push({ id: newCustomEventId(), kind: 'custom', ...fields, hidden: false });
+      }
       state.week = week;
       state.day = day;
       state.view = 'schedule';
       state.query = '';
       $('searchInput').value = '';
+      const editedId = editingCustomEventId;
       persist();
       renderAll();
       closeCustomModal();
+      if (editedId && activeEvent?.kind === 'custom' && activeEvent.id === editedId) activeEvent = null;
+    }
+    function editCustomEvent() {
+      if (!activeEvent || activeEvent.kind !== 'custom') return;
+      const event = activeEvent;
+      closeDrawer();
+      openCustomModal(event);
+    }
+    function openAliasModal() {
+      if (!activeEvent || activeEvent.kind === 'custom') return;
+      aliasEditingEvent = activeEvent;
+      aliasEditingWeek = activeEventWeek;
+      const aliasEntry = aliasEntryFor(activeEvent);
+      const hasWeekAlias = Boolean(aliasEntry && Object.prototype.hasOwnProperty.call(aliasEntry.weeks || {}, String(aliasEditingWeek)));
+      $('courseAliasScope').value = hasWeekAlias ? 'week' : 'global';
+      $('courseAliasInput').value = hasWeekAlias ? aliasEntry.weeks[String(aliasEditingWeek)] : (aliasEntry?.global || '');
+      $('courseAliasWeekOption').textContent = `\u4ec5\u7b2c ${aliasEditingWeek} \u5468`;
+      $('courseAliasScopeNote').textContent = `\u6309\u5168\u5c40\u5e94\u7528\u4f1a\u66ff\u6362\u8be5\u8bfe\u8868\u4e2d\u8fd9\u95e8\u8bfe\u7a0b\u6240\u6709\u5468\u6b21\u7684\u522b\u540d\uFF1B\u9009\u62e9\u5f53\u524d\u5468\u5219\u53ea\u4f1a\u8986\u76d6\u7b2c ${aliasEditingWeek} \u5468\u3002`;
+      $('aliasStatus').textContent = '';
+      openModal('aliasBackdrop');
+      $('courseAliasInput').focus?.();
+    }
+    function closeAliasModal() { closeModalById('aliasBackdrop'); aliasEditingEvent = null; aliasEditingWeek = null; }
+    function saveCourseAlias() {
+      if (!aliasEditingEvent) return;
+      const alias = safeText($('courseAliasInput').value, '', 80);
+      const scope = $('courseAliasScope').value === 'week' ? 'week' : 'global';
+      if (!setCourseAlias(aliasEditingEvent, alias, scope, aliasEditingWeek)) {
+        $('aliasStatus').textContent = '\u65e0\u6cd5\u4fdd\u5b58\u8fd9\u4e2a\u8bfe\u7a0b\u7684\u522b\u540d\u3002';
+        return;
+      }
+      const event = aliasEditingEvent;
+      const week = aliasEditingWeek;
+      closeAliasModal();
+      persist();
+      renderAll();
+      if (event) openDrawer(event, week);
+    }
+    function renderDrawerCardColor() {
+      if (!activeEvent) return;
+      const selected = activeEvent.kind === 'custom' ? activeEvent.color : activeEvent.cardColor;
+      const colorIds = { default: 'drawerColorDefault', brand: 'drawerColorBrand', gold: 'drawerColorGold', blue: 'drawerColorBlue', mint: 'drawerColorMint', violet: 'drawerColorViolet' };
+      Object.entries(colorIds).forEach(([key, id]) => {
+        const button = $(id);
+        const value = key === 'default' ? '' : key;
+        button.classList.toggle('selected', (selected || '') === value);
+        button.setAttribute('aria-pressed', String((selected || '') === value));
+      });
+    }
+    function setActiveCardColor(color) {
+      if (!activeEvent) return;
+      const value = CUSTOM_EVENT_COLORS[color] ? color : '';
+      if (activeEvent.kind === 'custom') activeEvent.color = value || 'brand';
+      else activeEvent.cardColor = value;
+      persist();
+      renderAll();
+      openDrawer(activeEvent, activeEventWeek);
+    }
+    function toggleActiveEventHidden() {
+      if (!activeEvent) return;
+      activeEvent.hidden = !activeEvent.hidden;
+      persist();
+      activeEvent = null;
+      closeDrawer();
+      renderAll();
+      updateUnhideAllButton();
+    }
+    function hiddenEventCount() {
+      return state.timetables.reduce((count, timetable) => count + [...(timetable.events || []), ...(timetable.customEvents || [])].filter((event) => event.hidden).length, 0);
+    }
+    function updateUnhideAllButton() {
+      const count = hiddenEventCount();
+      const button = $('unhideAllButton');
+      if (button) button.disabled = count === 0;
+      const label = $('hiddenEventCount');
+      if (label) label.textContent = String(count);
+    }
+    function unhideAllEvents() {
+      state.timetables.forEach((timetable) => [...(timetable.events || []), ...(timetable.customEvents || [])].forEach((event) => { event.hidden = false; }));
+      persist();
+      renderAll();
+      updateUnhideAllButton();
     }
     function deleteCustomEvent() {
       if (!activeEvent || activeEvent.kind !== 'custom') return;
@@ -2523,6 +2688,7 @@
           termStartConfirmed: Boolean(inherited?.termStartDate) && inherited?.termStartConfirmed !== false,
           events,
           customEvents: [],
+          courseAliases: [],
           updatedAt: Date.now()
         };
         state.timetables.push(timetable);
@@ -2585,12 +2751,28 @@
     $('customCancel').addEventListener('click', closeCustomModal);
     $('customBackdrop').addEventListener('click', (event) => { if (event.target === event.currentTarget) closeCustomModal(); });
     $('customSave').addEventListener('click', saveCustomEvent);
+    $('aliasClose').addEventListener('click', closeAliasModal);
+    $('aliasCancel').addEventListener('click', closeAliasModal);
+    $('aliasBackdrop').addEventListener('click', (event) => { if (event.target === event.currentTarget) closeAliasModal(); });
+    $('aliasSave').addEventListener('click', saveCourseAlias);
+    $('courseAliasScope').addEventListener('change', () => {
+      if (!aliasEditingEvent) return;
+      const entry = aliasEntryFor(aliasEditingEvent);
+      $('courseAliasInput').value = $('courseAliasScope').value === 'week'
+        ? (entry?.weeks?.[String(aliasEditingWeek)] || '')
+        : (entry?.global || '');
+    });
+    $('unhideAllButton').addEventListener('click', unhideAllEvents);
     document.querySelectorAll('[data-color]').forEach((button) => button.addEventListener('click', () => setSelectedCustomColor(button.dataset.color)));
     $('searchInput').addEventListener('input', (event) => { state.query = event.target.value.trim(); renderAll(); });
     $('drawerClose').addEventListener('click', closeDrawer);
     $('drawerBackdrop').addEventListener('click', closeDrawer);
     $('drawerFavorite').addEventListener('click', toggleFavorite);
     $('drawerDeleteCustom').addEventListener('click', deleteCustomEvent);
+    $('drawerEditCustom').addEventListener('click', editCustomEvent);
+    $('drawerCourseAlias').addEventListener('click', openAliasModal);
+    $('drawerHideEvent').addEventListener('click', toggleActiveEventHidden);
+    [['default', 'drawerColorDefault'], ['brand', 'drawerColorBrand'], ['gold', 'drawerColorGold'], ['blue', 'drawerColorBlue'], ['mint', 'drawerColorMint'], ['violet', 'drawerColorViolet']].forEach(([color, id]) => $(id).addEventListener('click', () => setActiveCardColor(color)));
     $('mobileMenuButton').addEventListener('click', openMobileNav);
     $('mobileNavClose').addEventListener('click', closeMobileNav);
     $('mobileNavBackdrop').addEventListener('click', closeMobileNav);
@@ -2684,6 +2866,7 @@
       closeModalById('helpBackdrop');
       closeModalById('switchBackdrop');
       closeCustomModal();
+      closeAliasModal();
       closeInstallGuide();
       closeMobileNav();
     });

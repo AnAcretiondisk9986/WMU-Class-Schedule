@@ -8,7 +8,7 @@ const moduleObject = { exports: {} };
 new Function("module", "exports", source)(moduleObject, moduleObject.exports);
 const parser = moduleObject.exports;
 
-function syntheticPage() {
+function syntheticPage(campus = "\u6ee8\u6d77\u6821\u533a") {
   const anchors = [50, 150, 250, 350, 450, 550, 650].map((x, index) => ({
     str: `星期${"一二三四五六日"[index]}`,
     transform: [1, 0, 0, 1, x, 500]
@@ -22,7 +22,7 @@ function syntheticPage() {
       { str: "星期一", transform: [1, 0, 0, 1, 50, 480] },
       { str: "课程甲", transform: [1, 0, 0, 1, 60, 480] },
       { str: "◆", transform: [1, 0, 0, 1, 80, 470] },
-      { str: "(1-2节)1-2周/校区:滨海校区/场地:求知楼101/教师:教师甲/教学班:NN260001-120001-1-测试班/学分:2.0", transform: [1, 0, 0, 1, 90, 470] }
+      { str: `(1-2节)1-2周/校区:${campus}/场地:求知楼101/教师:教师甲/教学班:NN260001-120001-1-测试班/学分:2.0`, transform: [1, 0, 0, 1, 90, 470] }
     ]
   };
 }
@@ -55,4 +55,14 @@ test("小程序解析器清理跨页页眉并保留课程实体标识", () => {
       className: event.className
     }))
   );
+});
+
+test("网页与小程序解析器接受医院等非预设校区字段", () => {
+  const pages = [syntheticPage("\u9644\u5c5e\u533b\u9662")];
+  const web = parseWebTimetablePages(pages);
+  const mini = parser.parseTimetablePages(pages);
+  assert.equal(web.events[0].campus, "\u9644\u5c5e\u533b\u9662");
+  assert.equal(mini.events[0].campus, "\u9644\u5c5e\u533b\u9662");
+  assert.deepEqual(web.conflicts, []);
+  assert.deepEqual(mini.conflicts, []);
 });

@@ -40,6 +40,8 @@ function makeElement(id) {
     value: "",
     disabled: false,
     className: "",
+    dataset: {},
+    hidden: false,
     classList: makeClassList(),
     listeners: {},
     addEventListener(type, callback) { this.listeners[type] = callback; },
@@ -61,6 +63,7 @@ function withMocks(mocks, fn) {
 
 function runScenario(saved) {
   const elements = {};
+  const eventButtons = [];
   const $ = (id) => { if (!elements[id]) elements[id] = makeElement(id); return elements[id]; };
   const documentElement = makeElement("documentElement");
   const body = makeElement("body");
@@ -72,7 +75,24 @@ function runScenario(saved) {
     parseTimetablePdf: async () => ({}),
     document: {
       getElementById: $,
-      querySelectorAll: () => [],
+      querySelectorAll: (selector) => {
+        if (!selector.includes("[data-event]")) return [];
+        const rootId = selector.startsWith("#monthView") ? "monthView" : selector.startsWith(".agenda-event") ? "agenda" : "schedule";
+        const markup = $(rootId).innerHTML || "";
+        const matches = [...markup.matchAll(/<button\b([^>]*\bdata-event="(\d+)"[^>]*)>/g)];
+        return matches.flatMap((match) => {
+          const attributes = match[1];
+          const className = /\bclass="([^"]*)"/.exec(attributes)?.[1] || "";
+          if (selector.startsWith(".agenda-event") && !className.includes("agenda-event")) return [];
+          if (selector.startsWith("#monthView") && !className.includes("month-event")) return [];
+          const button = makeElement(`event-${rootId}-${match[2]}`);
+          button.dataset = { event: match[2], eventWeek: /\bdata-event-week="(-?\d+)"/.exec(attributes)?.[1] || "" };
+          button.className = className;
+          button.rootId = rootId;
+          eventButtons.push(button);
+          return [button];
+        });
+      },
       addEventListener() {},
       body,
       documentElement,
@@ -105,8 +125,13 @@ function runScenario(saved) {
       if (callback) callback({ target: $(id), currentTarget: $(id), preventDefault() {}, stopPropagation() {}, ...event });
     });
   };
+  const triggerEventButton = (index) => {
+    const button = [...eventButtons].reverse().find((item) => item.rootId === "schedule" && Number(item.dataset.event) === index);
+    if (!button) throw new Error(`No rendered event button for index ${index}`);
+    withMocks(mocks, () => button.listeners.click?.({ target: button, currentTarget: button, preventDefault() {} }));
+  };
 
-  return { elements, documentElement, body, storage, error, $, trigger, triggerEvent };
+  return { elements, documentElement, body, storage, error, $, trigger, triggerEvent, triggerEventButton };
 }
 
 const W = (start, end, parity = "all") => ({ start, end, parity });
@@ -254,12 +279,116 @@ test("自定义日程默认当前周日并保存为最高层彩色卡片", () =>
     campus: "",
     teacher: "",
     credit: "—",
-    weeks: [W(2, 2)]
+    weeks: [W(2, 2)],
+    hidden: false
   });
   assert.equal(s.$("customBackdrop").classList.contains("modal-open"), false);
   assert.match(s.$("schedule").innerHTML, /class="course type-custom layer-custom custom-event/);
   assert.match(s.$("schedule").innerHTML, /--course-accent:#a71f3c/);
   assert.match(html, /\.course\.layer-custom \{ z-index: 30; \}/);
+});
+
+test("可从课程卡片重新编辑自定义日程并保留原 ID", () => {
+  const custom = {
+    id: "custom-existing", kind: "custom", title: "旧日程", description: "旧简介", room: "旧地点",
+    week: 1, day: 1, startTime: "09:00", endTime: "10:00", color: "gold", type: "custom", label: "自定义",
+    campus: "", teacher: "", credit: "—", weeks: [W(1, 1)], hidden: false
+  };
+  const timetable = { ...TT("t1", "2026-2027-1", "2026-2027-1", "测试同学", []), customEvents: [custom] };
+  const s = runScenario(SAVED({ timetables: [timetable], week: 1 }));
+  assert.equal(s.error, null, s.error?.stack);
+  s.triggerEventButton(0);
+  s.trigger("drawerEditCustom");
+  assert.equal(s.$("customBackdrop").classList.contains("modal-open"), true);
+  assert.equal(s.$("customTitle").value, "旧日程");
+  assert.equal(s.$("customWeek").value, "1");
+  s.$("customTitle").value = "更新后的日程";
+  s.$("customDescription").value = "更新简介";
+  s.$("customRoom").value = "附属医院";
+  s.$("customWeek").value = "2";
+  s.$("customStart").value = "10:00";
+  s.$("customEnd").value = "11:30";
+  s.trigger("customSave");
+  const saved = JSON.parse(s.storage["wmu-timetable-v1"]).timetables[0].customEvents[0];
+  assert.equal(saved.id, "custom-existing");
+  assert.equal(saved.title, "更新后的日程");
+  assert.equal(saved.description, "更新简介");
+  assert.equal(saved.room, "附属医院");
+  assert.equal(saved.week, 2);
+  assert.equal(saved.startTime, "10:00");
+  assert.equal(saved.endTime, "11:30");
+});
+
+test("课程别名可应用于本课表全局或仅当前周，并随备份状态保存", () => {
+  const courseEvents = [
+    { ...TEST_EVENTS[0], courseCode: "NN-ALIAS-1", weeks: [W(1, 3)] },
+    { ...TEST_EVENTS[1], day: 2, courseCode: "NN-ALIAS-1", weeks: [W(1, 3)] }
+  ];
+  const globalTimetable = TT("t1", "2026-2027-1", "2026-2027-1", "测试同学", courseEvents);
+  const global = runScenario(SAVED({ timetables: [globalTimetable] }));
+  global.triggerEventButton(0);
+  global.trigger("drawerCourseAlias");
+  global.$("courseAliasInput").value = "课程总别名";
+  global.trigger("aliasSave");
+  let saved = JSON.parse(global.storage["wmu-timetable-v1"]);
+  assert.deepEqual(saved.timetables[0].courseAliases, [{ key: "code:nn-alias-1", global: "课程总别名", weeks: {} }]);
+  assert.match(global.$("schedule").innerHTML, /课程总别名/);
+  const restored = runScenario(saved);
+  assert.equal(restored.error, null, restored.error?.stack);
+  assert.match(restored.$("schedule").innerHTML, /课程总别名/);
+
+  const weeklyTimetable = TT("t1", "2026-2027-1", "2026-2027-1", "测试同学", courseEvents);
+  const weekly = runScenario(SAVED({ timetables: [weeklyTimetable], week: 2 }));
+  weekly.triggerEventButton(0);
+  weekly.trigger("drawerCourseAlias");
+  assert.equal(weekly.$("courseAliasScope").value, "global");
+  weekly.$("courseAliasScope").value = "week";
+  weekly.trigger("courseAliasScope", "change");
+  weekly.$("courseAliasInput").value = "本周别名";
+  weekly.trigger("aliasSave");
+  saved = JSON.parse(weekly.storage["wmu-timetable-v1"]);
+  assert.deepEqual(saved.timetables[0].courseAliases, [{ key: "code:nn-alias-1", global: "", weeks: { "2": "本周别名" } }]);
+  assert.match(weekly.$("schedule").innerHTML, /本周别名/);
+  weekly.trigger("nextWeek");
+  assert.doesNotMatch(weekly.$("schedule").innerHTML, /本周别名/);
+  assert.match(weekly.$("schedule").innerHTML, /云计算基础/);
+  weekly.trigger("prevWeek");
+  assert.match(weekly.$("schedule").innerHTML, /本周别名/);
+});
+
+test("单卡片颜色与隐藏状态持久化，设置可解除所有卡片隐藏", () => {
+  const s = runScenario(SAVED());
+  s.triggerEventButton(0);
+  s.trigger("drawerColorBlue");
+  let saved = JSON.parse(s.storage["wmu-timetable-v1"]);
+  assert.equal(saved.timetables[0].events[0].cardColor, "blue");
+  assert.match(s.$("schedule").innerHTML, /--course-bg:#e8eef5/);
+  s.trigger("drawerHideEvent");
+  saved = JSON.parse(s.storage["wmu-timetable-v1"]);
+  assert.equal(saved.timetables[0].events[0].hidden, true);
+  assert.doesNotMatch(s.$("schedule").innerHTML, /data-event="0"/);
+  const restoredHidden = runScenario(saved);
+  assert.equal(restoredHidden.error, null, restoredHidden.error?.stack);
+  assert.doesNotMatch(restoredHidden.$("schedule").innerHTML, /data-event="0"/);
+  restoredHidden.trigger("navSettings");
+  restoredHidden.trigger("unhideAllButton");
+  assert.match(restoredHidden.$("schedule").innerHTML, /--course-bg:#e8eef5/);
+  s.trigger("navSettings");
+  assert.equal(s.$("hiddenEventCount").textContent, "1");
+  s.trigger("unhideAllButton");
+  saved = JSON.parse(s.storage["wmu-timetable-v1"]);
+  assert.equal(saved.timetables[0].events[0].hidden, false);
+  assert.equal(s.$("hiddenEventCount").textContent, "0");
+  assert.match(s.$("schedule").innerHTML, /data-event="0"/);
+  assert.equal(s.$("unhideAllButton").disabled, true);
+});
+
+test("未知校区文本可正常导入并在课程卡片显示", () => {
+  const hospitalEvent = { ...TEST_EVENTS[0], title: "规培课程", campus: "附属医院" };
+  const s = runScenario(SAVED({ timetables: [TT("hospital", "2026-2027-1", "2026-2027-1", "规培同学", [hospitalEvent])] }));
+  assert.equal(s.error, null, s.error?.stack);
+  assert.match(s.$("schedule").innerHTML, /<span class="course-campus">附属医院<\/span>/);
+  assert.match(s.$("schedule").innerHTML, /08:30–09:55/);
 });
 
 test("index.html 周次切换按单双周过滤", () => {
