@@ -152,6 +152,7 @@ function runScenario(saved) {
 
   return {
     elements, documentElement, body, storage, confirmMessages, error, $, trigger, triggerAsync, triggerEvent, triggerEventButton,
+    withEnvironment: (callback) => withMocksAsync(mocks, callback),
     setFetch(callback) { fetcher = callback; }
   };
 }
@@ -562,10 +563,11 @@ test("GitHub 同步连接校验公开仓库权限，并上传、恢复当前账�
     calls.push({ url, options });
     if (url === "https://api.github.com/user") return apiResponse({ login: "tester" });
     if (url === "https://api.github.com/repos/owner/timetable-backup") {
-      return apiResponse({ private: false, permissions: { push: true } });
+      return apiResponse({ private: false, owner: { login: "tester" }, permissions: { push: true } });
     }
     if (options.method === "PUT") {
       uploadedBody = JSON.parse(options.body);
+      remoteBackup = { sha: "synced-sha", size: Buffer.from(uploadedBody.content, "base64").length, encoding: "base64", content: uploadedBody.content };
       return apiResponse({ content: { path: "users/tester/config.json" } });
     }
     if (remoteBackup) return apiResponse(remoteBackup);
@@ -574,18 +576,27 @@ test("GitHub 同步连接校验公开仓库权限，并上传、恢复当前账�
 
   await s.triggerAsync("githubConnectButton");
   assert.equal(JSON.parse(s.storage["wmu-github-sync-config-v1"]).username, "tester");
-  assert.equal(JSON.stringify(s.storage).includes("test-token"), false, "令牌不能写入浏览器持久化存储");
-  assert.equal(s.storage["wmu-github-sync-token-v1"], undefined, "令牌不能进入 localStorage");
-  assert.doesNotMatch(JSON.stringify(s.storage), /test-token/, "本地持久化配置不包含令牌");
+  assert.equal(s.storage["wmu-github-sync-token-v1"], "test-token", "勾选记住授权时令牌保存在当前浏览器");
   assert.equal(s.$("githubTokenInput").value, "", "连接后清空令牌输入框");
   assert.equal(s.$("githubSyncActions").hidden, false);
+  s.$("githubRememberTokenInput").checked = false;
+  s.trigger("githubRememberTokenInput", "change");
+  assert.equal(s.storage["wmu-github-sync-token-v1"], undefined, "取消记住后删除浏览器保存的令牌");
+  assert.equal(JSON.parse(s.storage["wmu-github-sync-config-v1"]).rememberToken, false);
+  s.$("githubRememberTokenInput").checked = true;
+  s.trigger("githubRememberTokenInput", "change");
+  assert.equal(s.storage["wmu-github-sync-token-v1"], "test-token", "可重新启用浏览器记住授权");
+  assert.equal(uploadedBody.message, "Sync timetable configuration", "首次授权自动上传本机配置");
+  const firstUpload = JSON.parse(Buffer.from(uploadedBody.content, "base64").toString("utf8"));
+  assert.equal(firstUpload.timetables[0].student.name, "测试同学");
 
-  remoteBackup = { sha: "existing-sha" };
-  await s.triggerAsync("githubUploadButton");
-  assert.ok(s.confirmMessages[0].includes("对所有人可见"), "上传前明确提示公开范围");
-  assert.equal(uploadedBody.sha, "existing-sha", "覆盖远端文件时携带现有 SHA");
+  await s.withEnvironment(async () => {
+    s.trigger("themeButton");
+    await new Promise((resolve) => setTimeout(resolve, 950));
+  });
+  assert.equal(uploadedBody.sha, "synced-sha", "本机配置变化后自动覆盖对应云端文件");
   const uploaded = JSON.parse(Buffer.from(uploadedBody.content, "base64").toString("utf8"));
-  assert.equal(uploaded.timetables[0].student.name, "测试同学");
+  assert.equal(uploaded.theme, "warm", "本机偏好变化自动同步到云端");
   assert.ok(calls.some(({ url }) => url.endsWith("/users/tester/config.json")));
   assert.equal(s.$("githubSyncStatus").dataset.kind, "success");
 
@@ -598,11 +609,11 @@ test("GitHub 同步连接校验公开仓库权限，并上传、恢复当前账�
   const saved = JSON.parse(s.storage["wmu-timetable-v1"]);
   assert.equal(saved.week, 5);
   assert.equal(saved.theme, "warm");
-  assert.ok(s.confirmMessages[1].includes("替换本机全部课表和偏好"), "覆盖本机数据前确认");
+  assert.ok(s.confirmMessages[0].includes("替换本机全部课表和偏好"), "覆盖本机数据前确认");
 
   s.trigger("githubDisconnectButton");
   assert.equal(s.$("githubSyncActions").hidden, true);
-  assert.equal(JSON.stringify(s.storage).includes("test-token"), false);
+  assert.equal(s.storage["wmu-github-sync-token-v1"], undefined, "断开时清除当前浏览器中记住的令牌");
   assert.ok(s.storage["wmu-timetable-v1"], "断开同步不清除本机配置");
 });
 
