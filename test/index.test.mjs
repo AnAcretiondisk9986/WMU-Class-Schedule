@@ -61,6 +61,17 @@ function withMocks(mocks, fn) {
   }
 }
 
+async function withMocksAsync(mocks, fn) {
+  const backup = {};
+  for (const key of Object.keys(mocks)) { backup[key] = globalThis[key]; globalThis[key] = mocks[key]; }
+  try { return await fn(); } finally {
+    for (const key of Object.keys(mocks)) {
+      if (backup[key] === undefined) delete globalThis[key];
+      else globalThis[key] = backup[key];
+    }
+  }
+}
+
 function runScenario(saved) {
   const elements = {};
   const eventButtons = [];
@@ -68,6 +79,8 @@ function runScenario(saved) {
   const documentElement = makeElement("documentElement");
   const body = makeElement("body");
   const storage = {};
+  const confirmMessages = [];
+  let fetcher = async () => { throw new Error("Unexpected GitHub API request"); };
   if (saved) storage["wmu-timetable-v1"] = JSON.stringify(saved);
 
   const mocks = {
@@ -98,7 +111,8 @@ function runScenario(saved) {
       documentElement,
       createElement: () => makeElement("created")
     },
-    window: { addEventListener() {}, lucide: { createIcons() {} } },
+    window: { addEventListener() {}, lucide: { createIcons() {} }, confirm(message) { confirmMessages.push(message); return true; } },
+    fetch: (...args) => fetcher(...args),
     localStorage: {
       getItem: (key) => (key in storage ? storage[key] : null),
       setItem: (key, value) => { storage[key] = value; },
@@ -119,6 +133,11 @@ function runScenario(saved) {
       if (callback) callback({ target: element, preventDefault() {} });
     });
   };
+  const triggerAsync = async (id, type = "click") => withMocksAsync(mocks, async () => {
+    const element = $(id);
+    const callback = element.listeners[type];
+    if (callback) return callback({ target: element, preventDefault() {} });
+  });
   const triggerEvent = (id, type, event) => {
     withMocks(mocks, () => {
       const callback = $(id).listeners[type];
@@ -131,7 +150,10 @@ function runScenario(saved) {
     withMocks(mocks, () => button.listeners.click?.({ target: button, currentTarget: button, preventDefault() {} }));
   };
 
-  return { elements, documentElement, body, storage, error, $, trigger, triggerEvent, triggerEventButton };
+  return {
+    elements, documentElement, body, storage, confirmMessages, error, $, trigger, triggerAsync, triggerEvent, triggerEventButton,
+    setFetch(callback) { fetcher = callback; }
+  };
 }
 
 const W = (start, end, parity = "all") => ({ start, end, parity });
@@ -522,6 +544,66 @@ test("偏好设置随本地课表状态恢复", () => {
   s.trigger("navSettings");
   assert.equal(s.$("slotHeightInput").value, "120");
   assert.equal(s.$("hideEmptyWeekendsInput").checked, true);
+});
+
+test("GitHub 同步连接校验公开仓库权限，并上传、恢复当前账号的完整配置", async () => {
+  const s = runScenario(SAVED());
+  s.trigger("navSettings");
+  assert.equal(s.$("githubSyncActions").hidden, true, "未连接时同步按钮保持隐藏");
+  assert.equal(s.$("githubRepoInput").value, "AnAcretiondisk9986/wmu-timetable-sync");
+  s.$("githubRepoInput").value = "owner/timetable-backup";
+  s.$("githubTokenInput").value = "test-token";
+
+  const calls = [];
+  let remoteBackup = null;
+  let uploadedBody = null;
+  const apiResponse = (body, status = 200) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
+  s.setFetch(async (url, options = {}) => {
+    calls.push({ url, options });
+    if (url === "https://api.github.com/user") return apiResponse({ login: "tester" });
+    if (url === "https://api.github.com/repos/owner/timetable-backup") {
+      return apiResponse({ private: false, permissions: { push: true } });
+    }
+    if (options.method === "PUT") {
+      uploadedBody = JSON.parse(options.body);
+      return apiResponse({ content: { path: "users/tester/config.json" } });
+    }
+    if (remoteBackup) return apiResponse(remoteBackup);
+    return apiResponse({ message: "Not Found" }, 404);
+  });
+
+  await s.triggerAsync("githubConnectButton");
+  assert.equal(JSON.parse(s.storage["wmu-github-sync-config-v1"]).username, "tester");
+  assert.equal(JSON.stringify(s.storage).includes("test-token"), false, "令牌不能写入浏览器持久化存储");
+  assert.equal(s.storage["wmu-github-sync-token-v1"], undefined, "令牌不能进入 localStorage");
+  assert.doesNotMatch(JSON.stringify(s.storage), /test-token/, "本地持久化配置不包含令牌");
+  assert.equal(s.$("githubTokenInput").value, "", "连接后清空令牌输入框");
+  assert.equal(s.$("githubSyncActions").hidden, false);
+
+  remoteBackup = { sha: "existing-sha" };
+  await s.triggerAsync("githubUploadButton");
+  assert.ok(s.confirmMessages[0].includes("对所有人可见"), "上传前明确提示公开范围");
+  assert.equal(uploadedBody.sha, "existing-sha", "覆盖远端文件时携带现有 SHA");
+  const uploaded = JSON.parse(Buffer.from(uploadedBody.content, "base64").toString("utf8"));
+  assert.equal(uploaded.timetables[0].student.name, "测试同学");
+  assert.ok(calls.some(({ url }) => url.endsWith("/users/tester/config.json")));
+  assert.equal(s.$("githubSyncStatus").dataset.kind, "success");
+
+  const restored = SAVED({ week: 5, theme: "warm" });
+  remoteBackup = {
+    encoding: "base64",
+    content: Buffer.from(JSON.stringify(restored), "utf8").toString("base64")
+  };
+  await s.triggerAsync("githubDownloadButton");
+  const saved = JSON.parse(s.storage["wmu-timetable-v1"]);
+  assert.equal(saved.week, 5);
+  assert.equal(saved.theme, "warm");
+  assert.ok(s.confirmMessages[1].includes("替换本机全部课表和偏好"), "覆盖本机数据前确认");
+
+  s.trigger("githubDisconnectButton");
+  assert.equal(s.$("githubSyncActions").hidden, true);
+  assert.equal(JSON.stringify(s.storage).includes("test-token"), false);
+  assert.ok(s.storage["wmu-timetable-v1"], "断开同步不清除本机配置");
 });
 
 test("暗色主题与不蒜子统计兜底正确恢复", () => {

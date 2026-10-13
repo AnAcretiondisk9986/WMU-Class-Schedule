@@ -343,6 +343,20 @@
     .custom-status { margin-top: 0; }
     .settings-note { margin: 2px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
     .data-actions { display: flex; gap: 8px; }
+    .sync-panel { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); }
+    .sync-panel-title { color: var(--ink); font-size: 13px; font-weight: 750; }
+    .sync-panel-note, .sync-status { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .sync-status[data-kind="success"] { color: #25704f; }
+    .sync-status[data-kind="error"] { color: #a3263d; }
+    .sync-fields { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 9px; }
+    .sync-fields .field:first-child, .sync-fields .field:nth-child(2) { grid-column: 1; }
+    .sync-fields > button { grid-column: 2; grid-row: 1 / span 2; align-self: end; white-space: nowrap; }
+    .sync-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .sync-actions[hidden] { display: none; }
+    @media (max-width: 520px) {
+      .sync-fields { grid-template-columns: minmax(0, 1fr); }
+      .sync-fields > button { grid-column: 1; grid-row: auto; justify-self: start; }
+    }
     .switch-list { display: grid; gap: 8px; margin-top: 18px; max-height: 55vh; overflow: auto; }
     .switch-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 7px; border: 1px solid var(--line); border-radius: 9px; background: #fff; text-align: left; }
     .switch-item:hover { border-color: #b9dec8; background: #f4faf6; }
@@ -918,9 +932,9 @@
 
   <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>选择从教务系统导出的课表 PDF。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="query-link-row"><a class="secondary-btn query-link" href="https://jwxt.wmu.edu.cn/jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&amp;layout=default" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i><span>前往教务系统查询课表</span></a></div><label class="dropzone" id="dropZone" for="fileInput"><i data-lucide="upload-cloud"></i><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="import-status" id="importStatus" role="status" aria-live="polite"></div><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button" aria-label="开始识别" title="开始识别"><i data-lucide="scan-line"></i><span>开始识别</span></button></div></section></div>
 
-  <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题与本地数据管理。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><div class="settings-layout"><div class="settings-controls"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option><option value="dark">暗色</option></select></label><label class="field" for="slotHeightInput"><span>单元格高度</span><div class="range-row"><input id="slotHeightInput" type="range" min="48" max="144" step="4" value="72"><output class="range-value" id="slotHeightValue" for="slotHeightInput">72 px</output></div></label><label class="settings-toggle"><input id="hideEmptyWeekendsInput" type="checkbox"><span class="settings-toggle-copy"><span>自动隐藏无课周末列</span><small>仅隐藏周六、周日中没有课程的列，工作日始终保留。</small></span></label></div><div class="slot-preview" aria-live="polite"><div class="slot-preview-title">实时预览</div><div class="slot-preview-board" id="slotHeightPreview" style="--preview-slot-h:24px"><div class="slot-preview-axis"><span>08:00</span><span>08:45</span><span>09:30</span><span>10:15</span></div><div class="slot-preview-column"><span class="slot-preview-card">课程卡片</span></div><div class="slot-preview-column"><span class="slot-preview-card">今日</span></div></div><div class="slot-preview-note">拖动滑块查看每个 45 分钟单元格的高度变化。</div></div></div><p class="settings-note" id="settingsNote">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。高度会同时调整时间轴、课程卡片和网格间距。</p><div class="data-actions"><button class="secondary-btn" id="unhideAllButton" type="button">解除所有隐藏（<span id="hiddenEventCount">0</span>）</button><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
+  <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题、本地数据与云端同步。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><div class="settings-layout"><div class="settings-controls"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option><option value="dark">暗色</option></select></label><label class="field" for="slotHeightInput"><span>单元格高度</span><div class="range-row"><input id="slotHeightInput" type="range" min="48" max="144" step="4" value="72"><output class="range-value" id="slotHeightValue" for="slotHeightInput">72 px</output></div></label><label class="settings-toggle"><input id="hideEmptyWeekendsInput" type="checkbox"><span class="settings-toggle-copy"><span>自动隐藏无课周末列</span><small>仅隐藏周六、周日中没有课程的列，工作日始终保留。</small></span></label></div><div class="slot-preview" aria-live="polite"><div class="slot-preview-title">实时预览</div><div class="slot-preview-board" id="slotHeightPreview" style="--preview-slot-h:24px"><div class="slot-preview-axis"><span>08:00</span><span>08:45</span><span>09:30</span><span>10:15</span></div><div class="slot-preview-column"><span class="slot-preview-card">课程卡片</span></div><div class="slot-preview-column"><span class="slot-preview-card">今日</span></div></div><div class="slot-preview-note">拖动滑块查看每个 45 分钟单元格的高度变化。</div></div></div><p class="settings-note" id="settingsNote">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。高度会同时调整时间轴、课程卡片和网格间距。</p><section class="sync-panel" aria-labelledby="githubSyncTitle"><div class="sync-panel-title" id="githubSyncTitle">GitHub 同步</div><p class="sync-panel-note">将本机全部课表与偏好保存到公开仓库。你可以 <a href="https://github.com/AnAcretiondisk9986/wmu-timetable-sync" target="_blank" rel="noopener noreferrer">Fork 项目提供的同步仓库</a> 到自己的账号，或使用自己有写入权限的公开仓库。</p><div class="sync-fields"><label class="field"><span>公开仓库（所有者/名称）</span><input id="githubRepoInput" type="text" autocomplete="off" spellcheck="false" placeholder="AnAcretiondisk9986/wmu-timetable-sync"></label><label class="field"><span>细粒度访问令牌</span><input id="githubTokenInput" type="password" autocomplete="off" spellcheck="false" placeholder="只在当前页面运行期间临时使用"></label><button class="secondary-btn" id="githubConnectButton" type="button">验证并连接</button></div><p class="sync-status" id="githubSyncStatus" role="status" aria-live="polite">尚未连接仓库；连接后才可使用同步。</p><p class="sync-panel-note">令牌需对所选仓库授予 Contents 读取与写入权限。令牌只保存在当前页面内存，刷新或关闭页面后需重新连接，不会写入浏览器存储和配置备份。<br>公开仓库中的配置文件和 Git 历史任何人都能查看；备份含姓名、学号、课程安排、收藏和偏好。上传前会再次提示，请勿上传不愿公开的信息。</p><div class="sync-actions" id="githubSyncActions" hidden><button class="secondary-btn" id="githubUploadButton" type="button">上传本机配置</button><button class="secondary-btn" id="githubDownloadButton" type="button">从仓库恢复</button><button class="secondary-btn" id="githubDisconnectButton" type="button">断开连接</button></div></section><div class="data-actions"><button class="secondary-btn" id="unhideAllButton" type="button">解除所有隐藏（<span id="hiddenEventCount">0</span>）</button><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
 
-  <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>可在「导入 PDF」弹窗中前往教务系统查询课表；正常导出 PDF 后，回到本页选择该文件。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>切换到「月视图」可按日查看当前月份，月初和月末不足一周的日期会保留在独立行中。</li><li>「回到今天」定位到当前周次与星期，月视图下定位到当前月份。</li><li>工具栏「新建日程」可快速添加课表外安排，默认定位到当前周和当天；打开自定义日程卡片可再次编辑。</li><li>课程卡片详情可修改别名（本课表全局或当前周）、选择卡片颜色或隐藏卡片；设置中可解除所有隐藏。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>数据仅保存在本机浏览器（localStorage），不上传到任何服务器。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
+  <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>可在「导入 PDF」弹窗中前往教务系统查询课表；正常导出 PDF 后，回到本页选择该文件。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>切换到「月视图」可按日查看当前月份，月初和月末不足一周的日期会保留在独立行中。</li><li>「回到今天」定位到当前周次与星期，月视图下定位到当前月份。</li><li>工具栏「新建日程」可快速添加课表外安排，默认定位到当前周和当天；打开自定义日程卡片可再次编辑。</li><li>课程卡片详情可修改别名（本课表全局或当前周）、选择卡片颜色或隐藏卡片；设置中可解除所有隐藏。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>课表配置默认保存在本机浏览器。若在设置中连接 GitHub 公开仓库并手动上传，配置文件及历史版本将对所有人可见。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
 
   <div class="modal-backdrop" id="switchBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="switchTitle"><div class="modal-head"><div><h2 id="switchTitle">切换课表</h2><p>选择要查看的课表。</p></div><button class="icon-btn" id="switchClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="switch-list" id="switchList"></div><div class="modal-foot"><button class="secondary-btn" id="switchImport" type="button">导入新课表</button><button class="import-btn" id="switchDone" type="button">完成</button></div></section></div>
 
@@ -989,6 +1003,8 @@
       violet: { background: '#eeeaf3', accent: '#78638b', text: '#594569' }
     };
     const STORAGE_KEY = 'wmu-timetable-v1';
+    const GITHUB_SYNC_CONFIG_KEY = 'wmu-github-sync-config-v1';
+    const GITHUB_SYNC_DEFAULT_REPO = 'AnAcretiondisk9986/wmu-timetable-sync';
     const INSTALL_SEEN_KEY = 'wmu-pwa-install-guide-seen-v1';
     const GLOBAL_STAT_FALLBACK = 200;
     const DEFAULT_SLOT_HEIGHT = 72;
@@ -1018,6 +1034,7 @@
     let drawerPosition = 0;
     let drawerSwipeState = null;
     let deferredInstallPrompt = null;
+    let githubSyncTokenInMemory = '';
     const $ = (id) => document.getElementById(id);
 
     function getInstallEnvironment() {
@@ -2216,6 +2233,9 @@
         ? '请确认学期第一周周一；未确认前，周次和日期仅为临时估算。高度会同时调整时间轴、课程卡片和网格间距。'
         : '「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。高度会同时调整时间轴、课程卡片和网格间距。';
       renderSlotHeightPreview(Number($('slotHeightInput').value));
+      const syncConnected = refreshGitHubSyncUI();
+      $('githubTokenInput').value = '';
+      $('githubTokenInput').disabled = syncConnected;
       openModal('settingsBackdrop');
     }
     function openHelp() { openModal('helpBackdrop'); }
@@ -2499,6 +2519,202 @@
         return false;
       }
     }
+    function readGitHubSyncConfig() {
+      try {
+        const value = JSON.parse(localStorage.getItem(GITHUB_SYNC_CONFIG_KEY));
+        if (value && typeof value.owner === 'string' && typeof value.repo === 'string' && typeof value.username === 'string') return value;
+      } catch (error) {}
+      return null;
+    }
+    function githubSyncToken() {
+      return githubSyncTokenInMemory;
+    }
+    function refreshGitHubSyncUI() {
+      const config = readGitHubSyncConfig();
+      const connected = Boolean(config && githubSyncToken());
+      const repoInput = $('githubRepoInput');
+      if (repoInput && !repoInput.value) repoInput.value = config ? `${config.owner}/${config.repo}` : GITHUB_SYNC_DEFAULT_REPO;
+      repoInput.disabled = connected;
+      const status = $('githubSyncStatus');
+      status.textContent = connected
+        ? `已连接 ${config.owner}/${config.repo}（GitHub 账号：${config.username}）；云端文件：users/${config.username}/config.json`
+        : config
+          ? `已保存仓库 ${config.owner}/${config.repo}，请重新输入令牌并连接。`
+          : '尚未连接仓库；连接后才可使用同步。';
+      status.dataset.kind = connected ? 'success' : '';
+      $('githubSyncActions').hidden = !connected;
+      $('githubConnectButton').hidden = connected;
+      $('githubTokenInput').disabled = connected;
+      return connected;
+    }
+    function setGitHubSyncStatus(message, kind = '') {
+      const status = $('githubSyncStatus');
+      status.textContent = message;
+      status.dataset.kind = kind;
+    }
+    function githubApiHeaders(token, json = false) {
+      return {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${token}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+        ...(json ? { 'Content-Type': 'application/json' } : {})
+      };
+    }
+    async function githubApiRequest(url, token, options = {}) {
+      const response = await fetch(url, { ...options, headers: { ...githubApiHeaders(token, Boolean(options.body)), ...options.headers } });
+      let body = null;
+      try { body = await response.json(); } catch (error) {}
+      if (!response.ok) {
+        const detail = response.status === 404 ? '未找到仓库文件或当前令牌无权读取' : body?.message || `GitHub API 返回 ${response.status}`;
+        const failure = new Error(detail);
+        failure.status = response.status;
+        throw failure;
+      }
+      return body;
+    }
+    async function connectGitHubSync() {
+      const repoText = $('githubRepoInput').value.trim();
+      const token = $('githubTokenInput').value.trim();
+      const match = /^([A-Za-z0-9-]+)\/([A-Za-z0-9._-]+)$/.exec(repoText);
+      if (!match || !token) {
+        setGitHubSyncStatus('请填写正确的「所有者/仓库名」和访问令牌。', 'error');
+        return;
+      }
+      const [, owner, repo] = match;
+      $('githubConnectButton').disabled = true;
+      setGitHubSyncStatus('正在验证账号、仓库公开状态和写入权限…');
+      try {
+        const user = await githubApiRequest('https://api.github.com/user', token);
+        const repository = await githubApiRequest(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`, token);
+        if (repository.private !== false) throw new Error('此功能只接受公开仓库。');
+        if (!repository.permissions?.push) throw new Error('该令牌没有此仓库的写入权限。请检查仓库授权及 Contents 读取/写入权限。');
+        if (!user.login) throw new Error('GitHub 未返回有效账号名称。');
+        try {
+          localStorage.setItem(GITHUB_SYNC_CONFIG_KEY, JSON.stringify({ owner, repo, username: user.login }));
+          githubSyncTokenInMemory = token;
+        } catch (storageError) {
+          try { localStorage.removeItem(GITHUB_SYNC_CONFIG_KEY); } catch (error) {}
+          githubSyncTokenInMemory = '';
+          throw new Error('浏览器存储不可用，请检查隐私模式或站点存储权限。');
+        }
+        $('githubTokenInput').value = '';
+        refreshGitHubSyncUI();
+        setGitHubSyncStatus(`已连接 ${owner}/${repo}（GitHub 账号：${user.login}）。`, 'success');
+      } catch (error) {
+        setGitHubSyncStatus(`连接失败：${error.message || '请检查网络、令牌和仓库权限。'}`, 'error');
+      } finally {
+        $('githubConnectButton').disabled = false;
+      }
+    }
+    function currentBackupPayload() {
+      state.favorites = migrateFavorites(state.favorites, state.timetables);
+      return {
+        version: 2,
+        timetables: state.timetables,
+        activeId: state.activeId,
+        favorites: state.favorites,
+        theme: currentTheme(),
+        week: state.week,
+        day: state.day,
+        month: state.month,
+        view: state.view,
+        slotHeight: state.slotHeight,
+        hideEmptyWeekends: state.hideEmptyWeekends,
+        updatedAt: Date.now()
+      };
+    }
+    function githubConfigPath(config) {
+      return `users/${config.username}/config.json`;
+    }
+    function encodeGitHubContent(value) {
+      const bytes = new TextEncoder().encode(value);
+      let binary = '';
+      for (let start = 0; start < bytes.length; start += 0x8000) {
+        binary += String.fromCharCode(...bytes.subarray(start, start + 0x8000));
+      }
+      return btoa(binary);
+    }
+    function decodeGitHubContent(value) {
+      const binary = atob(String(value || '').replace(/\s/g, ''));
+      const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+      return new TextDecoder().decode(bytes);
+    }
+    async function uploadGitHubConfig() {
+      const config = readGitHubSyncConfig();
+      const token = githubSyncToken();
+      if (!config || !token) { refreshGitHubSyncUI(); return; }
+      if (!state.timetables.length) { setGitHubSyncStatus('当前没有可同步的课表配置。', 'error'); return; }
+      const warning = `将把当前浏览器的全部课表与偏好提交到公开仓库 ${config.owner}/${config.repo}。姓名、学号和课程安排会对所有人可见，旧版本也会保留在公开 Git 历史中。继续上传会覆盖该账号已有的云端配置。确定上传？`;
+      if (typeof window.confirm !== 'function' || !window.confirm(warning)) return;
+      if (!persist()) { setGitHubSyncStatus('本机保存失败，已取消上传。', 'error'); return; }
+      $('githubUploadButton').disabled = true;
+      setGitHubSyncStatus('正在提交配置到公开仓库…');
+      try {
+        const ownerResponse = await githubApiRequest('https://api.github.com/user', token);
+        const repository = await githubApiRequest(`https://api.github.com/repos/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repo)}`, token);
+        if (ownerResponse.login !== config.username) throw new Error('GitHub 当前授权账号已变化，请断开连接后重新连接。');
+        if (repository.private !== false || !repository.permissions?.push) throw new Error('仓库已变为私有，或当前令牌不再拥有写入权限。');
+        const path = githubConfigPath(config);
+        const endpoint = `https://api.github.com/repos/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repo)}/contents/${path.split('/').map(encodeURIComponent).join('/')}`;
+        let remote = null;
+        try { remote = await githubApiRequest(endpoint, token); }
+        catch (error) { if (error.status !== 404) throw error; }
+        if (Number(remote?.size || 0) > 800_000) throw new Error('现有同步文件过大，无法安全读取后覆盖。');
+        const body = {
+          message: 'Sync timetable configuration',
+          content: encodeGitHubContent(JSON.stringify(currentBackupPayload(), null, 2)),
+          ...(remote?.sha ? { sha: remote.sha } : {})
+        };
+        await githubApiRequest(endpoint, token, { method: 'PUT', body: JSON.stringify(body) });
+        setGitHubSyncStatus(`上传完成：${path}。文件和提交历史对所有人公开。`, 'success');
+      } catch (error) {
+        setGitHubSyncStatus(`上传失败：${error.message || '请检查仓库写入权限和网络。'}`, 'error');
+      } finally {
+        $('githubUploadButton').disabled = false;
+      }
+    }
+    async function downloadGitHubConfig() {
+      const config = readGitHubSyncConfig();
+      const token = githubSyncToken();
+      if (!config || !token) { refreshGitHubSyncUI(); return; }
+      const path = githubConfigPath(config);
+      $('githubDownloadButton').disabled = true;
+      setGitHubSyncStatus('正在读取公开仓库配置…');
+      try {
+        const user = await githubApiRequest('https://api.github.com/user', token);
+        const repository = await githubApiRequest(`https://api.github.com/repos/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repo)}`, token);
+        if (user.login !== config.username) throw new Error('GitHub 当前授权账号已变化，请断开连接后重新连接。');
+        if (repository.private !== false) throw new Error('此功能只接受公开仓库。');
+        const endpoint = `https://api.github.com/repos/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repo)}/contents/${path.split('/').map(encodeURIComponent).join('/')}`;
+        const remote = await githubApiRequest(endpoint, token);
+        if (remote.encoding !== 'base64' || !remote.content) throw new Error('仓库文件格式无法识别。');
+        if (Number(remote.size || 0) > 800_000) throw new Error('同步文件过大，超过 GitHub Contents API 的读取限制。');
+        const backupText = decodeGitHubContent(remote.content);
+        const backup = JSON.parse(backupText);
+        if (!normalizeBackup(backup)) throw new Error('仓库中的配置备份格式无效。');
+        const warning = '将使用公开仓库中的配置替换本机全部课表和偏好。此操作会覆盖本机内容，请先确认需要恢复。';
+        if (typeof window.confirm !== 'function' || !window.confirm(warning)) {
+          setGitHubSyncStatus('已取消恢复。');
+          return;
+        }
+        const ok = await importData(new Blob([backupText], { type: 'application/json' }));
+        if (!ok) throw new Error('恢复失败，本机数据未更改。');
+        setGitHubSyncStatus(`恢复完成：${path}。`, 'success');
+      } catch (error) {
+        setGitHubSyncStatus(`恢复失败：${error.message || '仓库中没有有效配置。'}`, 'error');
+      } finally {
+        $('githubDownloadButton').disabled = false;
+      }
+    }
+    function disconnectGitHubSync() {
+      githubSyncTokenInMemory = '';
+      try { localStorage.removeItem(GITHUB_SYNC_CONFIG_KEY); } catch (error) {}
+      $('githubRepoInput').value = GITHUB_SYNC_DEFAULT_REPO;
+      $('githubRepoInput').disabled = false;
+      $('githubTokenInput').disabled = false;
+      refreshGitHubSyncUI();
+      setGitHubSyncStatus('已断开连接；本机数据和公开仓库文件均未删除。');
+    }
     function resetData() {
       try { localStorage.removeItem(STORAGE_KEY); } catch (error) {}
       activeEvent = null;
@@ -2519,20 +2735,7 @@
     }
     function exportData() {
       const tt = currentTimetable();
-      state.favorites = migrateFavorites(state.favorites, state.timetables);
-      const payload = {
-        version: 2,
-        timetables: state.timetables,
-        activeId: state.activeId,
-        favorites: state.favorites,
-        theme: currentTheme(),
-        week: state.week,
-        day: state.day,
-        view: state.view,
-        slotHeight: state.slotHeight,
-        hideEmptyWeekends: state.hideEmptyWeekends,
-        updatedAt: Date.now()
-      };
+      const payload = currentBackupPayload();
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
@@ -2788,6 +2991,10 @@
     $('modalClose').addEventListener('click', closeImportModal);
     $('modalCancel').addEventListener('click', closeImportModal);
     $('settingsClose').addEventListener('click', () => closeModalById('settingsBackdrop'));
+    $('githubConnectButton').addEventListener('click', connectGitHubSync);
+    $('githubUploadButton').addEventListener('click', uploadGitHubConfig);
+    $('githubDownloadButton').addEventListener('click', downloadGitHubConfig);
+    $('githubDisconnectButton').addEventListener('click', disconnectGitHubSync);
     $('settingsBackdrop').addEventListener('click', (event) => { if (event.target === event.currentTarget) closeModalById('settingsBackdrop'); });
     $('slotHeightInput').addEventListener('input', (event) => renderSlotHeightPreview(event.target.value));
     $('helpClose').addEventListener('click', () => closeModalById('helpBackdrop'));
