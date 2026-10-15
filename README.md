@@ -2,7 +2,7 @@
 
 温州医科大学课表 PDF 导入与日程管理工具。主网页端直接读取教务系统导出的 PDF 文字层和文字坐标，恢复星期列、节次与周次；不依赖 OCR，也不需要应用服务器处理课表。
 
-- 在线使用：[GitHub Pages](https://anacretiondisk9986.github.io/WMU-Class-Schedule/) · [acretiondisk.top](https://acretiondisk.top/WMU-Class-Schedule/)
+- 在线使用：[GitHub Pages](https://anacretiondisk9986.github.io/WMU-Class-Schedule/) · [wmu.kb.acretiondisk.top](https://wmu.kb.acretiondisk.top/)
 - 当前版本：[v0.2.0 发布说明](https://github.com/AnAcretiondisk9986/WMU-Class-Schedule/releases/tag/v0.2.0)
 - 数据处理：网页端在当前浏览器本地解析和保存，不会把 PDF 或课表上传到项目服务器。
 
@@ -31,7 +31,7 @@
 
 ## 开始使用
 
-1. 打开[在线课表](https://anacretiondisk9986.github.io/WMU-Class-Schedule/)或[自定义域名](https://acretiondisk.top/WMU-Class-Schedule/)。
+1. 打开[在线课表](https://anacretiondisk9986.github.io/WMU-Class-Schedule/)或[自定义域名](https://wmu.kb.acretiondisk.top/)。
 2. 在温医大教务系统导出自己的课表 PDF。
 3. 在应用中选择「导入 PDF」，选择文件并开始识别。
 4. 首次导入某学期后，在「偏好设置」中确认该学期第一周周一。此日期用于计算课表日期和当前周次。
