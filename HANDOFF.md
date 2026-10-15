@@ -29,6 +29,30 @@ pnpm-lock.yaml                pnpm 依赖锁文件
 
 ## 3. 当前已实现功能
 
+### 首屏加载与默认画面优化（v0.3.0）
+
+首页打开慢的根因是首屏串行加载了与首屏无关的大体积资源，以及安装期的过量预缓存。改动如下：
+
+- `index.html` 不再同步 `import` PDF.js，改为 `loadPdfJs()` 按需 `import('./vendor/pdfjs/build/pdf.min.mjs')`（约 425 KB）。首屏零请求；打开导入弹窗时后台预取，真正点「开始识别」时通常已就绪。
+- 移除 `unpkg.com/lucide` 外链，改为页面内 SVG sprite（30 个图标，约 15 KB）。**注意**：`<symbol>` 子元素的呈现属性在 `<use>` 影子树中不会稳定继承宿主 `<svg>` 的属性，`fill="none"` / `stroke="currentColor"` 必须直接写在每个子元素上，否则图标会渲染成实心黑块。
+- `assets/` 由 983 KB 降至 120 KB：校名 logo、校徽、盾徽按实际显示尺寸（42px / 30px / 58px 高的 2 倍）重新采样。**注意**：白色图形不要走调色板量化，会破坏 alpha 通道。
+- `sw.js` 的 `install` 只预缓存应用壳；`vendor/pdfjs/` 全部改为按需缓存（见第 5 节）。
+- 统计脚本改为 `requestIdleCallback` 空闲加载，失败显示兜底数字。
+- 无课表时不再渲染空白课表网格：三个滑动页共享同一网格行，空网格会把首屏撑到 1800px 以上，把导入引导挤出屏幕。现在引导卡片直接位于首屏。
+- 首帧不再显示示例课程 / 学分 / 校区；侧栏与顶栏在无数据时显示「尚未导入课表」。
+
+实测（Chrome，4G 限速 + 4 倍 CPU 降速 + 禁用缓存，3 次采样中位数）：
+
+| 指标 | 优化前 | 优化后 |
+| --- | --- | --- |
+| 首屏完全加载 | 3728 ms | 1367 ms |
+| FCP | 2148 ms | 596 ms |
+| 首屏传输 | 595 KB | 160 KB |
+| 首屏请求数 | 9 | 7 |
+| 第三方脚本 | 2 | 1（空闲加载） |
+
+验证方式：`node --test` 51 项全通过；Chrome 实测 1440 / 760 / 390 三档视口无横向溢出、无未渲染图标（`i[data-lucide]` 为 0）；按需加载后 `pdf.min.mjs` 导入耗时约 16 ms，真实样本可解析出 4 页 232 个文本项。
+
 ### 温医大视觉识别系统重构
 
 网站视觉层已按温州医科大学视觉形象识别系统重构，规范来源为 <https://vi.wmu.edu.cn/index.htm>：
@@ -123,7 +147,7 @@ pnpm install
 pnpm test
 ```
 
-测试覆盖：单双周解析、滨海/茶山真实样本回归、跨校区冲突（含多范围周次）；以及 index.html 的空态引导、渲染、周过滤、主题 / 收藏、课程名截断、localStorage 恢复、多课表切换、固定 DOM ID 完整性和 PWA 安装入口相关 DOM。当前 `npm test` 共 52 个测试全部通过；真实样本缺失时对应样本测试会自动跳过，因此干净克隆仍可运行测试。
+测试覆盖：单双周解析、滨海/茶山真实样本回归、跨校区冲突（含多范围周次）；以及 index.html 的空态引导、渲染、周过滤、主题 / 收藏、课程名截断、localStorage 恢复、多课表切换、固定 DOM ID 完整性、首屏不阻塞（PDF.js 按需加载、无第三方图标库）和 PWA 安装入口相关 DOM。当前 `npm test` 共 51 个测试全部通过；真实样本缺失时对应样本测试会自动跳过，因此干净克隆仍可运行测试。
 
 本地预览建议使用能返回正确 JavaScript MIME 类型的静态服务器：
 
@@ -150,7 +174,7 @@ git push origin main
 gh run list --limit 5
 ```
 
-PDF.js、worker、CMap 和标准字体已纳入 `vendor/pdfjs/`，网页端使用同源路径，Service Worker 会预缓存这些资源并在版本更新时清理旧的 `wmu-timetable-shell-*` 缓存。图标库 lucide 仍从 `unpkg.com` 加载（加载失败时页面仍可用，仅图标不显示）。
+PDF.js、worker、CMap 和标准字体已纳入 `vendor/pdfjs/`，网页端使用同源路径。这些资源**不参与** Service Worker 的 `install` 预缓存：按需请求时写入 `wmu-timetable-shell-*` 缓存，命中后立即返回并在后台校验内容长度 / ETag，内容变化时替换缓存并清空同一路径下的其他 PDF.js 条目，避免主库与 worker 版本不一致。图标为页面内 SVG sprite（`<svg id="iconSprite">` + `<use href="#ic-*">`），不再依赖 `unpkg.com` 的 lucide 脚本。
 
 ## 6. 继续开发时的注意事项
 
@@ -161,7 +185,7 @@ PDF.js、worker、CMap 和标准字体已纳入 `vendor/pdfjs/`，网页端使�
 
 ## 7. 交接验收记录
 
-- `npm test`：52/52 通过。
+- `npm test`：51/51 通过。
 - `node --check sw.js`：通过；PWA 同源 PDF.js 资源与版本敏感资源缓存策略已覆盖测试。
 - 真实样本回归：滨海校区（黄映焜）、茶山校区（崔艺鑫）样本均可直接解析。
 - 浏览器端导入茶山 / 滨海样本可生成课表并渲染周视图。

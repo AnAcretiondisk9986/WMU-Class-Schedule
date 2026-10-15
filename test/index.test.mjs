@@ -111,7 +111,7 @@ function runScenario(saved) {
       documentElement,
       createElement: () => makeElement("created")
     },
-    window: { addEventListener() {}, lucide: { createIcons() {} }, confirm(message) { confirmMessages.push(message); return true; } },
+    window: { addEventListener() {}, requestIdleCallback() {}, lucide: { createIcons() {} }, confirm(message) { confirmMessages.push(message); return true; } },
     fetch: (...args) => fetcher(...args),
     localStorage: {
       getItem: (key) => (key in storage ? storage[key] : null),
@@ -230,24 +230,36 @@ test("手机 APP 引导覆盖 iOS 浏览器与 Android 一键安装", () => {
 });
 
 test("PWA 页面导航优先读取网络并缓存本地 PDF.js 依赖", () => {
-  assert.match(serviceWorker, /const CACHE_NAME = `\$\{CACHE_PREFIX\}v3`/);
+  assert.match(serviceWorker, /const CACHE_NAME = `\$\{CACHE_PREFIX\}v4`/);
   assert.match(serviceWorker, /event\.request\.mode === "navigate"/);
   assert.match(serviceWorker, /fetch\(event\.request\)[\s\S]*catch\(\(\) => caches\.match\("\.\/index\.html"\)\)/);
   assert.match(serviceWorker, /key\.startsWith\(CACHE_PREFIX\) && key !== CACHE_NAME/);
   assert.doesNotMatch(serviceWorker, /keys\.filter\(key => key !== CACHE_NAME\)/);
-  assert.match(serviceWorker, /\.\/vendor\/pdfjs\/build\/pdf\.min\.mjs/);
-  assert.match(serviceWorker, /\.\/vendor\/pdfjs\/build\/pdf\.worker\.min\.mjs/);
-  assert.match(serviceWorker, /vendor\/pdfjs\/cmaps\//);
-  assert.match(serviceWorker, /vendor\/pdfjs\/standard_fonts\//);
+  // 首屏之外的 PDF.js 资源不进 install 预缓存，改为按需请求后写入缓存。
+  assert.match(serviceWorker, /const LAZY_PATH_PREFIXES = \[\s*"\.\/vendor\/pdfjs\/"\s*\]/);
+  assert.match(serviceWorker, /isLazyVendor/);
   assert.match(serviceWorker, /isVersionSensitive/);
 });
 
-test("网页端 PDF.js 及辅助资源使用同源路径", () => {
-  assert.match(html, /import \* as pdfjsLib from '\.\/vendor\/pdfjs\/build\/pdf\.min\.mjs'/);
+test("网页端 PDF.js 及辅助资源使用同源路径并按需加载", () => {
+  // 模块加载阶段不得同步引入 425 KB 的 PDF.js 主库，否则直接阻塞首屏。
+  assert.doesNotMatch(html, /import \* as pdfjsLib from/);
+  assert.match(html, /import\('\.\/vendor\/pdfjs\/build\/pdf\.min\.mjs'\)/);
   assert.match(html, /workerSrc = '\.\/vendor\/pdfjs\/build\/pdf\.worker\.min\.mjs'/);
   assert.match(html, /cMapUrl: '\.\/vendor\/pdfjs\/cmaps\/'/);
   assert.match(html, /standardFontDataUrl: '\.\/vendor\/pdfjs\/standard_fonts\/'/);
+  assert.match(html, /async function importPdfFile\(file\) \{[\s\S]*await loadPdfJs\(\)/);
   assert.doesNotMatch(html, /cdn\.jsdelivr\.net\/npm\/pdfjs-dist/);
+});
+
+test("首屏不依赖第三方图标库与统计脚本", () => {
+  assert.doesNotMatch(html, /unpkg\.com\/lucide/);
+  assert.doesNotMatch(html, /<script[^>]+src="https:\/\/busuanzi\.ibruce\.info/);
+  // 图标由页面内 SVG sprite 提供，静态占位符在首帧即有形。
+  assert.match(html, /<svg id="iconSprite"/);
+  assert.match(html, /<symbol id="ic-file-up"/);
+  assert.match(html, /<use href="#ic-/);
+  assert.match(html, /function mountIcons\(root = document\)/);
 });
 
 test("Service Worker 预缓存清单中的同源资源均存在", () => {
@@ -631,7 +643,11 @@ test("暗色主题与不蒜子统计兜底正确恢复", () => {
   assert.equal(s.$("busuanzi_value_site_pv").textContent, "200");
   assert.equal(s.$("busuanzi_value_site_uv").textContent, "200");
   assert.doesNotMatch(html, /wmu-visit-count-v1|visitCountValue|userCountValue/);
+  // 统计脚本改为空闲加载：地址仍保留，但不再出现在首屏的 script 标签里。
   assert.ok(html.includes("https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"));
+  assert.match(html, /function setupGlobalStats\(\)[\s\S]*busuanzi\.pure\.mini\.js/);
+  assert.match(html, /requestIdleCallback\(start, \{ timeout: 2500 \}\)/);
+  assert.doesNotMatch(html, /<script[^>]+src="https:\/\/busuanzi\.ibruce\.info/);
   assert.match(html, /html\.dark-mode \{[\s\S]*?--canvas: #101311;/);
 });
 

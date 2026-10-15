@@ -20,8 +20,6 @@
   <link rel="apple-touch-icon" href="assets/wmu-preview.png">
   <link rel="manifest" href="manifest.webmanifest">
   <title>温医大课表</title>
-  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
   <style>
     :root {
       --ink: #17231f;
@@ -836,17 +834,70 @@
     html.dark-mode .view-toggle button.active { background: #303733; color: var(--ink); }
     html.dark-mode .search input::placeholder, html.dark-mode .field input::placeholder, html.dark-mode .field textarea::placeholder { color: #718078; }
     @media (max-width: 760px) {
-      .site-footer { padding: 0 14px 18px; }
+      /* 移动端底部导航固定在视口底部（64px + 安全区），页脚需要额外留出空间。 */
+      .site-footer { padding: 0 14px 18px; margin-bottom: 64px; }
       .settings-layout { grid-template-columns: 1fr; }
       .slot-preview { order: -1; }
+      /* 顶栏空间有限时保留「导入 PDF」文字，避免只剩图标难以理解。 */
+      .search { flex: 0 1 auto; width: min(186px, 42vw); max-width: none; }
+      .import-btn { flex: 0 0 auto; min-width: fit-content; gap: 4px; padding: 0 9px; font-size: 11px; }
+      .import-btn svg { width: 14px; height: 14px; }
+      .import-btn span { display: inline; white-space: nowrap; }
     }
     @media (prefers-reduced-motion: reduce) {
       .sidebar, .mobile-nav-backdrop, .mobile-nav-panel { transition-duration: 1ms !important; }
       .week-swipe-surface, .drawer { will-change: auto; }
     }
+
+    /* 图标 sprite 容器：只作为 <use> 的定义来源，不参与布局。 */
+    .icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+    svg[data-lucide] { display: block; flex: 0 0 auto; }
+
+    /* 空态：首次打开（尚未导入课表）时的引导版面。 */
+    .empty { padding: 32px 20px; }
+    /* 尚未导入课表：不显示空网格，引导卡片直接位于首屏 */
+    .empty.empty-hero { min-height: 300px; padding: 18px 20px 26px; align-content: start; }
+    .empty-guide {
+      max-width: 428px;
+      gap: 0;
+      padding: 34px 30px 30px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background:
+        radial-gradient(120% 90% at 50% 0%, rgba(167, 31, 60, .05), transparent 62%),
+        var(--panel);
+      box-shadow: var(--shadow);
+    }
+    .empty-guide-icon {
+      display: grid;
+      place-items: center;
+      width: 58px;
+      height: 58px;
+      border: 1px solid #ecd3d9;
+      border-radius: 14px;
+      background: var(--brand-soft, #f7e7eb);
+      color: var(--brand, #a71f3c);
+    }
+    .empty-guide-icon svg { width: 27px; height: 27px; }
+    .empty-guide h3 { margin: 15px 0 0; color: var(--brand-deep, var(--ink)); font-size: 18px; letter-spacing: 0; }
+    .empty-guide p { margin: 7px 0 0; max-width: 330px; color: var(--muted); font-size: 12.5px; line-height: 1.6; }
+    .empty-guide .import-btn { height: 38px; margin-top: 18px; padding: 0 18px; font-size: 13px; }
+    .empty-guide-note { margin-top: 11px; color: var(--muted); font-size: 11px; letter-spacing: .02em; }
+    .empty-filtered { display: grid; justify-items: center; gap: 10px; color: var(--muted); font-size: 13px; }
+    .empty-filtered svg { width: 26px; height: 26px; color: #9aaba1; }
+    .empty-filtered .secondary-btn { height: 32px; }
+    .dark-mode .empty-guide { border-color: rgba(255, 255, 255, .12); }
+    .dark-mode .empty-guide-icon { border-color: rgba(214, 155, 170, .28); background: rgba(167, 31, 60, .22); color: #f2c6d0; }
+    .dark-mode .empty-filtered svg { color: #6f8177; }
+    @media (max-width: 760px) {
+      .empty-guide { padding: 26px 20px 24px; }
+      .empty-guide-icon { width: 50px; height: 50px; border-radius: 12px; }
+      .empty-guide h3 { font-size: 16px; }
+    }
   </style>
 </head>
 <body>
+  <svg id="iconSprite" class="icon-sprite" aria-hidden="true" focusable="false" width="0" height="0"><symbol id="ic-bookmark" viewBox="0 0 24 24"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-calendar-days" viewBox="0 0 24 24"><path d="M8 2v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 2v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect width="18" height="18" x="3" y="4" rx="2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 10h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 14h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 14h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 18h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 18h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 18h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-calendar-off" viewBox="0 0 24 24"><path d="M4.2 4.2A2 2 0 0 0 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 1.82-1.18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 15.5V6a2 2 0 0 0-2-2H9.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 2v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 10h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 10h-5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="m2 2 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-circle-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 17h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-clock-3" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="12 6 12 12 16.5 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="7 10 12 15 17 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" x2="12" y1="15" y2="3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-external-link" viewBox="0 0 24 24"><path d="M15 3h6v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 14 21 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-file-up" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2v4a2 2 0 0 0 2 2h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 12v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="m15 15-3-3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-layers-2" viewBox="0 0 24 24"><path d="m16.02 12 5.48 3.13a1 1 0 0 1 0 1.74L13 21.74a2 2 0 0 1-2 0l-8.5-4.87a1 1 0 0 1 0-1.74L7.98 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 13.74a2 2 0 0 1-2 0L2.5 8.87a1 1 0 0 1 0-1.74L11 2.26a2 2 0 0 1 2 0l8.5 4.87a1 1 0 0 1 0 1.74Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-list" viewBox="0 0 24 24"><path d="M3 12h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 18h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 6h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 12h13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 18h13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 6h13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-list-todo" viewBox="0 0 24 24"><rect x="3" y="5" width="6" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="m3 17 2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 6h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 12h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 18h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-map-pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-monitor" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="3" rx="2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="8" x2="16" y1="21" y2="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" x2="12" y1="17" y2="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-plus" viewBox="0 0 24 24"><path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5v14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 11v-1a4 4 0 0 1 4-4h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="m7 22-4-4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 13v1a4 4 0 0 1-4 4H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-scan-line" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 3h2a2 2 0 0 1 2 2v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 17v2a2 2 0 0 1-2 2h-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 21H5a2 2 0 0 1-2-2v-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 12h10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="m21 21-4.3-4.3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-settings-2" viewBox="0 0 24 24"><path d="M20 7h-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 17H5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="17" cy="17" r="3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-share" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="16 6 12 2 8 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" x2="12" y1="2" y2="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-smartphone" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 18h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 2v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 20v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="m4.93 4.93 1.41 1.41" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="m17.66 17.66 1.41 1.41" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12h2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 12h2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="m6.34 17.66-1.41 1.41" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="m19.07 4.93-1.41 1.41" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-sunset" viewBox="0 0 24 24"><path d="M12 10V2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="m4.93 10.93 1.41 1.41" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 18h2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 18h2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="m19.07 10.93-1.41 1.41" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 22H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="m16 6-4 4-4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 18a4 4 0 0 0-8 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-table-2" viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-trash-2" viewBox="0 0 24 24"><path d="M3 6h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="10" x2="10" y1="11" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="14" x2="14" y1="11" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-upload-cloud" viewBox="0 0 24 24"><path d="M12 13v8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="m8 17 4-4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="ic-x" viewBox="0 0 24 24"><path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="m6 6 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol></svg>
   <div class="app">
     <aside class="sidebar" aria-label="主导航">
       <div class="brand">
@@ -856,34 +907,34 @@
       <div>
         <div class="nav-label">学习安排</div>
         <nav class="nav">
-          <button class="active" type="button" id="navSchedule"><i data-lucide="calendar-days"></i><span>我的课表</span></button>
-          <button type="button" id="navList"><i data-lucide="list-todo"></i><span>课程清单</span></button>
-          <button type="button" id="navFavorites"><i data-lucide="bookmark"></i><span>收藏课程</span></button>
+          <button class="active" type="button" id="navSchedule"><svg class="lucide lucide-calendar-days" data-lucide="calendar-days" aria-hidden="true" focusable="false"><use href="#ic-calendar-days"></use></svg><span>我的课表</span></button>
+          <button type="button" id="navList"><svg class="lucide lucide-list-todo" data-lucide="list-todo" aria-hidden="true" focusable="false"><use href="#ic-list-todo"></use></svg><span>课程清单</span></button>
+          <button type="button" id="navFavorites"><svg class="lucide lucide-bookmark" data-lucide="bookmark" aria-hidden="true" focusable="false"><use href="#ic-bookmark"></use></svg><span>收藏课程</span></button>
         </nav>
       </div>
       <div>
         <div class="nav-label">课表管理</div>
         <nav class="nav">
-          <button type="button" id="navSwitch"><i data-lucide="repeat"></i><span>切换课表</span></button>
-          <button type="button" id="navSettings"><i data-lucide="settings-2"></i><span>偏好设置</span></button>
-          <button type="button" id="navHelp"><i data-lucide="circle-help"></i><span>帮助</span></button>
+          <button type="button" id="navSwitch"><svg class="lucide lucide-repeat" data-lucide="repeat" aria-hidden="true" focusable="false"><use href="#ic-repeat"></use></svg><span>切换课表</span></button>
+          <button type="button" id="navSettings"><svg class="lucide lucide-settings-2" data-lucide="settings-2" aria-hidden="true" focusable="false"><use href="#ic-settings-2"></use></svg><span>偏好设置</span></button>
+          <button type="button" id="navHelp"><svg class="lucide lucide-circle-help" data-lucide="circle-help" aria-hidden="true" focusable="false"><use href="#ic-circle-help"></use></svg><span>帮助</span></button>
           <button class="install-nav-item" data-install-action type="button" id="navInstall" title="添加到主屏幕" aria-label="添加到主屏幕"><svg class="install-app-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5.5" y="2.5" width="13" height="19" rx="2.5"></rect><path d="M9 5.5h6M12 9v6M9 12h6M10.5 18.5h3"></path></svg><span>添加为手机APP</span></button>
         </nav>
       </div>
       <div class="sidebar-foot">
-        <div class="storage"><div class="storage-row"><span>本地存储</span><strong id="storageValue">0%</strong></div><div class="meter"><i id="storageMeter"></i></div></div>
-        <div class="profile"><div class="avatar" id="profileAvatar">黄</div><div class="profile-copy"><div class="profile-name" id="profileName">我的课表</div><div class="profile-sub" id="profileSub">本地数据 · 示例</div></div></div>
+        <div class="storage"><div class="storage-row"><span>本地存储</span><strong id="storageValue">--</strong></div><div class="meter"><i id="storageMeter"></i></div></div>
+        <div class="profile"><div class="avatar" id="profileAvatar">课</div><div class="profile-copy"><div class="profile-name" id="profileName">尚未导入课表</div><div class="profile-sub" id="profileSub">尚未导入课表</div></div></div>
       </div>
     </aside>
 
     <main class="main">
       <header class="topbar">
         <button class="mobile-menu-button" id="mobileMenuButton" type="button" title="打开导航" aria-label="打开导航" aria-controls="mobileNavPanel" aria-expanded="false"></button>
-        <div class="top-context"><strong id="semesterLabel">2026–2027 学年第 1 学期</strong><span id="updatedLabel">本地已保存</span></div>
+        <div class="top-context"><strong id="semesterLabel">2026–2027 学年第 1 学期</strong><span id="updatedLabel">尚未导入课表</span></div>
         <div class="top-spacer"></div>
-        <label class="search"><i data-lucide="search"></i><input id="searchInput" type="search" placeholder="搜索课程、教师或教室" aria-label="搜索课程"></label>
-        <button class="icon-btn" type="button" title="切换主题" aria-label="切换主题" id="themeButton"><i data-lucide="sun"></i></button>
-        <button class="import-btn" type="button" id="importButton" aria-label="导入 PDF" title="导入 PDF"><i data-lucide="file-up"></i><span>导入 PDF</span></button>
+        <label class="search"><svg class="lucide lucide-search" data-lucide="search" aria-hidden="true" focusable="false"><use href="#ic-search"></use></svg><input id="searchInput" type="search" placeholder="搜索课程、教师或教室" aria-label="搜索课程"></label>
+        <button class="icon-btn" type="button" title="切换主题" aria-label="切换主题" id="themeButton"><svg class="lucide lucide-sun" data-lucide="sun" aria-hidden="true" focusable="false"><use href="#ic-sun"></use></svg></button>
+        <button class="import-btn" type="button" id="importButton" aria-label="导入 PDF" title="导入 PDF"><svg class="lucide lucide-file-up" data-lucide="file-up" aria-hidden="true" focusable="false"><use href="#ic-file-up"></use></svg><span>导入 PDF</span></button>
       </header>
 
       <div class="content">
@@ -891,66 +942,79 @@
           <div class="page-heading">
             <div class="eyebrow"><i></i> <span id="todayLabel">今天</span></div>
             <h1 id="pageTitle">我的课表</h1>
-            <p class="head-note" id="headNote">这一周有 17 节课，安排得刚刚好。</p>
+            <p class="head-note" id="headNote">导入课表 PDF 后，这里会显示本周安排。</p>
           </div>
           <div class="head-actions">
           <button class="today-btn" id="todayButton" type="button">回到今天</button>
-          <div class="week-switch" id="weekSwitch" aria-label="切换周次"><button id="prevWeek" type="button" title="上一周" aria-label="上一周"><i data-lucide="chevron-left"></i></button><span class="week-value" id="weekValue">第 03 周</span><button id="nextWeek" type="button" title="下一周" aria-label="下一周"><i data-lucide="chevron-right"></i></button></div>
+          <div class="week-switch" id="weekSwitch" aria-label="切换周次"><button id="prevWeek" type="button" title="上一周" aria-label="上一周"><svg class="lucide lucide-chevron-left" data-lucide="chevron-left" aria-hidden="true" focusable="false"><use href="#ic-chevron-left"></use></svg></button><span class="week-value" id="weekValue">第 03 周</span><button id="nextWeek" type="button" title="下一周" aria-label="下一周"><svg class="lucide lucide-chevron-right" data-lucide="chevron-right" aria-hidden="true" focusable="false"><use href="#ic-chevron-right"></use></svg></button></div>
           </div>
         </section>
 
         <section class="pulse-row" aria-label="今日概览">
-          <div class="pulse primary"><div class="pulse-icon"><i data-lucide="clock-3"></i></div><div class="pulse-copy"><div class="pulse-label" id="nextCourseLabel">下一节课 · 10:10</div><div class="pulse-value" id="nextCourseValue">数据库原理与应用 · 求知楼 204</div></div></div>
-          <div class="pulse"><div class="pulse-icon"><i data-lucide="layers-2"></i></div><div class="pulse-copy"><div class="pulse-label">课表课次</div><div class="pulse-value" id="courseCountValue">17 节 · 26.5 学分</div></div></div>
-          <div class="pulse"><div class="pulse-icon"><i data-lucide="map-pin"></i></div><div class="pulse-copy"><div class="pulse-label">主要校区</div><div class="pulse-value" id="campusValue">滨海校区 · 求知楼</div></div></div>
+          <div class="pulse primary"><div class="pulse-icon"><svg class="lucide lucide-clock-3" data-lucide="clock-3" aria-hidden="true" focusable="false"><use href="#ic-clock-3"></use></svg></div><div class="pulse-copy"><div class="pulse-label" id="nextCourseLabel">今日课程</div><div class="pulse-value" id="nextCourseValue">--</div></div></div>
+          <div class="pulse"><div class="pulse-icon"><svg class="lucide lucide-layers-2" data-lucide="layers-2" aria-hidden="true" focusable="false"><use href="#ic-layers-2"></use></svg></div><div class="pulse-copy"><div class="pulse-label">课表课次</div><div class="pulse-value" id="courseCountValue">--</div></div></div>
+          <div class="pulse"><div class="pulse-icon"><svg class="lucide lucide-map-pin" data-lucide="map-pin" aria-hidden="true" focusable="false"><use href="#ic-map-pin"></use></svg></div><div class="pulse-copy"><div class="pulse-label">主要校区</div><div class="pulse-value" id="campusValue">--</div></div></div>
         </section>
 
-        <section class="toolbar"><div><h2 id="viewTitle">周视图</h2><span class="subtle" id="weekRangeLabel">…</span></div><div class="toolbar-spacer"></div><button class="custom-add-btn" id="addCustomButton" type="button" title="添加自定义日程"><i data-lucide="plus"></i><span>新建日程</span></button><div class="view-toggle" role="group" aria-label="视图切换"><button class="active" id="weekViewButton" type="button"><i data-lucide="table-2"></i>周视图</button><button id="monthViewButton" type="button"><i data-lucide="calendar-days"></i>月视图</button><button id="listViewButton" type="button"><i data-lucide="list"></i>列表</button></div></section>
+        <section class="toolbar"><div><h2 id="viewTitle">周视图</h2><span class="subtle" id="weekRangeLabel">…</span></div><div class="toolbar-spacer"></div><button class="custom-add-btn" id="addCustomButton" type="button" title="添加自定义日程"><svg class="lucide lucide-plus" data-lucide="plus" aria-hidden="true" focusable="false"><use href="#ic-plus"></use></svg><span>新建日程</span></button><div class="view-toggle" role="group" aria-label="视图切换"><button class="active" id="weekViewButton" type="button"><svg class="lucide lucide-table-2" data-lucide="table-2" aria-hidden="true" focusable="false"><use href="#ic-table-2"></use></svg>周视图</button><button id="monthViewButton" type="button"><svg class="lucide lucide-calendar-days" data-lucide="calendar-days" aria-hidden="true" focusable="false"><use href="#ic-calendar-days"></use></svg>月视图</button><button id="listViewButton" type="button"><svg class="lucide lucide-list" data-lucide="list" aria-hidden="true" focusable="false"><use href="#ic-list"></use></svg>列表</button></div></section>
 
         <div class="week-swipe-viewport" id="weekSwipeViewport"><div class="week-swipe-surface" id="weekSwipeSurface">
           <div class="week-swipe-page week-swipe-preview" id="previousWeekPreview" aria-hidden="true"></div>
           <div class="week-swipe-page" id="currentWeekPage">
-            <section class="schedule-shell" id="scheduleShell"><div class="schedule-scroll"><div class="schedule" id="schedule"></div></div><div class="empty" id="emptyState"><div><i data-lucide="calendar-off"></i><div>没有匹配的课程</div></div></div></section>
+            <section class="schedule-shell" id="scheduleShell"><div class="schedule-scroll" id="scheduleScroll"><div class="schedule" id="schedule"></div></div><div class="empty" id="emptyState"><div><svg class="lucide lucide-calendar-off" data-lucide="calendar-off" aria-hidden="true" focusable="false"><use href="#ic-calendar-off"></use></svg><div>没有匹配的课程</div></div></div></section>
             <section class="agenda" id="agenda" aria-label="课程列表"></section>
             <section class="month-view" id="monthView" aria-label="月视图"></section>
           </div>
           <div class="week-swipe-page week-swipe-preview" id="nextWeekPreview" aria-hidden="true"></div>
         </div></div>
       </div>
-      <footer class="site-footer" aria-label="站点统计"><span class="site-footer-item" id="busuanzi_container_site_pv" title="不蒜子全站访问次数；服务不可用时显示初始值 200">访问次数 <strong id="busuanzi_value_site_pv">200</strong></span><span class="site-footer-item" id="busuanzi_container_site_uv" title="不蒜子全站访客数；服务不可用时显示初始值 200">用户数量 <strong id="busuanzi_value_site_uv">200</strong></span></footer>
+      <footer class="site-footer" aria-label="站点统计"><span class="site-footer-item" id="busuanzi_container_site_pv" title="不蒜子全站访问次数；服务不可用时显示 200">访问次数 <strong id="busuanzi_value_site_pv">--</strong></span><span class="site-footer-item" id="busuanzi_container_site_uv" title="不蒜子全站访客数；服务不可用时显示 200">用户数量 <strong id="busuanzi_value_site_uv">--</strong></span></footer>
     </main>
   </div>
 
   <div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
   <aside class="mobile-nav-panel" id="mobileNavPanel" aria-label="完整导航" aria-hidden="true">
-    <div class="mobile-nav-head"><img class="mobile-nav-brand" src="assets/wmu-logo-white.png" alt="温州医科大学"><button class="icon-btn mobile-nav-close" id="mobileNavClose" type="button" title="关闭导航" aria-label="关闭导航"><i data-lucide="x"></i></button></div>
-    <div class="mobile-nav-group"><div class="mobile-nav-label">学习安排</div><button type="button" data-mobile-action="schedule" id="mobileNavSchedule"><i data-lucide="calendar-days"></i><span>我的课表</span></button><button type="button" data-mobile-action="list" id="mobileNavList"><i data-lucide="list-todo"></i><span>课程清单</span></button><button type="button" data-mobile-action="favorites" id="mobileNavFavorites"><i data-lucide="bookmark"></i><span>收藏课程</span></button></div>
-    <div class="mobile-nav-group"><div class="mobile-nav-label">课表管理</div><button type="button" data-mobile-action="switch" id="mobileNavSwitch"><i data-lucide="repeat"></i><span>切换课表</span></button><button type="button" data-mobile-action="settings" id="mobileNavSettings"><i data-lucide="settings-2"></i><span>偏好设置</span></button><button type="button" data-mobile-action="help" id="mobileNavHelp"><i data-lucide="circle-help"></i><span>帮助</span></button><button class="install-nav-item" data-install-action type="button" id="mobileNavInstall" title="添加到主屏幕" aria-label="添加到主屏幕"><svg class="install-app-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5.5" y="2.5" width="13" height="19" rx="2.5"></rect><path d="M9 5.5h6M12 9v6M9 12h6M10.5 18.5h3"></path></svg><span>添加为手机APP</span></button></div>
-    <div class="mobile-nav-foot"><div class="mobile-storage"><div class="storage-row"><span>本地存储</span><strong id="mobileStorageValue">0%</strong></div><div class="meter"><i id="mobileStorageMeter"></i></div></div><div class="mobile-profile"><div class="avatar" id="mobileProfileAvatar">黄</div><div class="mobile-profile-copy"><div class="mobile-profile-name" id="mobileProfileName">我的课表</div><div class="mobile-profile-sub" id="mobileProfileSub">本地数据 · 示例</div></div></div></div>
+    <div class="mobile-nav-head"><img class="mobile-nav-brand" src="assets/wmu-logo-white.png" alt="温州医科大学"><button class="icon-btn mobile-nav-close" id="mobileNavClose" type="button" title="关闭导航" aria-label="关闭导航"><svg class="lucide lucide-x" data-lucide="x" aria-hidden="true" focusable="false"><use href="#ic-x"></use></svg></button></div>
+    <div class="mobile-nav-group"><div class="mobile-nav-label">学习安排</div><button type="button" data-mobile-action="schedule" id="mobileNavSchedule"><svg class="lucide lucide-calendar-days" data-lucide="calendar-days" aria-hidden="true" focusable="false"><use href="#ic-calendar-days"></use></svg><span>我的课表</span></button><button type="button" data-mobile-action="list" id="mobileNavList"><svg class="lucide lucide-list-todo" data-lucide="list-todo" aria-hidden="true" focusable="false"><use href="#ic-list-todo"></use></svg><span>课程清单</span></button><button type="button" data-mobile-action="favorites" id="mobileNavFavorites"><svg class="lucide lucide-bookmark" data-lucide="bookmark" aria-hidden="true" focusable="false"><use href="#ic-bookmark"></use></svg><span>收藏课程</span></button></div>
+    <div class="mobile-nav-group"><div class="mobile-nav-label">课表管理</div><button type="button" data-mobile-action="switch" id="mobileNavSwitch"><svg class="lucide lucide-repeat" data-lucide="repeat" aria-hidden="true" focusable="false"><use href="#ic-repeat"></use></svg><span>切换课表</span></button><button type="button" data-mobile-action="settings" id="mobileNavSettings"><svg class="lucide lucide-settings-2" data-lucide="settings-2" aria-hidden="true" focusable="false"><use href="#ic-settings-2"></use></svg><span>偏好设置</span></button><button type="button" data-mobile-action="help" id="mobileNavHelp"><svg class="lucide lucide-circle-help" data-lucide="circle-help" aria-hidden="true" focusable="false"><use href="#ic-circle-help"></use></svg><span>帮助</span></button><button class="install-nav-item" data-install-action type="button" id="mobileNavInstall" title="添加到主屏幕" aria-label="添加到主屏幕"><svg class="install-app-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5.5" y="2.5" width="13" height="19" rx="2.5"></rect><path d="M9 5.5h6M12 9v6M9 12h6M10.5 18.5h3"></path></svg><span>添加为手机APP</span></button></div>
+    <div class="mobile-nav-foot"><div class="mobile-storage"><div class="storage-row"><span>本地存储</span><strong id="mobileStorageValue">--</strong></div><div class="meter"><i id="mobileStorageMeter"></i></div></div><div class="mobile-profile"><div class="avatar" id="mobileProfileAvatar">课</div><div class="mobile-profile-copy"><div class="mobile-profile-name" id="mobileProfileName">尚未导入课表</div><div class="mobile-profile-sub" id="mobileProfileSub">尚未导入课表</div></div></div></div>
   </aside>
 
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
-  <aside class="drawer" id="drawer" aria-label="课程详情" aria-hidden="true"><button class="icon-btn drawer-favorite" id="drawerFavorite" type="button" title="收藏课程" aria-label="收藏课程"><i data-lucide="bookmark"></i></button><button class="icon-btn drawer-close" id="drawerClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button><div class="drawer-kicker" id="drawerKicker">课程详情</div><h2 id="drawerTitle">课程名称</h2><p class="drawer-alias-origin" id="drawerAliasOrigin" hidden></p><p class="drawer-sub" id="drawerSub">周二 · 第 1–2 节</p><dl class="detail-list"><div class="detail-row"><dt>上课时间</dt><dd id="detailTime">08:00–09:25</dd></div><div class="detail-row"><dt>上课地点</dt><dd id="detailRoom">滨海校区 · 求知楼</dd></div><div class="detail-row" id="detailDescriptionRow"><dt>简介</dt><dd id="detailDescription">—</dd></div><div class="detail-row" id="detailTeacherRow"><dt>任课教师</dt><dd id="detailTeacher">教师姓名</dd></div><div class="detail-row"><dt>周次</dt><dd id="detailWeeks">第 1–16 周</dd></div><div class="detail-row"><dt>课程类型</dt><dd id="detailType">讲课</dd></div></dl><div class="drawer-actions"><button class="secondary-btn drawer-action" id="drawerEditCustom" type="button" hidden>&#x7F16;&#x8F91;&#x65E5;&#x7A0B;</button><button class="secondary-btn drawer-action" id="drawerCourseAlias" type="button" hidden>&#x7F16;&#x8F91;&#x8BFE;&#x7A0B;&#x522B;&#x540D;</button><button class="secondary-btn drawer-action" id="drawerHideEvent" type="button">&#x9690;&#x85CF;&#x6B64;&#x5361;&#x7247;</button><button class="secondary-btn drawer-action danger" id="drawerDeleteCustom" type="button" hidden>&#x5220;&#x9664;&#x65E5;&#x7A0B;</button></div><div class="drawer-card-tools"><div class="drawer-tools-label">&#x5361;&#x7247;&#x989C;&#x8272;</div><div class="drawer-color-options" role="group" aria-label="&#x9009;&#x62E9;&#x5361;&#x7247;&#x989C;&#x8272;"><button class="drawer-color-option" id="drawerColorDefault" type="button" data-drawer-color="default" aria-label="&#x9ED8;&#x8BA4;&#x989C;&#x8272;">&#x9ED8;&#x8BA4;</button><button class="drawer-color-option" id="drawerColorBrand" type="button" data-drawer-color="brand" aria-label="&#x6821;&#x7EA2;"><i></i></button><button class="drawer-color-option" id="drawerColorGold" type="button" data-drawer-color="gold" aria-label="&#x91D1;&#x8272;"><i></i></button><button class="drawer-color-option" id="drawerColorBlue" type="button" data-drawer-color="blue" aria-label="&#x84DD;&#x8272;"><i></i></button><button class="drawer-color-option" id="drawerColorMint" type="button" data-drawer-color="mint" aria-label="&#x9752;&#x7EFF;"><i></i></button><button class="drawer-color-option" id="drawerColorViolet" type="button" data-drawer-color="violet" aria-label="&#x7D2B;&#x7070;"><i></i></button></div></div><div class="drawer-note" id="drawerNote">课程数据保存在本地浏览器中。导入新的 PDF 后，可以继续手动修正课程信息。</div></aside>
+  <aside class="drawer" id="drawer" aria-label="课程详情" aria-hidden="true"><button class="icon-btn drawer-favorite" id="drawerFavorite" type="button" title="收藏课程" aria-label="收藏课程"><svg class="lucide lucide-bookmark" data-lucide="bookmark" aria-hidden="true" focusable="false"><use href="#ic-bookmark"></use></svg></button><button class="icon-btn drawer-close" id="drawerClose" type="button" title="关闭" aria-label="关闭"><svg class="lucide lucide-x" data-lucide="x" aria-hidden="true" focusable="false"><use href="#ic-x"></use></svg></button><div class="drawer-kicker" id="drawerKicker">课程详情</div><h2 id="drawerTitle">课程名称</h2><p class="drawer-alias-origin" id="drawerAliasOrigin" hidden></p><p class="drawer-sub" id="drawerSub">周二 · 第 1–2 节</p><dl class="detail-list"><div class="detail-row"><dt>上课时间</dt><dd id="detailTime">08:00–09:25</dd></div><div class="detail-row"><dt>上课地点</dt><dd id="detailRoom">滨海校区 · 求知楼</dd></div><div class="detail-row" id="detailDescriptionRow"><dt>简介</dt><dd id="detailDescription">—</dd></div><div class="detail-row" id="detailTeacherRow"><dt>任课教师</dt><dd id="detailTeacher">教师姓名</dd></div><div class="detail-row"><dt>周次</dt><dd id="detailWeeks">第 1–16 周</dd></div><div class="detail-row"><dt>课程类型</dt><dd id="detailType">讲课</dd></div></dl><div class="drawer-actions"><button class="secondary-btn drawer-action" id="drawerEditCustom" type="button" hidden>&#x7F16;&#x8F91;&#x65E5;&#x7A0B;</button><button class="secondary-btn drawer-action" id="drawerCourseAlias" type="button" hidden>&#x7F16;&#x8F91;&#x8BFE;&#x7A0B;&#x522B;&#x540D;</button><button class="secondary-btn drawer-action" id="drawerHideEvent" type="button">&#x9690;&#x85CF;&#x6B64;&#x5361;&#x7247;</button><button class="secondary-btn drawer-action danger" id="drawerDeleteCustom" type="button" hidden>&#x5220;&#x9664;&#x65E5;&#x7A0B;</button></div><div class="drawer-card-tools"><div class="drawer-tools-label">&#x5361;&#x7247;&#x989C;&#x8272;</div><div class="drawer-color-options" role="group" aria-label="&#x9009;&#x62E9;&#x5361;&#x7247;&#x989C;&#x8272;"><button class="drawer-color-option" id="drawerColorDefault" type="button" data-drawer-color="default" aria-label="&#x9ED8;&#x8BA4;&#x989C;&#x8272;">&#x9ED8;&#x8BA4;</button><button class="drawer-color-option" id="drawerColorBrand" type="button" data-drawer-color="brand" aria-label="&#x6821;&#x7EA2;"><i></i></button><button class="drawer-color-option" id="drawerColorGold" type="button" data-drawer-color="gold" aria-label="&#x91D1;&#x8272;"><i></i></button><button class="drawer-color-option" id="drawerColorBlue" type="button" data-drawer-color="blue" aria-label="&#x84DD;&#x8272;"><i></i></button><button class="drawer-color-option" id="drawerColorMint" type="button" data-drawer-color="mint" aria-label="&#x9752;&#x7EFF;"><i></i></button><button class="drawer-color-option" id="drawerColorViolet" type="button" data-drawer-color="violet" aria-label="&#x7D2B;&#x7070;"><i></i></button></div></div><div class="drawer-note" id="drawerNote">课程数据保存在本地浏览器中。导入新的 PDF 后，可以继续手动修正课程信息。</div></aside>
 
-  <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>选择从教务系统导出的课表 PDF。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="query-link-row"><a class="secondary-btn query-link" href="https://jwxt.wmu.edu.cn/jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&amp;layout=default" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i><span>前往教务系统查询课表</span></a></div><label class="dropzone" id="dropZone" for="fileInput"><i data-lucide="upload-cloud"></i><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="import-status" id="importStatus" role="status" aria-live="polite"></div><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button" aria-label="开始识别" title="开始识别"><i data-lucide="scan-line"></i><span>开始识别</span></button></div></section></div>
+  <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>选择从教务系统导出的课表 PDF。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><svg class="lucide lucide-x" data-lucide="x" aria-hidden="true" focusable="false"><use href="#ic-x"></use></svg></button></div><div class="query-link-row"><a class="secondary-btn query-link" href="https://jwxt.wmu.edu.cn/jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&amp;layout=default" target="_blank" rel="noopener noreferrer"><svg class="lucide lucide-external-link" data-lucide="external-link" aria-hidden="true" focusable="false"><use href="#ic-external-link"></use></svg><span>前往教务系统查询课表</span></a></div><label class="dropzone" id="dropZone" for="fileInput"><svg class="lucide lucide-upload-cloud" data-lucide="upload-cloud" aria-hidden="true" focusable="false"><use href="#ic-upload-cloud"></use></svg><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="import-status" id="importStatus" role="status" aria-live="polite"></div><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button" aria-label="开始识别" title="开始识别"><svg class="lucide lucide-scan-line" data-lucide="scan-line" aria-hidden="true" focusable="false"><use href="#ic-scan-line"></use></svg><span>开始识别</span></button></div></section></div>
 
-  <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题、本地数据与云端同步。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><div class="settings-layout"><div class="settings-controls"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option><option value="dark">暗色</option></select></label><label class="field" for="slotHeightInput"><span>单元格高度</span><div class="range-row"><input id="slotHeightInput" type="range" min="48" max="144" step="4" value="72"><output class="range-value" id="slotHeightValue" for="slotHeightInput">72 px</output></div></label><label class="settings-toggle"><input id="hideEmptyWeekendsInput" type="checkbox"><span class="settings-toggle-copy"><span>自动隐藏无课周末列</span><small>仅隐藏周六、周日中没有课程的列，工作日始终保留。</small></span></label></div><div class="slot-preview" aria-live="polite"><div class="slot-preview-title">实时预览</div><div class="slot-preview-board" id="slotHeightPreview" style="--preview-slot-h:24px"><div class="slot-preview-axis"><span>08:00</span><span>08:45</span><span>09:30</span><span>10:15</span></div><div class="slot-preview-column"><span class="slot-preview-card">课程卡片</span></div><div class="slot-preview-column"><span class="slot-preview-card">今日</span></div></div><div class="slot-preview-note">拖动滑块查看每个 45 分钟单元格的高度变化。</div></div></div><p class="settings-note" id="settingsNote">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。高度会同时调整时间轴、课程卡片和网格间距。</p><section class="sync-panel" aria-labelledby="githubSyncTitle"><div class="sync-panel-title" id="githubSyncTitle">GitHub 同步</div><p class="sync-panel-note">授权后，本机课表有变化时自动上传；打开其他设备时也会自动检查更新。配置会写入公开仓库。你可以 <a href="https://github.com/AnAcretiondisk9986/wmu-timetable-sync" target="_blank" rel="noopener noreferrer">Fork 项目提供的同步仓库</a> 到自己的账号，或使用自己有写入权限的公开仓库。</p><div class="sync-fields"><label class="field"><span>公开仓库（所有者/名称）</span><input id="githubRepoInput" type="text" autocomplete="off" spellcheck="false" placeholder="AnAcretiondisk9986/wmu-timetable-sync"></label><label class="field"><span>细粒度访问令牌</span><input id="githubTokenInput" type="password" autocomplete="off" spellcheck="false" placeholder="连接授权"></label><button class="secondary-btn" id="githubConnectButton" type="button">授权并开启自动同步</button></div><label class="sync-remember"><input id="githubRememberTokenInput" type="checkbox" checked><span>在此浏览器记住授权，自动同步（令牌仍受 GitHub 到期时间和权限限制）</span></label><p class="sync-status" id="githubSyncStatus" role="status" aria-live="polite">尚未连接仓库；连接后才可使用同步。</p><p class="sync-panel-note">令牌需对所选仓库授予 Contents 读取与写入权限。勾选下方选项后，令牌会保存在此浏览器中，以便长期自动同步；任何能访问此浏览器的人或本网站脚本都可能使用它。取消勾选则只在当前页面暂存，关闭后需重新授权。<br>公开仓库中的配置文件和 Git 历史任何人都能查看；备份含姓名、学号、课程安排、收藏和偏好。开启自动上传即表示同意这些内容持续写入公开仓库，请勿上传不愿公开的信息。</p><div class="sync-actions" id="githubSyncActions" hidden><button class="secondary-btn" id="githubUploadButton" type="button">立即同步</button><button class="secondary-btn" id="githubDownloadButton" type="button">从仓库恢复</button><button class="secondary-btn" id="githubDisconnectButton" type="button">断开连接</button></div></section><div class="data-actions"><button class="secondary-btn" id="unhideAllButton" type="button">解除所有隐藏（<span id="hiddenEventCount">0</span>）</button><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
+  <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题、本地数据与云端同步。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><svg class="lucide lucide-x" data-lucide="x" aria-hidden="true" focusable="false"><use href="#ic-x"></use></svg></button></div><div class="settings-body"><div class="settings-layout"><div class="settings-controls"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option><option value="dark">暗色</option></select></label><label class="field" for="slotHeightInput"><span>单元格高度</span><div class="range-row"><input id="slotHeightInput" type="range" min="48" max="144" step="4" value="72"><output class="range-value" id="slotHeightValue" for="slotHeightInput">72 px</output></div></label><label class="settings-toggle"><input id="hideEmptyWeekendsInput" type="checkbox"><span class="settings-toggle-copy"><span>自动隐藏无课周末列</span><small>仅隐藏周六、周日中没有课程的列，工作日始终保留。</small></span></label></div><div class="slot-preview" aria-live="polite"><div class="slot-preview-title">实时预览</div><div class="slot-preview-board" id="slotHeightPreview" style="--preview-slot-h:24px"><div class="slot-preview-axis"><span>08:00</span><span>08:45</span><span>09:30</span><span>10:15</span></div><div class="slot-preview-column"><span class="slot-preview-card">课程卡片</span></div><div class="slot-preview-column"><span class="slot-preview-card">今日</span></div></div><div class="slot-preview-note">拖动滑块查看每个 45 分钟单元格的高度变化。</div></div></div><p class="settings-note" id="settingsNote">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。高度会同时调整时间轴、课程卡片和网格间距。</p><section class="sync-panel" aria-labelledby="githubSyncTitle"><div class="sync-panel-title" id="githubSyncTitle">GitHub 同步</div><p class="sync-panel-note">授权后，本机课表有变化时自动上传；打开其他设备时也会自动检查更新。配置会写入公开仓库。你可以 <a href="https://github.com/AnAcretiondisk9986/wmu-timetable-sync" target="_blank" rel="noopener noreferrer">Fork 项目提供的同步仓库</a> 到自己的账号，或使用自己有写入权限的公开仓库。</p><div class="sync-fields"><label class="field"><span>公开仓库（所有者/名称）</span><input id="githubRepoInput" type="text" autocomplete="off" spellcheck="false" placeholder="AnAcretiondisk9986/wmu-timetable-sync"></label><label class="field"><span>细粒度访问令牌</span><input id="githubTokenInput" type="password" autocomplete="off" spellcheck="false" placeholder="连接授权"></label><button class="secondary-btn" id="githubConnectButton" type="button">授权并开启自动同步</button></div><label class="sync-remember"><input id="githubRememberTokenInput" type="checkbox" checked><span>在此浏览器记住授权，自动同步（令牌仍受 GitHub 到期时间和权限限制）</span></label><p class="sync-status" id="githubSyncStatus" role="status" aria-live="polite">尚未连接仓库；连接后才可使用同步。</p><p class="sync-panel-note">令牌需对所选仓库授予 Contents 读取与写入权限。勾选下方选项后，令牌会保存在此浏览器中，以便长期自动同步；任何能访问此浏览器的人或本网站脚本都可能使用它。取消勾选则只在当前页面暂存，关闭后需重新授权。<br>公开仓库中的配置文件和 Git 历史任何人都能查看；备份含姓名、学号、课程安排、收藏和偏好。开启自动上传即表示同意这些内容持续写入公开仓库，请勿上传不愿公开的信息。</p><div class="sync-actions" id="githubSyncActions" hidden><button class="secondary-btn" id="githubUploadButton" type="button">立即同步</button><button class="secondary-btn" id="githubDownloadButton" type="button">从仓库恢复</button><button class="secondary-btn" id="githubDisconnectButton" type="button">断开连接</button></div></section><div class="data-actions"><button class="secondary-btn" id="unhideAllButton" type="button">解除所有隐藏（<span id="hiddenEventCount">0</span>）</button><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
 
-  <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body"><ul class="help-list"><li>可在「导入 PDF」弹窗中前往教务系统查询课表；正常导出 PDF 后，回到本页选择该文件。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>切换到「月视图」可按日查看当前月份，月初和月末不足一周的日期会保留在独立行中。</li><li>「回到今天」定位到当前周次与星期，月视图下定位到当前月份。</li><li>工具栏「新建日程」可快速添加课表外安排，默认定位到当前周和当天；打开自定义日程卡片可再次编辑。</li><li>课程卡片详情可修改别名（本课表全局或当前周）、选择卡片颜色或隐藏卡片；设置中可解除所有隐藏。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>课表配置默认保存在本机浏览器。授权 GitHub 后会自动同步；公开仓库中的配置文件和历史版本对所有人可见。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
+  <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><svg class="lucide lucide-x" data-lucide="x" aria-hidden="true" focusable="false"><use href="#ic-x"></use></svg></button></div><div class="settings-body"><ul class="help-list"><li>可在「导入 PDF」弹窗中前往教务系统查询课表；正常导出 PDF 后，回到本页选择该文件。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>切换到「月视图」可按日查看当前月份，月初和月末不足一周的日期会保留在独立行中。</li><li>「回到今天」定位到当前周次与星期，月视图下定位到当前月份。</li><li>工具栏「新建日程」可快速添加课表外安排，默认定位到当前周和当天；打开自定义日程卡片可再次编辑。</li><li>课程卡片详情可修改别名（本课表全局或当前周）、选择卡片颜色或隐藏卡片；设置中可解除所有隐藏。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>课表配置默认保存在本机浏览器。授权 GitHub 后会自动同步；公开仓库中的配置文件和历史版本对所有人可见。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
 
-  <div class="modal-backdrop" id="switchBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="switchTitle"><div class="modal-head"><div><h2 id="switchTitle">切换课表</h2><p>选择要查看的课表。</p></div><button class="icon-btn" id="switchClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="switch-list" id="switchList"></div><div class="modal-foot"><button class="secondary-btn" id="switchImport" type="button">导入新课表</button><button class="import-btn" id="switchDone" type="button">完成</button></div></section></div>
+  <div class="modal-backdrop" id="switchBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="switchTitle"><div class="modal-head"><div><h2 id="switchTitle">切换课表</h2><p>选择要查看的课表。</p></div><button class="icon-btn" id="switchClose" type="button" title="关闭" aria-label="关闭"><svg class="lucide lucide-x" data-lucide="x" aria-hidden="true" focusable="false"><use href="#ic-x"></use></svg></button></div><div class="switch-list" id="switchList"></div><div class="modal-foot"><button class="secondary-btn" id="switchImport" type="button">导入新课表</button><button class="import-btn" id="switchDone" type="button">完成</button></div></section></div>
 
-  <div class="modal-backdrop" id="aliasBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="aliasTitle"><div class="modal-head"><div><h2 id="aliasTitle">&#x7F16;&#x8F91;&#x8BFE;&#x7A0B;&#x522B;&#x540D;</h2><p id="aliasDescription">&#x522B;&#x540D;&#x53EA;&#x6539;&#x53D8;&#x8BFE;&#x8868;&#x663E;&#x793A;&#xFF0C;&#x4E0D;&#x4F1A;&#x4FEE;&#x6539;&#x5BFC;&#x5165;&#x7684;&#x539F;&#x59CB;&#x8BFE;&#x7A0B;&#x540D;&#x3002;</p></div><button class="icon-btn" id="aliasClose" type="button" title="&#x5173;&#x95ED;" aria-label="&#x5173;&#x95ED;"><i data-lucide="x"></i></button></div><div class="settings-body"><label class="field"><span>&#x663E;&#x793A;&#x522B;&#x540D;</span><input id="courseAliasInput" type="text" maxlength="80" placeholder="&#x7559;&#x7A7A;&#x5219;&#x6062;&#x590D;&#x539F;&#x540D;" autocomplete="off"></label><label class="field"><span>&#x5E94;&#x7528;&#x8303;&#x56F4;</span><select id="courseAliasScope"><option value="global">&#x672C;&#x8BFE;&#x8868;&#x5168;&#x90E8;&#x5468;&#x6B21;</option><option value="week" id="courseAliasWeekOption">&#x4EC5;&#x5F53;&#x524D;&#x5468;</option></select></label><p class="settings-note" id="courseAliasScopeNote"></p><div class="import-status" id="aliasStatus" role="status" aria-live="polite"></div></div><div class="modal-foot"><button class="secondary-btn" id="aliasCancel" type="button">&#x53D6;&#x6D88;</button><button class="import-btn" id="aliasSave" type="button">&#x4FDD;&#x5B58;&#x522B;&#x540D;</button></div></section></div>
+  <div class="modal-backdrop" id="aliasBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="aliasTitle"><div class="modal-head"><div><h2 id="aliasTitle">&#x7F16;&#x8F91;&#x8BFE;&#x7A0B;&#x522B;&#x540D;</h2><p id="aliasDescription">&#x522B;&#x540D;&#x53EA;&#x6539;&#x53D8;&#x8BFE;&#x8868;&#x663E;&#x793A;&#xFF0C;&#x4E0D;&#x4F1A;&#x4FEE;&#x6539;&#x5BFC;&#x5165;&#x7684;&#x539F;&#x59CB;&#x8BFE;&#x7A0B;&#x540D;&#x3002;</p></div><button class="icon-btn" id="aliasClose" type="button" title="&#x5173;&#x95ED;" aria-label="&#x5173;&#x95ED;"><svg class="lucide lucide-x" data-lucide="x" aria-hidden="true" focusable="false"><use href="#ic-x"></use></svg></button></div><div class="settings-body"><label class="field"><span>&#x663E;&#x793A;&#x522B;&#x540D;</span><input id="courseAliasInput" type="text" maxlength="80" placeholder="&#x7559;&#x7A7A;&#x5219;&#x6062;&#x590D;&#x539F;&#x540D;" autocomplete="off"></label><label class="field"><span>&#x5E94;&#x7528;&#x8303;&#x56F4;</span><select id="courseAliasScope"><option value="global">&#x672C;&#x8BFE;&#x8868;&#x5168;&#x90E8;&#x5468;&#x6B21;</option><option value="week" id="courseAliasWeekOption">&#x4EC5;&#x5F53;&#x524D;&#x5468;</option></select></label><p class="settings-note" id="courseAliasScopeNote"></p><div class="import-status" id="aliasStatus" role="status" aria-live="polite"></div></div><div class="modal-foot"><button class="secondary-btn" id="aliasCancel" type="button">&#x53D6;&#x6D88;</button><button class="import-btn" id="aliasSave" type="button">&#x4FDD;&#x5B58;&#x522B;&#x540D;</button></div></section></div>
 
-  <div class="modal-backdrop" id="customBackdrop"><section class="modal custom-modal" role="dialog" aria-modal="true" aria-labelledby="customTitleHeading"><div class="modal-head"><div><h2 id="customTitleHeading">添加自定义日程</h2><p id="customModalDescription">记录不在课表里的安排，保存后会显示在最上层。</p></div><button class="icon-btn" id="customClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="settings-body custom-form"><label class="field"><span>标题 <b aria-hidden="true">*</b></span><input id="customTitle" type="text" maxlength="40" placeholder="例如：实验室组会" autocomplete="off"></label><label class="field"><span>简介</span><textarea id="customDescription" rows="3" maxlength="120" placeholder="补充提醒或待办内容"></textarea></label><label class="field"><span>地点</span><input id="customRoom" type="text" maxlength="50" placeholder="例如：求知楼 204"></label><div class="custom-grid"><label class="field"><span>周次</span><input id="customWeek" type="number" min="-52" max="99" step="1"></label><label class="field"><span>星期</span><select id="customDay"><option value="1">周一</option><option value="2">周二</option><option value="3">周三</option><option value="4">周四</option><option value="5">周五</option><option value="6">周六</option><option value="7">周日</option></select></label></div><div class="custom-grid"><label class="field"><span>开始时间</span><input id="customStart" type="time"></label><label class="field"><span>结束时间</span><input id="customEnd" type="time"></label></div><div class="field"><span>卡片颜色</span><div class="color-options" id="customColorOptions" role="radiogroup" aria-label="卡片颜色"><button type="button" class="color-option selected" data-color="brand" title="校红" aria-label="校红"><i></i></button><button type="button" class="color-option" data-color="gold" title="金色" aria-label="金色"><i></i></button><button type="button" class="color-option" data-color="blue" title="蓝色" aria-label="蓝色"><i></i></button><button type="button" class="color-option" data-color="mint" title="青绿" aria-label="青绿"><i></i></button><button type="button" class="color-option" data-color="violet" title="紫灰" aria-label="紫灰"><i></i></button></div></div><div class="import-status" id="customStatus" role="status" aria-live="polite"></div></div><div class="modal-foot"><button class="secondary-btn" id="customCancel" type="button">取消</button><button class="import-btn" id="customSave" type="button"><i data-lucide="check"></i><span>保存日程</span></button></div></section></div>
+  <div class="modal-backdrop" id="customBackdrop"><section class="modal custom-modal" role="dialog" aria-modal="true" aria-labelledby="customTitleHeading"><div class="modal-head"><div><h2 id="customTitleHeading">添加自定义日程</h2><p id="customModalDescription">记录不在课表里的安排，保存后会显示在最上层。</p></div><button class="icon-btn" id="customClose" type="button" title="关闭" aria-label="关闭"><svg class="lucide lucide-x" data-lucide="x" aria-hidden="true" focusable="false"><use href="#ic-x"></use></svg></button></div><div class="settings-body custom-form"><label class="field"><span>标题 <b aria-hidden="true">*</b></span><input id="customTitle" type="text" maxlength="40" placeholder="例如：实验室组会" autocomplete="off"></label><label class="field"><span>简介</span><textarea id="customDescription" rows="3" maxlength="120" placeholder="补充提醒或待办内容"></textarea></label><label class="field"><span>地点</span><input id="customRoom" type="text" maxlength="50" placeholder="例如：求知楼 204"></label><div class="custom-grid"><label class="field"><span>周次</span><input id="customWeek" type="number" min="-52" max="99" step="1"></label><label class="field"><span>星期</span><select id="customDay"><option value="1">周一</option><option value="2">周二</option><option value="3">周三</option><option value="4">周四</option><option value="5">周五</option><option value="6">周六</option><option value="7">周日</option></select></label></div><div class="custom-grid"><label class="field"><span>开始时间</span><input id="customStart" type="time"></label><label class="field"><span>结束时间</span><input id="customEnd" type="time"></label></div><div class="field"><span>卡片颜色</span><div class="color-options" id="customColorOptions" role="radiogroup" aria-label="卡片颜色"><button type="button" class="color-option selected" data-color="brand" title="校红" aria-label="校红"><i></i></button><button type="button" class="color-option" data-color="gold" title="金色" aria-label="金色"><i></i></button><button type="button" class="color-option" data-color="blue" title="蓝色" aria-label="蓝色"><i></i></button><button type="button" class="color-option" data-color="mint" title="青绿" aria-label="青绿"><i></i></button><button type="button" class="color-option" data-color="violet" title="紫灰" aria-label="紫灰"><i></i></button></div></div><div class="import-status" id="customStatus" role="status" aria-live="polite"></div></div><div class="modal-foot"><button class="secondary-btn" id="customCancel" type="button">取消</button><button class="import-btn" id="customSave" type="button"><svg class="lucide lucide-check" data-lucide="check" aria-hidden="true" focusable="false"><use href="#ic-check"></use></svg><span>保存日程</span></button></div></section></div>
 
-  <div class="modal-backdrop" id="installBackdrop"><section class="modal install-modal" role="dialog" aria-modal="true" aria-labelledby="installTitle"><div class="modal-head"><div><h2 id="installTitle">添加为手机 APP</h2><p id="installSubtitle">把课表放到手机桌面，打开更方便。</p></div><button class="icon-btn" id="installClose" type="button" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="install-platform"><div class="install-platform-icon"><i id="installPlatformIcon" data-lucide="smartphone"></i></div><div class="install-platform-copy"><strong id="installPlatformTitle">检测设备中</strong><p id="installPlatformDescription">正在准备适合当前设备的添加方式。</p></div></div><ol class="install-steps" id="installSteps"></ol><div class="install-tip" id="installTip"></div><div class="install-actions"><button class="secondary-btn" id="installLater" type="button">稍后再说</button><button class="import-btn" id="installAction" type="button"><i data-lucide="download"></i><span>添加到手机桌面</span></button></div></section></div>
+  <div class="modal-backdrop" id="installBackdrop"><section class="modal install-modal" role="dialog" aria-modal="true" aria-labelledby="installTitle"><div class="modal-head"><div><h2 id="installTitle">添加为手机 APP</h2><p id="installSubtitle">把课表放到手机桌面，打开更方便。</p></div><button class="icon-btn" id="installClose" type="button" title="关闭" aria-label="关闭"><svg class="lucide lucide-x" data-lucide="x" aria-hidden="true" focusable="false"><use href="#ic-x"></use></svg></button></div><div class="install-platform"><div class="install-platform-icon"><i id="installPlatformIcon" data-lucide="smartphone"></i></div><div class="install-platform-copy"><strong id="installPlatformTitle">检测设备中</strong><p id="installPlatformDescription">正在准备适合当前设备的添加方式。</p></div></div><ol class="install-steps" id="installSteps"></ol><div class="install-tip" id="installTip"></div><div class="install-actions"><button class="secondary-btn" id="installLater" type="button">稍后再说</button><button class="import-btn" id="installAction" type="button"><svg class="lucide lucide-download" data-lucide="download" aria-hidden="true" focusable="false"><use href="#ic-download"></use></svg><span>添加到手机桌面</span></button></div></section></div>
 
   <script type="module">
     import { parseTimetablePdf } from './src/timetable.js';
-    import * as pdfjsLib from './vendor/pdfjs/build/pdf.min.mjs';
 
-    pdfjsLib.GlobalWorkerOptions.workerSrc = './vendor/pdfjs/build/pdf.worker.min.mjs';
+    // PDF.js 主库约 425 KB，只在用户真正导入 PDF 时按需加载，避免拖慢首屏。
+    let pdfjsLibPromise = null;
+    function loadPdfJs() {
+      if (!pdfjsLibPromise) {
+        pdfjsLibPromise = import('./vendor/pdfjs/build/pdf.min.mjs').then((module) => {
+          const pdfjsLib = module.default && module.default.getDocument ? module.default : module;
+          pdfjsLib.GlobalWorkerOptions.workerSrc = './vendor/pdfjs/build/pdf.worker.min.mjs';
+          return pdfjsLib;
+        }).catch((error) => {
+          pdfjsLibPromise = null;
+          throw error;
+        });
+      }
+      return pdfjsLibPromise;
+    }
 
     const DAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
     const pad2 = (value) => String(value).padStart(2, '0');
@@ -1038,6 +1102,33 @@
     let drawerSwipeState = null;
     let deferredInstallPrompt = null;
     let githubSyncTokenInMemory = '';
+
+    // 图标挂载：页面内含 SVG sprite，这里只负责把动态注入的占位符接上引用。
+    // 不引入外部图标库，首帧静态图标已由 HTML 内联渲染。
+    const ICON_NS = 'http://www.w3.org/2000/svg';
+    function mountIcons(root = document) {
+      if (!root || typeof root.querySelectorAll !== 'function') return;
+      root.querySelectorAll('[data-lucide]').forEach((placeholder) => {
+        const name = placeholder && placeholder.getAttribute && placeholder.getAttribute('data-lucide');
+        if (!name) return;
+        const svg = document.createElementNS(ICON_NS, 'svg');
+        if (!svg || typeof svg.setAttribute !== 'function') return;
+        const target = document.getElementById(`ic-${name}`);
+        if (!target && !document.getElementById('iconSprite')) return;
+        svg.setAttribute('class', `lucide lucide-${name}`);
+        svg.setAttribute('data-lucide', name);
+        svg.setAttribute('aria-hidden', 'true');
+        svg.setAttribute('focusable', 'false');
+        const use = document.createElementNS(ICON_NS, 'use');
+        if (use && typeof use.setAttribute === 'function') {
+          use.setAttribute('href', `#ic-${name}`);
+          svg.appendChild(use);
+        }
+        const parent = placeholder.parentNode;
+        if (parent && typeof parent.replaceChild === 'function') parent.replaceChild(svg, placeholder);
+      });
+    }
+    window.__mountIcons = mountIcons;
     let githubSyncTimer = null;
     let githubSyncInFlight = false;
     let githubSyncAgain = false;
@@ -1087,6 +1178,7 @@
       title.textContent = env.isIOS ? '添加为手机 APP' : env.isAndroid ? '把课表添加到桌面' : '请使用手机浏览器';
       subtitle.textContent = env.isIOS ? '添加后可以像普通 APP 一样打开课表。' : env.isAndroid ? '添加后可从桌面直接打开课表。' : '当前设备不是手机，暂不需要添加手机 APP。';
       platformIcon?.setAttribute('data-lucide', env.isIOS ? 'share' : env.isAndroid ? 'smartphone' : 'monitor');
+      if (platformIcon && window.__mountIcons) window.__mountIcons(platformIcon.parentNode || document);
       platformTitle.textContent = env.isIOS ? `iOS · ${env.browser}` : env.isAndroid ? `Android · ${env.browser}` : '桌面设备';
       platformDescription.textContent = env.isIOS && !env.iosSupported
         ? '当前浏览器不在适配范围内。'
@@ -1115,7 +1207,7 @@
         steps.innerHTML = '<li>请使用手机浏览器打开本页。</li>';
         tip.textContent = '这个入口只针对手机端添加 APP。';
       }
-      if (window.lucide) window.lucide.createIcons();
+      if (window.__mountIcons) window.__mountIcons();
       return env;
     }
 
@@ -1786,16 +1878,26 @@
       setElementCssVariable($('schedule'), '--day-count', result.dayCount);
       $('schedule').innerHTML = result.html;
       if (!currentEvents().length) {
-        $('emptyState').innerHTML = '<div class="empty-guide"><i data-lucide="file-up"></i><h3>还没有课表</h3><p>先在教务系统导出课表 PDF，再在这里导入</p><button class="import-btn" id="emptyImportBtn" type="button"><i data-lucide="scan-line"></i><span>导入课表</span></button></div>';
+        // 尚无课表：不渲染空网格，直接把引导放在首屏可见位置。
+        $('schedule').style.display = 'none';
+        $('scheduleScroll').style.display = 'none';
+        $('emptyState').innerHTML = '<div class="empty-guide"><span class="empty-guide-icon"><i data-lucide="file-up"></i></span><h3>还没有课表</h3><p>在教务系统导出课表 PDF，拖进来或选择文件即可识别；文件只在本地浏览器处理。</p><button class="import-btn" id="emptyImportBtn" type="button"><i data-lucide="scan-line"></i><span>导入课表</span></button><span class="empty-guide-note">支持横向课表 PDF，可离线使用</span></div>';
+        $('emptyState').classList.add('empty-hero');
         $('emptyState').style.display = 'grid';
       } else {
-        $('emptyState').innerHTML = '<div><i data-lucide="calendar-off"></i><div>没有匹配的课程</div></div>';
+        $('schedule').style.display = '';
+        $('scheduleScroll').style.display = '';
+        const searching = Boolean(String(state.query || '').trim());
+        $('emptyState').classList.remove('empty-hero');
+        $('emptyState').innerHTML = `<div class="empty-filtered"><i data-lucide="${searching ? 'search' : 'calendar-off'}"></i><div>${searching ? '没有匹配的课程' : '这一周没有课程'}</div>${searching ? '<button class="secondary-btn" id="emptyClearSearch" type="button">清除搜索</button>' : ''}</div>`;
         $('emptyState').style.display = events.length ? 'none' : 'grid';
       }
       const emptyImport = $('emptyImportBtn');
       if (emptyImport) emptyImport.addEventListener('click', openImportModal);
+      const emptyClear = $('emptyClearSearch');
+      if (emptyClear) emptyClear.addEventListener('click', () => { state.query = ''; $('searchInput').value = ''; renderAll(); });
       document.querySelectorAll('[data-event]').forEach((button) => button.addEventListener('click', () => openDrawer(currentEvents()[Number(button.dataset.event)], Number(button.dataset.eventWeek || state.week))));
-      if (window.lucide) window.lucide.createIcons();
+      if (window.__mountIcons) window.__mountIcons();
     }
 
     function agendaMarkup(week, interactive = true) {
@@ -1879,8 +1981,15 @@
       const schedule = buildScheduleMarkup(week, false);
       const showSchedule = state.view === 'schedule';
       const emptyVisible = !currentEvents().length || !schedule.events.length;
+      // 没有课表时不渲染空网格：三个滑动页共享同一网格行，
+      // 空网格会把首屏撑高近千像素，把导入引导挤出屏幕。
+      const hasTimetable = Boolean(currentEvents().length);
+      const gridStyle = hasTimetable ? '' : 'display:none';
+      const emptyMarkup = hasTimetable
+        ? `<div class="empty" style="display:${emptyVisible ? 'grid' : 'none'}"><div>没有匹配的课程</div></div>`
+        : '<div class="empty empty-hero" style="display:grid"><div class="empty-guide"><h3>还没有课表</h3></div></div>';
       root.setAttribute('data-preview-week', String(week));
-      root.innerHTML = `<section class="schedule-shell" style="display:${showSchedule ? 'block' : 'none'}"><div class="schedule-scroll"><div class="schedule" style="--day-count:${schedule.dayCount}">${schedule.html}</div></div><div class="empty" style="display:${emptyVisible ? 'grid' : 'none'}"><div>${currentEvents().length ? '没有匹配的课程' : '还没有课表'}</div></div></section><section class="agenda" style="display:${showSchedule ? 'none' : 'grid'}" aria-hidden="true">${agendaMarkup(week, false)}</section>`;
+      root.innerHTML = `<section class="schedule-shell" style="display:${showSchedule ? 'block' : 'none'}"><div class="schedule-scroll" style="${gridStyle}"><div class="schedule" style="--day-count:${schedule.dayCount}">${schedule.html}</div></div>${emptyMarkup}</section><section class="agenda" style="display:${showSchedule ? 'none' : 'grid'}" aria-hidden="true">${agendaMarkup(week, false)}</section>`;
     }
 
     function renderWeekPreviews() {
@@ -1935,6 +2044,31 @@
       $('mobileStorageMeter').style.width = $('storageMeter').style.width;
     }
 
+    // 访问统计脚本改为空闲加载：不参与首屏渲染，失败或超时显示兜底数字。
+    let globalStatsStarted = false;
+    function setupGlobalStats() {
+      if (globalStatsStarted) return;
+      globalStatsStarted = true;
+      const scope = window.document;
+      if (!scope) return;
+      const badge = $('busuanzi_value_site_pv');
+      const start = () => {
+        if (!badge || !scope.head || typeof scope.createElement !== 'function') return;
+        if (typeof scope.querySelector === 'function' && scope.querySelector('script[data-wmu-stats]')) return;
+        const script = scope.createElement('script');
+        script.async = true;
+        script.dataset.wmuStats = '1';
+        script.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+        script.onerror = () => {
+          badge.dataset.state = 'fallback';
+          badge.textContent = String(GLOBAL_STAT_FALLBACK);
+        };
+        scope.head.appendChild(script);
+      };
+      if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(start, { timeout: 2500 });
+      else window.setTimeout(start, 1200);
+    }
+
     function renderGlobalStats() {
       const pv = $('busuanzi_value_site_pv');
       const uv = $('busuanzi_value_site_uv');
@@ -1952,7 +2086,7 @@
       const percent = Math.min(100, Math.round((bytes / (5 * 1024 * 1024)) * 100));
       $('storageValue').textContent = `${percent}%`;
       $('storageMeter').style.width = `${percent}%`;
-      $('profileSub').textContent = state.updatedAt ? '本地数据 · 已保存' : '本地数据 · 示例';
+      $('profileSub').textContent = state.updatedAt ? '本地数据 · 已保存' : '本地数据 · 未导入';
       renderGlobalStats();
       syncMobileNav();
     }
@@ -1977,7 +2111,7 @@
       $('semesterLabel').textContent = semesterParts.length === 3
         ? `${semesterParts[0]}–${semesterParts[1]} 学年第 ${semesterParts[2]} 学期`
         : (semester || '未设置学期');
-      const name = tt?.student?.name || '我的课表';
+      const name = tt?.student?.name || '尚未导入课表';
       $('profileName').textContent = name;
       $('profileAvatar').textContent = name.slice(0, 1);
       $('pageTitle').textContent = state.view === 'favorites' ? '收藏课程' : state.view === 'list' ? '课程清单' : '我的课表';
@@ -2043,7 +2177,7 @@
       $('navList').classList.toggle('active', state.view === 'list');
       $('navFavorites').classList.toggle('active', state.view === 'favorites');
       syncMobileNav();
-      if (window.lucide) window.lucide.createIcons();
+      if (window.__mountIcons) window.__mountIcons();
     }
 
     function nextCourseToday() {
@@ -2219,6 +2353,9 @@
       $('fileName').textContent = '支持拖放，文件仅在本地处理';
       $('importStatus').textContent = '';
       $('importStatus').className = 'import-status';
+      // 用户打开导入弹窗时后台预取解析库，真正点「开始识别」时通常已经就绪。
+      // 失败时静默重试，不影响弹窗使用。
+      Promise.resolve().then(loadPdfJs).catch(() => {});
       openModal('modalBackdrop');
     }
     function closeImportModal() {
@@ -2448,7 +2585,7 @@
         closeModalById('switchBackdrop');
       }));
       document.querySelectorAll('[data-delete-timetable]').forEach((button) => button.addEventListener('click', () => deleteTimetable(button.dataset.deleteTimetable)));
-      if (window.lucide) window.lucide.createIcons();
+      if (window.__mountIcons) window.__mountIcons();
     }
     function openSwitch() {
       renderSwitchList();
@@ -2979,8 +3116,10 @@
       button.disabled = true;
       selectedPdfFile = file;
       $('fileName').textContent = file.name || '教务系统课表.pdf';
-      setImportStatus('正在读取 PDF 并识别课程，请稍候……');
+      setImportStatus('首次识别需要加载解析库，正在准备……');
       try {
+        const pdfjsLib = await loadPdfJs();
+        setImportStatus('正在读取 PDF 并识别课程，请稍候……');
         const result = await parseTimetablePdf(file, pdfjsLib, {
           cMapUrl: './vendor/pdfjs/cmaps/',
           cMapPacked: true,
@@ -3244,8 +3383,9 @@
     });
     loadState();
     loadRememberedGitHubToken();
-    if (window.lucide) window.lucide.createIcons();
+    if (window.__mountIcons) window.__mountIcons();
     renderAll();
+    setupGlobalStats();
     setupInstallExperience();
     registerServiceWorker();
     if (readGitHubSyncConfig() && githubSyncToken()) runGitHubAutoSync();
