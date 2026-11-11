@@ -1,10 +1,9 @@
-const CACHE_PREFIX = "wmu-timetable-shell-";
-// 发布静态资源时同步递增版本，避免 cache-first 长期保留旧版 JS / PDF.js。
-const CACHE_NAME = `${CACHE_PREFIX}v4`;
-// 安装期只预缓存首屏必需的应用壳。首屏之外的大体积资源不进这里，
-// 否则 install 会串行拉取数 MB 数据，与首屏渲染抢带宽并拖慢首次打开。
+const CACHE_PREFIX = "wmu-timetable-";
+// 外壳与 PDF.js 懒资源分开版本：壳升级不再清空 4 MB 的 CMap/字体/worker。
+const SHELL_CACHE = `${CACHE_PREFIX}shell-v5`;
+const PDF_CACHE = `${CACHE_PREFIX}pdfjs-v1`;
+// 安装期只预缓存首屏必需的应用壳。首屏之外的大体积资源不进这里。
 const APP_SHELL = [
-  "./",
   "./index.html",
   "./manifest.webmanifest",
   "./assets/wmu-preview.png",
@@ -14,66 +13,77 @@ const APP_SHELL = [
   "./src/timetable.js"
 ];
 
-// PDF.js 主库、worker、CMap 与标准字体按需请求，首次使用后写入同一缓存，
-// 之后离线仍可解析课表。这些路径不参与 install 预缓存。
+// PDF.js 主库、worker、CMap 与标准字体按需请求，首次使用后写入 PDF_CACHE。
 const LAZY_PATH_PREFIXES = [
   "./vendor/pdfjs/"
 ];
 
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
-  self.skipWaiting();
+  event.waitUntil(
+    caches.open(SHELL_CACHE)
+      .then(cache => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys => Promise.all(
-      keys.filter(key => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME).map(key => caches.delete(key))
-    ))
+      keys
+        .filter(key => key.startsWith(CACHE_PREFIX) && key !== SHELL_CACHE && key !== PDF_CACHE)
+        .map(key => caches.delete(key))
+    )).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET" || new URL(event.request.url).origin !== self.location.origin) return;
+
   if (event.request.mode === "navigate") {
-    event.respondWith(
-      fetch(event.request).then(response => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put("./index.html", copy));
-        return response;
-      }).catch(() => caches.match("./index.html"))
-    );
+    event.respondWith(networkFirstShell(event));
     return;
   }
-  // 网络优先：网络可用时自动刷新缓存，离线时回退到缓存。
+
   const pathname = new URL(event.request.url).pathname;
   const isVersionSensitive = /\/(?:index\.html|src\/timetable\.js)/.test(pathname);
   const isLazyVendor = LAZY_PATH_PREFIXES.some(prefix =>
     pathname.includes(prefix.replace(/^\./, "")));
 
   if (isLazyVendor) {
-    // 按需资源（PDF.js 主库 / worker / CMap / 标准字体）：命中缓存立即返回，
-    // 后台校验内容；内容变化（例如发布新版 PDF.js）时替换缓存并清空该路径其他条目，
-    // 避免主库与 worker 版本不一致。未命中时回退到网络，离线再取缓存。
     event.respondWith(handleLazyRequest(event));
     return;
   }
 
-  event.respondWith(
-    (isVersionSensitive
-      ? fetch(event.request).then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-          return response;
-        }).catch(() => caches.match(event.request))
-      : caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-          return response;
-        })))
-  );
+  event.respondWith(isVersionSensitive ? networkFirst(event) : cacheFirst(event));
 });
+
+async function putShell(request, response) {
+  if (!response || !response.ok || response.status !== 200) return false;
+  const cache = await caches.open(SHELL_CACHE);
+  await cache.put(request, response.clone());
+  return true;
+}
+
+function networkFirstShell(event) {
+  return fetch(event.request, { cache: "no-cache" }).then(response => {
+    if (response.ok) event.waitUntil(putShell("./index.html", response.clone()));
+    return response;
+  }).catch(() => caches.match("./index.html"));
+}
+
+function networkFirst(event) {
+  return fetch(event.request).then(response => {
+    if (response.ok) event.waitUntil(putShell(event.request, response.clone()));
+    return response;
+  }).catch(() => caches.match(event.request));
+}
+
+function cacheFirst(event) {
+  return caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
+    if (response.ok) event.waitUntil(putShell(event.request, response.clone()));
+    return response;
+  }));
+}
 
 // 网络响应中可用于判断内容是否变化的轻量标识（长度 + ETag）。
 function responseVersion(response) {
@@ -83,7 +93,7 @@ function responseVersion(response) {
 async function cacheNetworkResponse(request, response) {
   // 只缓存完整响应：206（Range 请求）等部分响应会导致后续请求拿到不完整内容。
   if (!response || !response.ok || response.status !== 200) return false;
-  const cache = await caches.open(CACHE_NAME);
+  const cache = await caches.open(PDF_CACHE);
   const cached = await cache.match(request);
   if (!cached) {
     await cache.put(request, response.clone());
@@ -100,10 +110,11 @@ async function cacheNetworkResponse(request, response) {
 }
 
 async function invalidateLazySiblings(request) {
-  const cache = await caches.open(CACHE_NAME);
+  const cache = await caches.open(PDF_CACHE);
   const keys = await cache.keys();
-  const isLazy = key => LAZY_PATH_PREFIXES.some(prefix => key.url.includes(prefix.replace(/^\./, "")));
-  await Promise.all(keys.filter(key => key.url !== request.url && isLazy(key)).map(key => cache.delete(key)));
+  // 只让 build/ 内的主库与 worker 互相同步版本；CMap/字体不受壳升级影响。
+  const isBuild = key => key.url.includes("/vendor/pdfjs/build/");
+  await Promise.all(keys.filter(key => key.url !== request.url && isBuild(key)).map(key => cache.delete(key)));
 }
 
 async function handleLazyRequest(event) {

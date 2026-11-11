@@ -199,8 +199,6 @@ test("index.html 空数据显示引导导入", () => {
   assert.equal(s.error, null, s.error?.stack);
   assert.ok(s.$("emptyState").innerHTML.includes("还没有课表"), "空数据显示引导文案");
   assert.ok(s.$("emptyState").innerHTML.includes("emptyImportBtn"), "引导界面含导入按钮");
-  assert.equal(s.$("busuanzi_value_site_pv").textContent, "200");
-  assert.equal(s.$("busuanzi_value_site_uv").textContent, "200");
 });
 
 test("网页仅通过本地 PDF 导入课表", () => {
@@ -230,15 +228,16 @@ test("手机 APP 引导覆盖 iOS 浏览器与 Android 一键安装", () => {
 });
 
 test("PWA 页面导航优先读取网络并缓存本地 PDF.js 依赖", () => {
-  assert.match(serviceWorker, /const CACHE_NAME = `\$\{CACHE_PREFIX\}v4`/);
+  assert.ok(serviceWorker.includes("const SHELL_CACHE = `${CACHE_PREFIX}shell-v5`;"));
+  assert.ok(serviceWorker.includes("const PDF_CACHE = `${CACHE_PREFIX}pdfjs-v1`;"));
   assert.match(serviceWorker, /event\.request\.mode === "navigate"/);
-  assert.match(serviceWorker, /fetch\(event\.request\)[\s\S]*catch\(\(\) => caches\.match\("\.\/index\.html"\)\)/);
-  assert.match(serviceWorker, /key\.startsWith\(CACHE_PREFIX\) && key !== CACHE_NAME/);
-  assert.doesNotMatch(serviceWorker, /keys\.filter\(key => key !== CACHE_NAME\)/);
-  // 首屏之外的 PDF.js 资源不进 install 预缓存，改为按需请求后写入缓存。
-  assert.match(serviceWorker, /const LAZY_PATH_PREFIXES = \[\s*"\.\/vendor\/pdfjs\/"\s*\]/);
+  assert.match(serviceWorker, /fetch\(event\.request, \{ cache: "no-cache" \}\)/);
+  assert.match(serviceWorker, /key\.startsWith\(CACHE_PREFIX\) && key !== SHELL_CACHE && key !== PDF_CACHE/);
+  // 首屏之外的 PDF.js 资源不进 install 预缓存，改为按需请求后写入 PDF 缓存。
+  assert.match(serviceWorker, /const LAZY_PATH_PREFIXES = \[\s*"\.\/vendor\/pdfjs\/"\s*\];/);
   assert.match(serviceWorker, /isLazyVendor/);
   assert.match(serviceWorker, /isVersionSensitive/);
+  assert.match(serviceWorker, /event\.waitUntil\(putShell/);
 });
 
 test("网页端 PDF.js 及辅助资源使用同源路径并按需加载", () => {
@@ -566,6 +565,7 @@ test("GitHub 同步连接校验公开仓库权限，并上传、恢复当前账�
   assert.equal(s.$("githubRepoInput").value, "AnAcretiondisk9986/wmu-timetable-sync");
   s.$("githubRepoInput").value = "owner/timetable-backup";
   s.$("githubTokenInput").value = "test-token";
+  s.$("githubRememberTokenInput").checked = true;
 
   const calls = [];
   let remoteBackup = null;
@@ -629,7 +629,7 @@ test("GitHub 同步连接校验公开仓库权限，并上传、恢复当前账�
   assert.ok(s.storage["wmu-timetable-v1"], "断开同步不清除本机配置");
 });
 
-test("暗色主题与不蒜子统计兜底正确恢复", () => {
+test("暗色主题正确恢复", () => {
   const s = runScenario(SAVED({
     theme: "dark",
     timetables: [
@@ -640,13 +640,7 @@ test("暗色主题与不蒜子统计兜底正确恢复", () => {
 
   assert.equal(s.documentElement.classList.contains("dark-mode"), true);
   assert.equal(s.documentElement.classList.contains("warm-mode"), false);
-  assert.equal(s.$("busuanzi_value_site_pv").textContent, "200");
-  assert.equal(s.$("busuanzi_value_site_uv").textContent, "200");
-  assert.doesNotMatch(html, /wmu-visit-count-v1|visitCountValue|userCountValue/);
-  // 统计脚本改为空闲加载：地址仍保留，但不再出现在首屏的 script 标签里。
-  assert.ok(html.includes("https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"));
-  assert.match(html, /function setupGlobalStats\(\)[\s\S]*busuanzi\.pure\.mini\.js/);
-  assert.match(html, /requestIdleCallback\(start, \{ timeout: 2500 \}\)/);
+  assert.doesNotMatch(html, /busuanzi|wmu-visit-count-v1|visitCountValue|userCountValue/);
   assert.doesNotMatch(html, /<script[^>]+src="https:\/\/busuanzi\.ibruce\.info/);
   assert.match(html, /html\.dark-mode \{[\s\S]*?--canvas: #101311;/);
 });
@@ -798,7 +792,7 @@ test("宽屏侧栏、顶栏和当前课程高亮规则已定义", () => {
   assert.match(html, /\.topbar \{ position: sticky; top: 0; z-index: 9;/);
   assert.match(html, /\.day-column\.today-column \{ background-color: #f8e9ed;/);
   assert.match(html, /\.course\.ongoing \{ --course-bg: #DEBA85;/);
-  assert.match(code, /const ongoing = isCurrentWeek && event\.day === todayKey && nowMinutes >= eventStartMinute\(event\) && nowMinutes < eventEndMinute\(event\);/);
+  assert.match(code, /const ongoing = isCurrentWeek && event\.day === todayKey && nowAbsolute >= eventStartMinute\(event\) && nowAbsolute < eventEndMinute\(event\);/);
 });
 
 test("星期表头固定且竖屏地点按结构换行", () => {

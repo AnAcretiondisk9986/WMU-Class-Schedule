@@ -49,9 +49,9 @@ pnpm-lock.yaml                pnpm 依赖锁文件
 | FCP | 2148 ms | 596 ms |
 | 首屏传输 | 595 KB | 160 KB |
 | 首屏请求数 | 9 | 7 |
-| 第三方脚本 | 2 | 1（空闲加载） |
+| 第三方脚本 | 2 | 0 |
 
-验证方式：`node --test` 51 项全通过；Chrome 实测 1440 / 760 / 390 三档视口无横向溢出、无未渲染图标（`i[data-lucide]` 为 0）；按需加载后 `pdf.min.mjs` 导入耗时约 16 ms，真实样本可解析出 4 页 232 个文本项。
+验证方式：`node --test` 53 项全通过；Chrome 实测 1440 / 760 / 390 三档视口无横向溢出、无未渲染图标（`i[data-lucide]` 为 0）；按需加载后 `pdf.min.mjs` 导入耗时约 16 ms，真实样本可解析出 4 页 232 个文本项。
 
 ### 温医大视觉识别系统重构
 
@@ -120,7 +120,7 @@ pnpm-lock.yaml                pnpm 依赖锁文件
 
 ### Service Worker 与数据安全
 
-- `sw.js` 当前使用缓存名 `wmu-timetable-shell-v2`。升级缓存版本时只清理自身 `wmu-timetable-shell-*` 缓存，不触碰 localStorage、用户 PDF 或其他站点数据。
+- `sw.js` 使用分离缓存名 `wmu-timetable-shell-v5` 与 `wmu-timetable-pdfjs-v1`。升级外壳版本只清理旧外壳缓存，不触碰 PDF.js 的 CMap/字体/worker 缓存；主库与 worker 的版本一致性仅在同目录内校验。
 - 页面导航采用 network-first，优先获取线上最新 `index.html`，网络不可用时才回退到缓存，避免旧缓存长期覆盖修复。
 - 静态资源采用缓存优先并保留网络回退，保证已安装 PWA 在离线时仍能打开应用壳。
 - 课表内容仍只保存在当前浏览器的 `localStorage['wmu-timetable-v1']`；PWA 安装、Service Worker 更新和缓存清理均不应调用 `localStorage.clear()` 或删除该键。
@@ -185,9 +185,9 @@ PDF.js、worker、CMap 和标准字体已纳入 `vendor/pdfjs/`，网页端使�
 
 ## 7. 交接验收记录
 
-- `npm test`：51/51 通过。
+- `npm test`：53/53 通过。
 - `node --check sw.js`：通过；PWA 同源 PDF.js 资源与版本敏感资源缓存策略已覆盖测试。
-- 真实样本回归：滨海校区（黄映焜）、茶山校区（崔艺鑫）样本均可直接解析。
+- 真实样本回归：滨海校区（样本A）、茶山校区（样本B）样本均可直接解析。
 - 浏览器端导入茶山 / 滨海样本可生成课表并渲染周视图。
 - 浏览器验收：390×844 移动视口底栏 7 个按钮完整显示、无横向溢出，新手机加号 SVG 正常显示；桌面侧栏入口可见并能打开安装引导。
 - PWA 安装引导已验证 Android 一键安装分支、iOS Safari / Chrome / Edge 说明分支和其他 iOS 浏览器提示分支。

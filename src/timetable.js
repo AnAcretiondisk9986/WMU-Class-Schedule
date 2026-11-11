@@ -81,7 +81,14 @@ function toFiniteNumber(value) {
 
 export function parseWeekRanges(value) {
   const ranges = [];
-  const source = compact(value).replace(/[，；;]/g, ",");
+  const source = compact(value)
+    .replace(/[，；;]/g, ",")
+    .replace(/[（]/g, "(")
+    .replace(/[）]/g, ")")
+    .replace(/\((单|双)周\)/g, "($1)")
+    .replace(/单周/g, "(单)")
+    .replace(/双周/g, "(双)")
+    .replace(/[～~—－至]/g, "-");
   const pattern = /(\d{1,2})(?:\s*-\s*(\d{1,2}))?周(?:\((单|双)\))?/g;
 
   for (const match of source.matchAll(pattern)) {
@@ -129,7 +136,7 @@ function cleanCourseName(value) {
 
 function scheduleMatchAfter(source, markerEnd) {
   const tail = source.slice(markerEnd);
-  return /^\s*\((\d{1,2})(?:\s*-\s*(\d{1,2}))?节\)\s*([^/]+)/.exec(tail);
+  return /^\s*(?:第\s*)?[（(]\s*(\d{1,2})(?:\s*[-–—~～至]\s*(\d{1,2}))?\s*节\s*[）)]\s*([^/]*)/.exec(tail);
 }
 
 function parseColumn(source, weekday, warnings) {
@@ -144,27 +151,48 @@ function parseColumn(source, weekday, warnings) {
     if (!schedule) continue;
 
     const nextMarkerIndex = index + 1 < markers.length ? markers[index + 1].index : text.length;
-    const remainder = text.slice(marker.index + marker[0].length);
-    const credit = /\/学\s*分\s*[:：]\s*(\d+(?:\.\d+)?)/.exec(remainder);
-    const relativeEnd = credit ? credit.index + credit[0].length : nextMarkerIndex - marker.index - marker[0].length;
-    const eventEnd = marker.index + marker[0].length + relativeEnd;
+    const markerEnd = marker.index + marker[0].length;
+    const block = text.slice(markerEnd, nextMarkerIndex);
+    const credit = /\/学\s*分\s*[:：]\s*(\d+(?:\.\d+)?)/.exec(block);
+    const creditEnd = credit ? markerEnd + credit.index + credit[0].length : null;
+    let eventEnd = creditEnd;
+    if (index + 1 >= markers.length) {
+      eventEnd = nextMarkerIndex;
+    } else {
+      let offset = markerEnd;
+      let lastNonEmptyStart = null;
+      for (const line of block.split("\n")) {
+        if (line.trim()) lastNonEmptyStart = offset;
+        offset += line.length + 1;
+      }
+      if (lastNonEmptyStart != null && lastNonEmptyStart > (creditEnd ?? markerEnd)) {
+        eventEnd = lastNonEmptyStart;
+      } else if (eventEnd == null) {
+        eventEnd = nextMarkerIndex;
+      }
+    }
     const title = cleanCourseName(text.slice(previousEventEnd, marker.index));
 
     if (!title) {
-      // A PDF page can begin with the schedule marker of a course title that
-      // was drawn at the bottom of the previous page. Treat it as a
-      // continuation instead of manufacturing a warning or a bogus course.
+      warnings.push(`第${weekday}列有课程块缺少标题，已跳过`);
       previousEventEnd = eventEnd;
       continue;
     }
 
-    const raw = compact(text.slice(marker.index + marker[0].length, eventEnd));
+    const raw = compact(text.slice(markerEnd, eventEnd));
     const fields = parseFields(raw);
     const activity = ACTIVITY_TYPES[marker[0]];
-    const weekRanges = parseWeekRanges(schedule[3]);
+    const startPeriod = Number(schedule[1]);
+    const endPeriod = Number(schedule[2] ?? schedule[1]);
+    if (!Number.isInteger(startPeriod) || !Number.isInteger(endPeriod) || startPeriod < 1 || endPeriod > 22 || endPeriod < startPeriod) {
+      warnings.push(`「${title}」节次无效（${schedule[1]}${schedule[2] ? `-${schedule[2]}` : ''}），已跳过`);
+      previousEventEnd = eventEnd;
+      continue;
+    }
+    const weekRanges = parseWeekRanges(schedule[3]).filter((range) => range.start >= 1 && range.end <= 30 && range.end >= range.start);
 
     if (weekRanges.length === 0) {
-      warnings.push(`「${title}」未识别到周次`);
+      warnings.push(`「${title}」未识别到有效周次`);
     }
 
     events.push({
@@ -173,8 +201,8 @@ function parseColumn(source, weekday, warnings) {
       activity,
       activityLabel: ACTIVITY_LABELS[activity],
       periods: {
-        start: Number(schedule[1]),
-        end: Number(schedule[2] ?? schedule[1])
+        start: startPeriod,
+        end: endPeriod
       },
       weeks: weekRanges,
       campus: fields["校区"] ?? "", // Preserve arbitrary values such as hospital placements; do not whitelist campus names.
@@ -364,16 +392,22 @@ function clockToMinutes(value) {
   return hours * 60 + minutes;
 }
 
+function periodMinutes(periods, index, edge) {
+  const value = periods[index]?.[edge];
+  if (!value) return null;
+  let minutes = clockToMinutes(value);
+  if (index >= 20 && minutes < 8 * 60) minutes += 1440;
+  return minutes;
+}
+
 function eventClockRange(event) {
   const periods = CAMPUS_PERIODS[event.campus];
   if (!periods || !event.periods) return null;
-  const start = periods[event.periods.start - 1];
-  const end = periods[event.periods.end - 1];
-  if (!start || !end) return null;
-  return {
-    start: clockToMinutes(start[0]),
-    end: clockToMinutes(end[1])
-  };
+  const start = periodMinutes(periods, event.periods.start - 1, 0);
+  let end = periodMinutes(periods, event.periods.end - 1, 1);
+  if (start == null || end == null) return null;
+  if (end < start) end += 1440;
+  return { start, end };
 }
 
 export function detectCampusConflicts(events) {
@@ -451,25 +485,39 @@ export async function extractPdfPages(fileOrData, pdfjsLib, pdfOptions = {}) {
     throw new TypeError("fileOrData 必须是 File、ArrayBuffer 或 Uint8Array");
   }
 
-  const pdf = await pdfjsLib.getDocument({ ...pdfOptions, data }).promise;
+  const loadingTask = pdfjsLib.getDocument({ ...pdfOptions, data });
+  const pdf = await loadingTask.promise;
   const pages = [];
 
-  for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-    const page = await pdf.getPage(pageNumber);
-    const viewport = page.getViewport({ scale: 1 });
-    const content = await page.getTextContent();
-    pages.push({
-      pageNumber,
-      width: viewport.width,
-      height: viewport.height,
-      items: content.items.map(item => ({
-        str: item.str ?? "",
-        transform: item.transform,
-        width: item.width,
-        height: item.height,
-        hasEOL: item.hasEOL
-      }))
-    });
+  try {
+    const maxPages = 50;
+    if (pdf.numPages > maxPages) {
+      throw new Error(`PDF 页数过多（${pdf.numPages} 页），最多支持 ${maxPages} 页`);
+    }
+
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+      const page = await pdf.getPage(pageNumber);
+      try {
+        const viewport = page.getViewport({ scale: 1 });
+        const content = await page.getTextContent();
+        pages.push({
+          pageNumber,
+          width: viewport.width,
+          height: viewport.height,
+          items: content.items.map(item => ({
+            str: item.str ?? "",
+            transform: item.transform,
+            width: item.width,
+            height: item.height,
+            hasEOL: item.hasEOL
+          }))
+        });
+      } finally {
+        page.cleanup?.();
+      }
+    }
+  } finally {
+    await pdf.destroy?.();
   }
 
   return pages;

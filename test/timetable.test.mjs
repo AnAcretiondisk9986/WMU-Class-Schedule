@@ -8,12 +8,13 @@ import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 
 import {
   parseTimetablePdf,
+  parseTimetablePages,
   parseWeekRanges,
   detectCampusConflicts
 } from "../src/timetable.js";
 
-const sampleUrl = new URL("./fixtures/黄映焜(2026-2027-1)课表.pdf", import.meta.url);
-const chashanSampleUrl = new URL("./fixtures/崔艺鑫(2026-2027-1)课表.pdf", import.meta.url);
+const sampleUrl = new URL("./fixtures/bihai.pdf", import.meta.url);
+const chashanSampleUrl = new URL("./fixtures/chashan.pdf", import.meta.url);
 const stressSampleUrl = new URL("../output/pdf/WMU课表-高强度导入测试.pdf", import.meta.url);
 const cMapUrl = `${fileURLToPath(new URL("../node_modules/pdfjs-dist/cmaps/", import.meta.url)).split(sep).join("/")}/`;
 const standardFontDataUrl = `${fileURLToPath(new URL("../node_modules/pdfjs-dist/standard_fonts/", import.meta.url)).split(sep).join("/")}/`;
@@ -24,6 +25,38 @@ test("解析单双周周次范围", () => {
     { start: 4, end: 12, parity: "even" },
     { start: 13, end: 17, parity: "odd" }
   ]);
+  assert.deepEqual(parseWeekRanges("1-16周（单）"), [{ start: 1, end: 16, parity: "odd" }]);
+  assert.deepEqual(parseWeekRanges("1-16周(单周)"), [{ start: 1, end: 16, parity: "odd" }]);
+  assert.deepEqual(parseWeekRanges("1～16周"), [{ start: 1, end: 16, parity: "all" }]);
+  assert.deepEqual(parseWeekRanges("1—16周"), [{ start: 1, end: 16, parity: "all" }]);
+});
+
+test("缺学分字段不会吞掉下一门课", () => {
+  const days = ["一", "二", "三", "四", "五", "六", "日"];
+  const anchors = days.map((day, index) => ({
+    str: `星期${day}`,
+    transform: [1, 0, 0, 1, 100 + index * 100, 500],
+    width: 20,
+    height: 10
+  }));
+  const lines = [
+    "课程A",
+    "◆(1-2节)1-16周/校区：茶山校区/场地：A101/教师：张三",
+    "课程B",
+    "◆(3-4节)1-16周/校区：茶山校区/场地：B202/教师：李四"
+  ];
+  const items = [...anchors, ...lines.map((str, index) => ({
+    str,
+    transform: [1, 0, 0, 1, 100, 400 - index * 20],
+    width: 150,
+    height: 10
+  }))];
+  const result = parseTimetablePages([{ pageNumber: 1, width: 800, height: 600, items }]);
+  assert.equal(result.events.length, 2);
+  assert.equal(result.events[0].courseName, "课程A");
+  assert.equal(result.events[1].courseName, "课程B");
+  assert.equal(result.events[0].campus, "茶山校区");
+  assert.equal(result.events[1].room, "B202");
 });
 
 test("直接解析真实滨海校区 WMU 课表 PDF", { skip: !existsSync(sampleUrl) }, async () => {
@@ -35,7 +68,8 @@ test("直接解析真实滨海校区 WMU 课表 PDF", { skip: !existsSync(sample
   });
 
   assert.equal(result.semester, "2026-2027-1");
-  assert.deepEqual(result.student, { name: "黄映焜", id: "2519120004" });
+  assert.ok(result.student.name.length > 0);
+  assert.match(result.student.id, /^[A-Za-z0-9-]+$/);
   assert.ok(result.courses.length >= 10);
   assert.ok(result.events.length >= 25);
   assert.deepEqual(result.warnings, []);
@@ -72,7 +106,8 @@ test("直接解析真实茶山校区 WMU 课表 PDF", { skip: !existsSync(chasha
   });
 
   assert.equal(result.semester, "2026-2027-1");
-  assert.deepEqual(result.student, { name: "崔艺鑫", id: "2531010008" });
+  assert.ok(result.student.name.length > 0);
+  assert.match(result.student.id, /^[A-Za-z0-9-]+$/);
   assert.equal(result.events.length, 34);
   assert.deepEqual([...new Set(result.events.map(event => event.campus))], ["茶山校区"]);
   assert.deepEqual(result.warnings, []);
@@ -141,6 +176,15 @@ test("跨校区按实际钟点识别单双周冲突", () => {
   const conflicts = detectCampusConflicts(events);
   assert.equal(conflicts.length, 1);
   assert.deepEqual([conflicts[0].firstIndex, conflicts[0].secondIndex], [0, 1]);
+});
+
+test("跨午夜节次仍识别同节次跨校区冲突", () => {
+  const events = [
+    { courseName: "深夜A", weekday: 1, campus: "茶山校区", periods: { start: 21, end: 21 }, weeks: [{ start: 1, end: 16, parity: "all" }] },
+    { courseName: "深夜B", weekday: 1, campus: "滨海校区", periods: { start: 21, end: 21 }, weeks: [{ start: 1, end: 16, parity: "all" }] }
+  ];
+  const conflicts = detectCampusConflicts(events);
+  assert.equal(conflicts.length, 1);
 });
 
 test("跨校区冲突检测使用非等间隔作息边界", () => {

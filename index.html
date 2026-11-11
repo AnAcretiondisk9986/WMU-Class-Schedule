@@ -2,20 +2,23 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#7b182e">
   <meta name="description" content="温州医科大学课表 PDF 导入与周/月视图工具">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="canonical" href="https://wmu.kb.acretiondisk.top/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="温医大课表">
+  <meta property="og:url" content="https://wmu.kb.acretiondisk.top/">
   <meta property="og:title" content="温医大课表">
   <meta property="og:description" content="在浏览器本地导入并查看温州医科大学课表">
-  <meta property="og:image" content="assets/wmu-preview.png">
+  <meta property="og:image" content="https://wmu.kb.acretiondisk.top/assets/wmu-preview.png">
   <meta property="og:image:width" content="512">
   <meta property="og:image:height" content="512">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:image" content="assets/wmu-preview.png">
+  <meta name="twitter:image" content="https://wmu.kb.acretiondisk.top/assets/wmu-preview.png">
   <link rel="icon" type="image/png" sizes="512x512" href="assets/wmu-preview.png">
   <link rel="apple-touch-icon" href="assets/wmu-preview.png">
   <link rel="manifest" href="manifest.webmanifest">
@@ -151,14 +154,14 @@
     .schedule-head { position: sticky; top: var(--topbar-height); z-index: 8; display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; min-height: 42px; border-bottom: 1px solid var(--line); background: #fafcf9; box-shadow: 0 1px 0 var(--line); }
     .head-cell { display: flex; align-items: center; justify-content: center; border-right: 1px solid var(--line); color: var(--muted); font-size: 11px; font-weight: 700; }
     .head-day { display: grid; place-items: center; gap: 2px; line-height: 1.05; }
-    .head-date { color: #929d97; font-size: 9px; font-weight: 600; }
-    .head-cell:first-child { color: #a0aaa4; font-size: 10px; }
+    .head-date { color: #5f5559; font-size: 10px; font-weight: 600; }
+    .head-cell:first-child { color: #5f5559; font-size: 10px; }
     .axis-head { display: grid; gap: 1px; place-items: center; line-height: 1.05; }
-    .axis-head small { color: #8d9992; font-size: 7px; font-weight: 650; }
+    .axis-head small { color: #5f5559; font-size: 9px; font-weight: 650; }
     .head-cell.focus { background: #eff9f2; color: #26724f; }
     .schedule-body { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; position: relative; }
     .time-axis { position: relative; border-right: 1px solid var(--line); background: #fbfcfa; }
-    .time { position: relative; padding: 4px 8px 0 0; color: #9aa59e; font-size: 10px; text-align: right; border-bottom: 1px solid var(--line); }
+    .time { position: relative; padding: 4px 8px 0 0; color: #5f5559; font-size: 10px; text-align: right; border-bottom: 1px solid var(--line); }
     .day-column { position: relative; isolation: isolate; border-right: 1px solid var(--line); background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--slot-h) - 1px), var(--line) calc(var(--slot-h) - 1px), var(--line) var(--slot-h)); }
     .day-column.today-column { background-color: #f8e9ed; }
     .course { position: absolute; left: 7px; right: 7px; z-index: 2; padding: 6px 8px; overflow: hidden; border: 1px solid transparent; border-left: 3px solid var(--course-accent); border-radius: 8px; background: var(--course-bg); color: var(--course-text); cursor: pointer; text-align: left; display: flex; flex-direction: column; transition: transform 170ms var(--ease-out), box-shadow 170ms ease, filter 170ms ease; }
@@ -248,10 +251,11 @@
     .install-tip { margin-top: 14px; padding: 10px 12px; border-left: 2px solid var(--gold); background: var(--gold-soft); color: #6f5a3f; font-size: 11px; line-height: 1.55; }
     .install-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
 
-    .drawer-backdrop { position: fixed; inset: 0; z-index: 10; background: rgba(12,24,18,.26); opacity: 0; pointer-events: none; }
-    .drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 11; width: min(420px, 100vw); padding: 28px; overflow: auto; background: #fff; box-shadow: -15px 0 40px rgba(17,32,24,.12); transform: translate3d(100%, 0, 0); touch-action: pan-y; will-change: transform; }
+    .drawer-backdrop { position: fixed; inset: 0; z-index: 50; background: rgba(12,24,18,.26); opacity: 0; pointer-events: none; }
+    .drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 51; width: min(420px, 100vw); padding: 28px; overflow: auto; background: #fff; box-shadow: -15px 0 40px rgba(17,32,24,.12); transform: translate3d(100%, 0, 0); touch-action: pan-y; will-change: transform; }
     .drawer-open .drawer-backdrop { opacity: 1; pointer-events: auto; }
     .drawer-open .drawer { transform: translate3d(0, 0, 0); }
+    body.drawer-open { overflow: hidden; }
     .drawer-close { float: right; }
     .drawer-kicker { clear: both; padding-top: 28px; color: var(--mint-strong); font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
     .drawer h2 { max-width: 330px; margin: 7px 0 0; font-size: 25px; line-height: 1.15; letter-spacing: 0; }
@@ -262,10 +266,11 @@
     .detail-row dd { margin: 0; font-weight: 650; }
     .drawer-note { margin-top: 22px; padding: 12px; border-radius: 8px; background: #f3f7f3; color: #587166; font-size: 11px; }
 
-    .modal-backdrop { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 20px; background: rgba(12,24,18,.32); opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
-    .modal { width: min(500px, 100%); max-height: calc(100vh - 40px); overflow-y: auto; padding: 23px; border-radius: 12px; background: #fff; box-shadow: 0 24px 60px rgba(14,29,21,.22); transform: scale(.96); opacity: 0; transition: transform 200ms var(--ease-out), opacity 160ms ease; }
-    .modal-backdrop.modal-open { opacity: 1; pointer-events: auto; }
+    .modal-backdrop { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; background: rgba(12,24,18,.32); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 180ms ease, visibility 0s 180ms; }
+    .modal { width: min(500px, 100%); max-height: calc(100vh - 40px); max-height: calc(100dvh - 40px); overflow-y: auto; padding: 23px; border-radius: 12px; background: #fff; box-shadow: 0 24px 60px rgba(14,29,21,.22); transform: scale(.96); opacity: 0; transition: transform 200ms var(--ease-out), opacity 160ms ease; }
+    .modal-backdrop.modal-open { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 180ms ease; }
     .modal-backdrop.modal-open .modal { transform: scale(1); opacity: 1; }
+    body.has-modal { overflow: hidden; }
     .modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
     .modal h2 { margin: 0; font-size: 18px; letter-spacing: 0; }
     .modal p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
@@ -538,8 +543,8 @@
       font-family: "Noto Sans SC", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", ui-sans-serif, sans-serif;
       letter-spacing: 0;
     }
-    button:focus-visible, input:focus-visible, select:focus-visible {
-      outline: 3px solid rgba(167, 31, 60, .22);
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible {
+      outline: 2px solid #a71f3c;
       outline-offset: 2px;
     }
     .app { grid-template-columns: 244px minmax(0, 1fr); }
@@ -583,7 +588,7 @@
     .brand-copy { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
     .brand-name { color: #fff; font-size: 14px; font-weight: 700; letter-spacing: 0; }
     .brand-caption { margin: 0; color: var(--gold); font-size: 10px; }
-    .nav-label { padding: 0 11px 8px; color: rgba(255,255,255,.48); font-size: 10px; letter-spacing: 0; text-transform: none; }
+    .nav-label { padding: 0 11px 8px; color: rgba(255,255,255,.72); font-size: 10px; letter-spacing: 0; text-transform: none; }
     .nav { gap: 4px; }
     .nav button {
       gap: 12px;
@@ -607,7 +612,7 @@
     .meter { background: rgba(255,255,255,.13); }
     .meter i { background: var(--gold); }
     .avatar { background: var(--gold); color: var(--brand-deep); }
-    .profile-sub { color: rgba(255,255,255,.5); }
+    .profile-sub { color: rgba(255,255,255,.72); }
 
     .main { background: var(--paper); }
     .topbar {
@@ -640,7 +645,6 @@
     .content { max-width: 1580px; padding: 31px 34px 42px; }
     .site-footer { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 0 34px 26px; color: var(--muted); font-size: 11px; }
     .site-footer-item { display: inline-flex; align-items: center; gap: 5px; }
-    .site-footer-item[id^="busuanzi_container_"] { display: inline-flex !important; }
     .site-footer-item + .site-footer-item { padding-left: 18px; border-left: 1px solid var(--line); }
     .site-footer-item strong { color: var(--ink); font-weight: 750; }
     .page-head { align-items: center; }
@@ -968,7 +972,7 @@
           <div class="week-swipe-page week-swipe-preview" id="nextWeekPreview" aria-hidden="true"></div>
         </div></div>
       </div>
-      <footer class="site-footer" aria-label="站点统计"><span class="site-footer-item" id="busuanzi_container_site_pv" title="不蒜子全站访问次数；服务不可用时显示 200">访问次数 <strong id="busuanzi_value_site_pv">--</strong></span><span class="site-footer-item" id="busuanzi_container_site_uv" title="不蒜子全站访客数；服务不可用时显示 200">用户数量 <strong id="busuanzi_value_site_uv">--</strong></span></footer>
+      <footer class="site-footer" aria-label="站点信息"><span class="site-footer-item">温医大课表 · 本地优先</span></footer>
     </main>
   </div>
 
@@ -985,7 +989,7 @@
 
   <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><h2 id="modalTitle">导入课表 PDF</h2><p>选择从教务系统导出的课表 PDF。</p></div><button class="icon-btn" id="modalClose" type="button" title="关闭" aria-label="关闭"><svg class="lucide lucide-x" data-lucide="x" aria-hidden="true" focusable="false"><use href="#ic-x"></use></svg></button></div><div class="query-link-row"><a class="secondary-btn query-link" href="https://jwxt.wmu.edu.cn/jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&amp;layout=default" target="_blank" rel="noopener noreferrer"><svg class="lucide lucide-external-link" data-lucide="external-link" aria-hidden="true" focusable="false"><use href="#ic-external-link"></use></svg><span>前往教务系统查询课表</span></a></div><label class="dropzone" id="dropZone" for="fileInput"><svg class="lucide lucide-upload-cloud" data-lucide="upload-cloud" aria-hidden="true" focusable="false"><use href="#ic-upload-cloud"></use></svg><strong>选择 PDF 文件</strong><span id="fileName">支持拖放，文件仅在本地处理</span></label><input class="file-input" id="fileInput" type="file" accept="application/pdf"><div class="import-status" id="importStatus" role="status" aria-live="polite"></div><div class="modal-foot"><button class="secondary-btn" id="modalCancel" type="button">取消</button><button class="import-btn" id="confirmImport" type="button" aria-label="开始识别" title="开始识别"><svg class="lucide lucide-scan-line" data-lucide="scan-line" aria-hidden="true" focusable="false"><use href="#ic-scan-line"></use></svg><span>开始识别</span></button></div></section></div>
 
-  <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题、本地数据与云端同步。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><svg class="lucide lucide-x" data-lucide="x" aria-hidden="true" focusable="false"><use href="#ic-x"></use></svg></button></div><div class="settings-body"><div class="settings-layout"><div class="settings-controls"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option><option value="dark">暗色</option></select></label><label class="field" for="slotHeightInput"><span>单元格高度</span><div class="range-row"><input id="slotHeightInput" type="range" min="48" max="144" step="4" value="72"><output class="range-value" id="slotHeightValue" for="slotHeightInput">72 px</output></div></label><label class="settings-toggle"><input id="hideEmptyWeekendsInput" type="checkbox"><span class="settings-toggle-copy"><span>自动隐藏无课周末列</span><small>仅隐藏周六、周日中没有课程的列，工作日始终保留。</small></span></label></div><div class="slot-preview" aria-live="polite"><div class="slot-preview-title">实时预览</div><div class="slot-preview-board" id="slotHeightPreview" style="--preview-slot-h:24px"><div class="slot-preview-axis"><span>08:00</span><span>08:45</span><span>09:30</span><span>10:15</span></div><div class="slot-preview-column"><span class="slot-preview-card">课程卡片</span></div><div class="slot-preview-column"><span class="slot-preview-card">今日</span></div></div><div class="slot-preview-note">拖动滑块查看每个 45 分钟单元格的高度变化。</div></div></div><p class="settings-note" id="settingsNote">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。高度会同时调整时间轴、课程卡片和网格间距。</p><section class="sync-panel" aria-labelledby="githubSyncTitle"><div class="sync-panel-title" id="githubSyncTitle">GitHub 同步</div><p class="sync-panel-note">授权后，本机课表有变化时自动上传；打开其他设备时也会自动检查更新。配置会写入公开仓库。你可以 <a href="https://github.com/AnAcretiondisk9986/wmu-timetable-sync" target="_blank" rel="noopener noreferrer">Fork 项目提供的同步仓库</a> 到自己的账号，或使用自己有写入权限的公开仓库。</p><div class="sync-fields"><label class="field"><span>公开仓库（所有者/名称）</span><input id="githubRepoInput" type="text" autocomplete="off" spellcheck="false" placeholder="AnAcretiondisk9986/wmu-timetable-sync"></label><label class="field"><span>细粒度访问令牌</span><input id="githubTokenInput" type="password" autocomplete="off" spellcheck="false" placeholder="连接授权"></label><button class="secondary-btn" id="githubConnectButton" type="button">授权并开启自动同步</button></div><label class="sync-remember"><input id="githubRememberTokenInput" type="checkbox" checked><span>在此浏览器记住授权，自动同步（令牌仍受 GitHub 到期时间和权限限制）</span></label><p class="sync-status" id="githubSyncStatus" role="status" aria-live="polite">尚未连接仓库；连接后才可使用同步。</p><p class="sync-panel-note">令牌需对所选仓库授予 Contents 读取与写入权限。勾选下方选项后，令牌会保存在此浏览器中，以便长期自动同步；任何能访问此浏览器的人或本网站脚本都可能使用它。取消勾选则只在当前页面暂存，关闭后需重新授权。<br>公开仓库中的配置文件和 Git 历史任何人都能查看；备份含姓名、学号、课程安排、收藏和偏好。开启自动上传即表示同意这些内容持续写入公开仓库，请勿上传不愿公开的信息。</p><div class="sync-actions" id="githubSyncActions" hidden><button class="secondary-btn" id="githubUploadButton" type="button">立即同步</button><button class="secondary-btn" id="githubDownloadButton" type="button">从仓库恢复</button><button class="secondary-btn" id="githubDisconnectButton" type="button">断开连接</button></div></section><div class="data-actions"><button class="secondary-btn" id="unhideAllButton" type="button">解除所有隐藏（<span id="hiddenEventCount">0</span>）</button><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
+  <div class="modal-backdrop" id="settingsBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-head"><div><h2 id="settingsTitle">偏好设置</h2><p>学期日期、主题、本地数据与云端同步。</p></div><button class="icon-btn" id="settingsClose" type="button" title="关闭" aria-label="关闭"><svg class="lucide lucide-x" data-lucide="x" aria-hidden="true" focusable="false"><use href="#ic-x"></use></svg></button></div><div class="settings-body"><div class="settings-layout"><div class="settings-controls"><label class="field"><span>学期第一周周一</span><input type="date" id="termStartInput"></label><label class="field"><span>主题</span><select id="themeSelect"><option value="light">浅色</option><option value="warm">暖色</option><option value="dark">暗色</option></select></label><label class="field" for="slotHeightInput"><span>单元格高度</span><div class="range-row"><input id="slotHeightInput" type="range" min="48" max="144" step="4" value="72"><output class="range-value" id="slotHeightValue" for="slotHeightInput">72 px</output></div></label><label class="settings-toggle"><input id="hideEmptyWeekendsInput" type="checkbox"><span class="settings-toggle-copy"><span>自动隐藏无课周末列</span><small>仅隐藏周六、周日中没有课程的列，工作日始终保留。</small></span></label></div><div class="slot-preview" aria-live="polite"><div class="slot-preview-title">实时预览</div><div class="slot-preview-board" id="slotHeightPreview" style="--preview-slot-h:24px"><div class="slot-preview-axis"><span>08:00</span><span>08:45</span><span>09:30</span><span>10:15</span></div><div class="slot-preview-column"><span class="slot-preview-card">课程卡片</span></div><div class="slot-preview-column"><span class="slot-preview-card">今日</span></div></div><div class="slot-preview-note">拖动滑块查看每个 45 分钟单元格的高度变化。</div></div></div><p class="settings-note" id="settingsNote">「学期第一周周一」用于计算当前周次与日期，请设为该学期开学第一周的周一。高度会同时调整时间轴、课程卡片和网格间距。</p><section class="sync-panel" aria-labelledby="githubSyncTitle"><div class="sync-panel-title" id="githubSyncTitle">GitHub 同步</div><p class="sync-panel-note">授权后，本机课表有变化时自动上传；打开其他设备时也会自动检查更新。配置会写入公开仓库。你可以 <a href="https://github.com/AnAcretiondisk9986/wmu-timetable-sync" target="_blank" rel="noopener noreferrer">Fork 项目提供的同步仓库</a> 到自己的账号，或使用自己有写入权限的公开仓库。</p><div class="sync-fields"><label class="field"><span>公开仓库（所有者/名称）</span><input id="githubRepoInput" type="text" autocomplete="off" spellcheck="false" placeholder="AnAcretiondisk9986/wmu-timetable-sync"></label><label class="field"><span>细粒度访问令牌</span><input id="githubTokenInput" type="password" autocomplete="off" spellcheck="false" placeholder="连接授权"></label><button class="secondary-btn" id="githubConnectButton" type="button">授权并开启自动同步</button></div><label class="sync-remember"><input id="githubRememberTokenInput" type="checkbox"><span>在此浏览器记住授权，自动同步（令牌仍受 GitHub 到期时间和权限限制）</span></label><p class="sync-status" id="githubSyncStatus" role="status" aria-live="polite">尚未连接仓库；连接后才可使用同步。</p><p class="sync-panel-note">令牌需对所选仓库授予 Contents 读取与写入权限。勾选下方选项后，令牌会保存在此浏览器中，以便长期自动同步；任何能访问此浏览器的人或本网站脚本都可能使用它。取消勾选则只在当前页面暂存，关闭后需重新授权。<br>公开仓库中的配置文件和 Git 历史任何人都能查看；备份含姓名、学号、课程安排、收藏和偏好。开启自动上传即表示同意这些内容持续写入公开仓库，请勿上传不愿公开的信息。</p><div class="sync-actions" id="githubSyncActions" hidden><button class="secondary-btn" id="githubUploadButton" type="button">立即同步</button><button class="secondary-btn" id="githubDownloadButton" type="button">从仓库恢复</button><button class="secondary-btn" id="githubDisconnectButton" type="button">断开连接</button></div></section><div class="data-actions"><button class="secondary-btn" id="unhideAllButton" type="button">解除所有隐藏（<span id="hiddenEventCount">0</span>）</button><button class="secondary-btn" id="exportData" type="button">导出数据备份</button><button class="secondary-btn" id="importDataBtn" type="button">从备份恢复</button></div><input class="file-input" id="importDataInput" type="file" accept="application/json"></div><div class="modal-foot"><button class="secondary-btn" id="resetData" type="button">清除本地数据</button><button class="import-btn" id="settingsDone" type="button">保存</button></div></section></div>
 
   <div class="modal-backdrop" id="helpBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-head"><div><h2 id="helpTitle">使用说明</h2><p>如何查看与管理你的课表。</p></div><button class="icon-btn" id="helpClose" type="button" title="关闭" aria-label="关闭"><svg class="lucide lucide-x" data-lucide="x" aria-hidden="true" focusable="false"><use href="#ic-x"></use></svg></button></div><div class="settings-body"><ul class="help-list"><li>可在「导入 PDF」弹窗中前往教务系统查询课表；正常导出 PDF 后，回到本页选择该文件。</li><li>顶部「上一周 / 下一周」按周次查看，课程卡片会自动按周次与单双周过滤。</li><li>切换到「月视图」可按日查看当前月份，月初和月末不足一周的日期会保留在独立行中。</li><li>「回到今天」定位到当前周次与星期，月视图下定位到当前月份。</li><li>工具栏「新建日程」可快速添加课表外安排，默认定位到当前周和当天；打开自定义日程卡片可再次编辑。</li><li>课程卡片详情可修改别名（本课表全局或当前周）、选择卡片颜色或隐藏卡片；设置中可解除所有隐藏。</li><li>点击课程卡片查看详情，右上角书签按钮可收藏课程；左侧「收藏课程」查看收藏。</li><li>课表配置默认保存在本机浏览器。授权 GitHub 后会自动同步；公开仓库中的配置文件和历史版本对所有人可见。</li></ul></div><div class="modal-foot"><button class="import-btn" id="helpDone" type="button">知道了</button></div></section></div>
 
@@ -1036,7 +1040,17 @@
           week >= range.start && week <= range.end &&
           (range.parity === 'all' || (range.parity === 'odd' && week % 2 === 1) || (range.parity === 'even' && week % 2 === 0))
         );
-    const formatClock = (minutes) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+    const formatClock = (minutes) => {
+      const total = ((Math.round(minutes) % 1440) + 1440) % 1440;
+      return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+    };
+    const periodMinutes = (periods, index, edge) => {
+      const value = periods[index]?.[edge];
+      if (!value) return null;
+      let minutes = timeToMinutes(value);
+      if (index >= 20 && minutes < 8 * 60) minutes += 1440;
+      return minutes;
+    };
     const SHARED_AFTERNOON_PERIODS = [
       ['13:30', '14:10'], ['14:15', '14:55'], ['15:00', '15:40'],
       ['15:45', '16:25'], ['16:30', '17:10'], ['17:15', '17:55'],
@@ -1073,7 +1087,6 @@
     const GITHUB_SYNC_TOKEN_KEY = 'wmu-github-sync-token-v1';
     const GITHUB_SYNC_DEFAULT_REPO = 'AnAcretiondisk9986/wmu-timetable-sync';
     const INSTALL_SEEN_KEY = 'wmu-pwa-install-guide-seen-v1';
-    const GLOBAL_STAT_FALLBACK = 200;
     const DEFAULT_SLOT_HEIGHT = 72;
     const MIN_SLOT_HEIGHT = 48;
     const MAX_SLOT_HEIGHT = 144;
@@ -1671,12 +1684,15 @@
     const eventStartMinute = (event) => {
       if (event.kind === 'custom') return timeToMinutes(event.startTime);
       const periods = CAMPUS_PERIODS[event.campus] || CAMPUS_PERIODS['滨海校区'];
-      return timeToMinutes(periods[event.start - 1][0]);
+      return periodMinutes(periods, event.start - 1, 0);
     };
     const eventEndMinute = (event) => {
       if (event.kind === 'custom') return timeToMinutes(event.endTime);
       const periods = CAMPUS_PERIODS[event.campus] || CAMPUS_PERIODS['滨海校区'];
-      return timeToMinutes(periods[event.end - 1][1]);
+      let end = periodMinutes(periods, event.end - 1, 1);
+      const start = eventStartMinute(event);
+      if (end != null && start != null && end < start) end += 1440;
+      return end;
     };
     const eventColorStyle = (event) => {
       const key = event.kind === 'custom' ? event.color : event.cardColor;
@@ -1835,14 +1851,15 @@
       const todayKey = isCurrentWeek ? current.day : null;
       const customStarts = events.filter((event) => event.kind === 'custom').map(eventStartMinute).filter(Number.isFinite);
       const axisStart = customStarts.length ? Math.min(8 * 60, Math.floor(Math.min(...customStarts) / 45) * 45) : 8 * 60;
+      const nowAbsolute = isCurrentWeek && nowMinutes < axisStart ? nowMinutes + 1440 : nowMinutes;
       const lastEnd = events.length ? Math.max(...events.map(eventEndMinute)) : axisStart + 45;
-      const latestEnd = isCurrentWeek ? Math.max(lastEnd, nowMinutes) : lastEnd;
+      const latestEnd = isCurrentWeek ? Math.max(lastEnd, nowAbsolute) : lastEnd;
       const axisEnd = Math.ceil(Math.max(axisStart + 45, latestEnd) / 45) * 45;
       const totalHeight = Math.round((axisEnd - axisStart) * pxPerMinute);
       const ticks = [];
       for (let minute = axisStart; minute < axisEnd; minute += 45) ticks.push(minute);
-      const showNowLine = isCurrentWeek && nowMinutes >= axisStart && nowMinutes <= axisEnd;
-      const nowLine = showNowLine ? `<div class="now-line"${interactive ? ' id="nowLine"' : ''} style="top:${Math.round((nowMinutes - axisStart) * pxPerMinute)}px"><span class="now-label">${formatClock(nowMinutes)}</span></div>` : '';
+      const showNowLine = isCurrentWeek && nowAbsolute >= axisStart && nowAbsolute <= axisEnd;
+      const nowLine = showNowLine ? `<div class="now-line"${interactive ? ' id="nowLine"' : ''} style="top:${Math.round((nowAbsolute - axisStart) * pxPerMinute)}px"><span class="now-label">${formatClock(nowAbsolute)}</span></div>` : '';
 
       const head = `<div class="schedule-head"><div class="head-cell"><span class="axis-head"><b>时间</b></span></div>${days.map((day) => `<div class="head-cell ${state.day === day.key ? 'focus' : ''} ${day.key === todayKey ? 'today-column' : ''}"><span class="head-day"><b>${day.name}</b><small class="head-date">${day.date}</small></span></div>`).join('')}</div>`;
       const axis = `<div class="time-axis" style="height:${totalHeight}px">${ticks.map((minute) => `<div class="time" style="height:${Math.round(45 * pxPerMinute)}px">${formatClock(minute)}</div>`).join('')}</div>`;
@@ -1853,7 +1870,7 @@
         const density = height < 108 ? ' course-tiny' : height < 166 ? ' course-compact' : '';
         const ultraShort = duration < 40;
         const fortyMinute = duration === 40;
-        const ongoing = isCurrentWeek && event.day === todayKey && nowMinutes >= eventStartMinute(event) && nowMinutes < eventEndMinute(event);
+        const ongoing = isCurrentWeek && event.day === todayKey && nowAbsolute >= eventStartMinute(event) && nowAbsolute < eventEndMinute(event);
         const tag = interactive ? 'button' : 'div';
         const attributes = interactive ? ` data-event="${currentEvents().indexOf(event)}" data-event-week="${week}" type="button"` : '';
         const details = event.kind === 'custom'
@@ -2003,6 +2020,7 @@
     }
 
     function updateNowIndicator() {
+      if (document.hidden) return;
       const now = new Date();
       const today = weekAndDayForDate(now);
       const button = $('todayButton');
@@ -2012,27 +2030,32 @@
       if (state.view !== 'schedule') return;
       const nowMinutes = now.getHours() * 60 + now.getMinutes();
       const isCurrentWeek = state.week === today.week;
-      if (isCurrentWeek && nowMinutes > scheduleAxis.end) { renderAll(); return; }
+      const nowAbsolute = isCurrentWeek && nowMinutes < scheduleAxis.start ? nowMinutes + 1440 : nowMinutes;
+      if (isCurrentWeek && nowAbsolute > scheduleAxis.end) { renderSchedule(); return; }
       const line = document.getElementById('nowLine');
       if (!line) return;
-      const show = isCurrentWeek && nowMinutes >= scheduleAxis.start && nowMinutes <= scheduleAxis.end;
+      const show = isCurrentWeek && nowAbsolute >= scheduleAxis.start && nowAbsolute <= scheduleAxis.end;
       line.style.display = show ? '' : 'none';
       if (show) {
-        line.style.top = `${Math.round((nowMinutes - scheduleAxis.start) * scheduleAxis.pxPerMinute)}px`;
+        line.style.top = `${Math.round((nowAbsolute - scheduleAxis.start) * scheduleAxis.pxPerMinute)}px`;
         const label = line.querySelector('.now-label');
-        if (label) label.textContent = formatClock(nowMinutes);
+        if (label) label.textContent = formatClock(nowAbsolute);
       }
     }
 
     function openMobileNav() {
       document.body.classList.add('mobile-nav-open');
       $('mobileNavPanel').setAttribute('aria-hidden', 'false');
+      $('mobileNavPanel').inert = false;
       $('mobileMenuButton').setAttribute('aria-expanded', 'true');
+      syncLayerState();
     }
     function closeMobileNav() {
       document.body.classList.remove('mobile-nav-open');
       $('mobileNavPanel').setAttribute('aria-hidden', 'true');
+      $('mobileNavPanel').inert = true;
       $('mobileMenuButton').setAttribute('aria-expanded', 'false');
+      syncLayerState();
     }
     function syncMobileNav() {
       const active = state.view === 'favorites' ? 'mobileNavFavorites' : state.view === 'list' ? 'mobileNavList' : 'mobileNavSchedule';
@@ -2042,38 +2065,6 @@
       $('mobileProfileSub').textContent = $('profileSub').textContent;
       $('mobileStorageValue').textContent = $('storageValue').textContent;
       $('mobileStorageMeter').style.width = $('storageMeter').style.width;
-    }
-
-    // 访问统计脚本改为空闲加载：不参与首屏渲染，失败或超时显示兜底数字。
-    let globalStatsStarted = false;
-    function setupGlobalStats() {
-      if (globalStatsStarted) return;
-      globalStatsStarted = true;
-      const scope = window.document;
-      if (!scope) return;
-      const badge = $('busuanzi_value_site_pv');
-      const start = () => {
-        if (!badge || !scope.head || typeof scope.createElement !== 'function') return;
-        if (typeof scope.querySelector === 'function' && scope.querySelector('script[data-wmu-stats]')) return;
-        const script = scope.createElement('script');
-        script.async = true;
-        script.dataset.wmuStats = '1';
-        script.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
-        script.onerror = () => {
-          badge.dataset.state = 'fallback';
-          badge.textContent = String(GLOBAL_STAT_FALLBACK);
-        };
-        scope.head.appendChild(script);
-      };
-      if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(start, { timeout: 2500 });
-      else window.setTimeout(start, 1200);
-    }
-
-    function renderGlobalStats() {
-      const pv = $('busuanzi_value_site_pv');
-      const uv = $('busuanzi_value_site_uv');
-      if (pv && !String(pv.textContent || '').trim()) pv.textContent = String(GLOBAL_STAT_FALLBACK);
-      if (uv && !String(uv.textContent || '').trim()) uv.textContent = String(GLOBAL_STAT_FALLBACK);
     }
 
     function renderStorage() {
@@ -2087,7 +2078,6 @@
       $('storageValue').textContent = `${percent}%`;
       $('storageMeter').style.width = `${percent}%`;
       $('profileSub').textContent = state.updatedAt ? '本地数据 · 已保存' : '本地数据 · 未导入';
-      renderGlobalStats();
       syncMobileNav();
     }
 
@@ -2231,13 +2221,16 @@
     function finishDrawerClose() {
       document.body.classList.remove('drawer-open');
       $('drawer').setAttribute('aria-hidden', 'true');
+      $('drawer').inert = true;
       $('drawer').style.transform = '';
       $('drawerBackdrop').style.opacity = '';
       drawerPosition = drawerWidth();
+      syncLayerState();
     }
     function closeDrawer() {
       if (!document.body.classList.contains('drawer-open')) {
         $('drawer').setAttribute('aria-hidden', 'true');
+        $('drawer').inert = true;
         return;
       }
       animateDrawerTo(drawerWidth(), 0, finishDrawerClose);
@@ -2325,8 +2318,10 @@
       const wasOpen = document.body.classList.contains('drawer-open');
       stopDrawerAnimation();
       if (!wasOpen) setDrawerPosition(drawerWidth());
+      $('drawer').inert = false;
       document.body.classList.add('drawer-open');
       $('drawer').setAttribute('aria-hidden', 'false');
+      syncLayerState();
       animateDrawerTo(0);
     }
     function renderFavoriteButton() {
@@ -2347,7 +2342,11 @@
       persist();
       renderAll();
     }
+    let importCloseTimer = null;
+    let importRunId = 0;
     function openImportModal() {
+      if (importCloseTimer) { clearTimeout(importCloseTimer); importCloseTimer = null; }
+      importRunId += 1;
       selectedPdfFile = null;
       if ($('fileInput')) $('fileInput').value = '';
       $('fileName').textContent = '支持拖放，文件仅在本地处理';
@@ -2359,13 +2358,47 @@
       openModal('modalBackdrop');
     }
     function closeImportModal() {
+      if (importCloseTimer) { clearTimeout(importCloseTimer); importCloseTimer = null; }
       closeModalById('modalBackdrop');
       selectedPdfFile = null;
       if ($('fileInput')) $('fileInput').value = '';
     }
     function setImportStatus(message, kind = '') { $('importStatus').textContent = message; $('importStatus').className = `import-status ${kind}`.trim(); }
-    function openModal(id) { document.getElementById(id).classList.add('modal-open'); }
-    function closeModalById(id) { document.getElementById(id).classList.remove('modal-open'); }
+    const modalStack = [];
+    let lastModalFocus = null;
+    function syncLayerState() {
+      const app = typeof document.querySelector === 'function' ? document.querySelector('.app') : null;
+      const anyLayer = modalStack.length > 0 || document.body.classList.contains('drawer-open') || document.body.classList.contains('mobile-nav-open');
+      if (app) app.inert = anyLayer;
+      document.body.classList.toggle('has-modal', modalStack.length > 0);
+    }
+    function focusableIn(modal) {
+      if (!modal || typeof modal.querySelectorAll !== 'function') return [];
+      return [...modal.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')]
+        .filter((element) => element.offsetParent !== null);
+    }
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      if (!modal) return;
+      if (!modalStack.length) lastModalFocus = document.activeElement || null;
+      if (!modalStack.includes(modal)) modalStack.push(modal);
+      modal.classList.add('modal-open');
+      modal.setAttribute('aria-hidden', 'false');
+      modal.tabIndex = -1;
+      syncLayerState();
+      const target = focusableIn(modal)[0] || modal;
+      target?.focus?.();
+    }
+    function closeModalById(id) {
+      const modal = document.getElementById(id);
+      if (!modal) return;
+      const index = modalStack.indexOf(modal);
+      if (index >= 0) modalStack.splice(index, 1);
+      modal.classList.remove('modal-open');
+      modal.setAttribute('aria-hidden', 'true');
+      syncLayerState();
+      if (!modalStack.length) lastModalFocus?.focus?.();
+    }
     function openSettings() {
       $('termStartInput').value = currentTermStart();
       $('themeSelect').value = currentTheme();
@@ -2677,7 +2710,7 @@
     function loadRememberedGitHubToken() {
       try {
         const config = readGitHubSyncConfig();
-        githubSyncTokenInMemory = config?.rememberToken === false ? '' : (localStorage.getItem(GITHUB_SYNC_TOKEN_KEY) || '');
+        githubSyncTokenInMemory = config?.rememberToken === true ? (localStorage.getItem(GITHUB_SYNC_TOKEN_KEY) || '') : '';
       }
       catch (error) { githubSyncTokenInMemory = ''; }
     }
@@ -2707,7 +2740,7 @@
       $('githubSyncActions').hidden = !connected;
       $('githubConnectButton').hidden = connected;
       $('githubTokenInput').disabled = connected;
-      $('githubRememberTokenInput').checked = config?.rememberToken !== false;
+      $('githubRememberTokenInput').checked = config?.rememberToken === true;
       return connected;
     }
     function setGitHubSyncStatus(message, kind = '') {
@@ -2984,7 +3017,12 @@
       setGitHubSyncStatus('已断开连接；本机数据和公开仓库文件均未删除。');
     }
     function resetData() {
+      if (githubSyncTimer) clearTimeout(githubSyncTimer);
+      githubSyncTimer = null;
+      githubSyncTokenInMemory = '';
       try { localStorage.removeItem(STORAGE_KEY); } catch (error) {}
+      try { localStorage.removeItem(GITHUB_SYNC_CONFIG_KEY); } catch (error) {}
+      try { localStorage.removeItem(GITHUB_SYNC_TOKEN_KEY); } catch (error) {}
       activeEvent = null;
       closeDrawer();
       state.timetables = [];
@@ -3112,8 +3150,14 @@
     }
 
     async function importPdfFile(file) {
+      if (file.size > 20 * 1024 * 1024) {
+        setImportStatus('PDF 超过 20 MB，请压缩或拆分后再导入。', 'error');
+        return;
+      }
       const button = $('confirmImport');
       button.disabled = true;
+      const runId = ++importRunId;
+      if (importCloseTimer) { clearTimeout(importCloseTimer); importCloseTimer = null; }
       selectedPdfFile = file;
       $('fileName').textContent = file.name || '教务系统课表.pdf';
       setImportStatus('首次识别需要加载解析库，正在准备……');
@@ -3126,10 +3170,7 @@
           standardFontDataUrl: './vendor/pdfjs/standard_fonts/'
         });
         const conflicts = Array.isArray(result.conflicts) ? result.conflicts : [];
-        if (conflicts.length) {
-          setImportStatus(`识别到 ${conflicts.length} 个跨校区时间冲突：${conflicts.map((conflict) => conflict.message).join('；')}`, 'error');
-          return;
-        }
+        const conflictText = conflicts.length ? `；检测到 ${conflicts.length} 个跨校区时间冲突` : '';
         const previous = {
           timetables: [...state.timetables],
           activeId: state.activeId,
@@ -3179,13 +3220,20 @@
         renderAll();
         const warnings = Array.isArray(result.warnings) ? result.warnings : [];
         const warningText = warnings.length ? `；${warnings.length} 条记录需要检查` : '';
-        setImportStatus(`已识别 ${events.length} 个课次（${semester}），保存为「${timetable.name}」${warningText}。`, warnings.length ? 'error' : 'success');
-        setTimeout(() => {
+        setImportStatus(`已识别 ${events.length} 个课次（${semester}），保存为「${timetable.name}」${warningText}${conflictText}。`, (warnings.length || conflicts.length) ? 'error' : 'success');
+        importCloseTimer = setTimeout(() => {
+          importCloseTimer = null;
+          if (runId !== importRunId) return;
           closeImportModal();
           if (!timetable.termStartConfirmed) openSettings();
         }, 900);
       } catch (error) {
-        setImportStatus(`解析失败：${error.message || '文件格式无法识别'}`, 'error');
+        const message = String(error?.message || '');
+        if (/未在 PDF 页面中识别到课程记录/.test(message)) {
+          setImportStatus('未识别到课程：请确认 PDF 有文字层；若刚更新过应用，请联网后重试（解析资源可能未缓存）。', 'error');
+        } else {
+          setImportStatus(`解析失败：${message || '文件格式无法识别'}`, 'error');
+        }
       } finally {
         button.disabled = false;
       }
@@ -3237,7 +3285,16 @@
     });
     $('unhideAllButton').addEventListener('click', unhideAllEvents);
     document.querySelectorAll('[data-color]').forEach((button) => button.addEventListener('click', () => setSelectedCustomColor(button.dataset.color)));
-    $('searchInput').addEventListener('input', (event) => { state.query = event.target.value.trim(); renderAll(); });
+    let searchDebounce = null;
+    let searchComposing = false;
+    function queueSearch(value) {
+      state.query = value.trim();
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(renderAll, 180);
+    }
+    $('searchInput').addEventListener('compositionstart', () => { searchComposing = true; });
+    $('searchInput').addEventListener('compositionend', (event) => { searchComposing = false; queueSearch(event.target.value); });
+    $('searchInput').addEventListener('input', (event) => { if (!searchComposing) queueSearch(event.target.value); });
     $('drawerClose').addEventListener('click', closeDrawer);
     $('drawerBackdrop').addEventListener('click', closeDrawer);
     $('drawerFavorite').addEventListener('click', toggleFavorite);
@@ -3309,7 +3366,7 @@
       closeModalById('settingsBackdrop');
     });
     $('resetData').addEventListener('click', () => {
-      if (window.confirm?.('确定清除所有本地课表和收藏吗？此操作无法撤销。') === false) return;
+      if (window.confirm?.('确定清除所有本地课表、收藏和同步授权吗？此操作无法撤销。') === false) return;
       resetData();
     });
     $('exportData').addEventListener('click', exportData);
@@ -3351,16 +3408,33 @@
       importPdfFile(file);
     });
     document.addEventListener('keydown', (event) => {
+      if (event.key === 'Tab' && modalStack.length) {
+        const modal = modalStack[modalStack.length - 1];
+        const focusables = focusableIn(modal);
+        if (!focusables.length) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+        return;
+      }
       if (event.key !== 'Escape') return;
-      closeDrawer();
-      closeImportModal();
-      closeModalById('settingsBackdrop');
-      closeModalById('helpBackdrop');
-      closeModalById('switchBackdrop');
-      closeCustomModal();
-      closeAliasModal();
-      closeInstallGuide();
-      closeMobileNav();
+      if (modalStack.length) {
+        const id = modalStack[modalStack.length - 1].id;
+        if (id === 'modalBackdrop') closeImportModal();
+        else if (id === 'customBackdrop') closeCustomModal();
+        else if (id === 'aliasBackdrop') closeAliasModal();
+        else if (id === 'installBackdrop') closeInstallGuide();
+        else closeModalById(id);
+        return;
+      }
+      if (document.body.classList.contains('drawer-open')) { closeDrawer(); return; }
+      if (document.body.classList.contains('mobile-nav-open')) closeMobileNav();
     });
     document.addEventListener('touchmove', (event) => {
       if (event.touches?.length > 1) event.preventDefault();
@@ -3383,9 +3457,10 @@
     });
     loadState();
     loadRememberedGitHubToken();
+    $('drawer').inert = true;
+    $('mobileNavPanel').inert = true;
     if (window.__mountIcons) window.__mountIcons();
     renderAll();
-    setupGlobalStats();
     setupInstallExperience();
     registerServiceWorker();
     if (readGitHubSyncConfig() && githubSyncToken()) runGitHubAutoSync();

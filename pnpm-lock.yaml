@@ -9,7 +9,7 @@ importers:
   .:
     devDependencies:
       pdfjs-dist:
-        specifier: ^5.4.149
+        specifier: 5.7.284
         version: 5.7.284
 
 packages:
