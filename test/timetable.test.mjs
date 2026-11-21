@@ -7,6 +7,7 @@ import test from "node:test";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 
 import {
+  extractPdfPages,
   parseTimetablePdf,
   parseTimetablePages,
   parseWeekRanges,
@@ -242,4 +243,38 @@ test("多范围周次在非相邻区间也能识别跨校区冲突", () => {
   const conflicts = detectCampusConflicts(events);
   assert.equal(conflicts.length, 1);
   assert.deepEqual([conflicts[0].firstIndex, conflicts[0].secondIndex], [0, 1]);
+});
+
+test("extractPdfPages 支持 onProgress 回调且不向 PDF.js 透传该选项", async () => {
+  const progressLog = [];
+  let receivedOptions = null;
+  const fakePdfJs = {
+    getDocument(options) {
+      receivedOptions = options;
+      return {
+        promise: Promise.resolve({
+          numPages: 2,
+          async getPage(num) {
+            return {
+              getViewport: () => ({ width: 842, height: 595 }),
+              getTextContent: async () => ({ items: [{ str: `P${num}`, transform: [1, 0, 0, 1, 10, 10], width: 10, height: 10 }] }),
+              cleanup() {}
+            };
+          },
+          destroy: async () => {}
+        })
+      };
+    }
+  };
+  const pages = await extractPdfPages(new Uint8Array([1, 2, 3]), fakePdfJs, {
+    cMapPacked: true,
+    onProgress: (info) => progressLog.push(info)
+  });
+  assert.equal(pages.length, 2);
+  assert.deepEqual(progressLog, [
+    { page: 1, totalPages: 2 },
+    { page: 2, totalPages: 2 }
+  ]);
+  assert.equal("onProgress" in receivedOptions, false);
+  assert.equal(receivedOptions.cMapPacked, true);
 });

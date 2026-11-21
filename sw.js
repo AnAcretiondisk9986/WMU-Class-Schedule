@@ -1,7 +1,8 @@
 const CACHE_PREFIX = "wmu-timetable-";
 // 外壳与 PDF.js 懒资源分开版本：壳升级不再清空 4 MB 的 CMap/字体/worker。
-const SHELL_CACHE = `${CACHE_PREFIX}shell-v5`;
+const SHELL_CACHE = `${CACHE_PREFIX}shell-v6`;
 const PDF_CACHE = `${CACHE_PREFIX}pdfjs-v1`;
+const SHELL_NETWORK_TIMEOUT_MS = 3500;
 // 安装期只预缓存首屏必需的应用壳。首屏之外的大体积资源不进这里。
 const APP_SHELL = [
   "./index.html",
@@ -10,7 +11,8 @@ const APP_SHELL = [
   "./assets/wmu-logo-white.png",
   "./assets/wmu-seal-white.png",
   "./assets/wmu-shield-white.png",
-  "./src/timetable.js"
+  "./src/timetable.js",
+  "./src/ics.js"
 ];
 
 // PDF.js 主库、worker、CMap 与标准字体按需请求，首次使用后写入 PDF_CACHE。
@@ -36,6 +38,12 @@ self.addEventListener("activate", event => {
   );
 });
 
+self.addEventListener("message", event => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET" || new URL(event.request.url).origin !== self.location.origin) return;
 
@@ -45,7 +53,7 @@ self.addEventListener("fetch", event => {
   }
 
   const pathname = new URL(event.request.url).pathname;
-  const isVersionSensitive = /\/(?:index\.html|src\/timetable\.js)/.test(pathname);
+  const isVersionSensitive = /\/(?:index\.html|src\/(?:timetable|ics)\.js)/.test(pathname);
   const isLazyVendor = LAZY_PATH_PREFIXES.some(prefix =>
     pathname.includes(prefix.replace(/^\./, "")));
 
@@ -64,15 +72,42 @@ async function putShell(request, response) {
   return true;
 }
 
-function networkFirstShell(event) {
-  return fetch(event.request, { cache: "no-cache" }).then(response => {
+async function networkFirstShell(event) {
+  const networkPromise = fetch(event.request, { cache: "no-cache" }).then(response => {
     if (response.ok) event.waitUntil(putShell("./index.html", response.clone()));
     return response;
-  }).catch(() => caches.match("./index.html"));
+  });
+
+  const cache = await caches.open(SHELL_CACHE);
+  const cached = await cache.match("./index.html");
+  if (!cached) {
+    return networkPromise.catch(() => caches.match("./index.html"));
+  }
+
+  // 弱网/校园网认证卡顿时限时回退缓存壳，后台继续等待网络更新缓存，保证离线与弱网秒开。
+  let timerId = null;
+  const timeoutPromise = new Promise(resolve => {
+    timerId = setTimeout(() => resolve(null), SHELL_NETWORK_TIMEOUT_MS);
+  });
+
+  const winner = await Promise.race([
+    networkPromise.then(response => {
+      if (timerId !== null) clearTimeout(timerId);
+      return response;
+    }).catch(() => {
+      if (timerId !== null) clearTimeout(timerId);
+      return null;
+    }),
+    timeoutPromise
+  ]);
+
+  if (winner) return winner;
+  event.waitUntil(networkPromise.then(() => undefined, () => undefined));
+  return cached;
 }
 
 function networkFirst(event) {
-  return fetch(event.request).then(response => {
+  return fetch(event.request, { cache: "no-cache" }).then(response => {
     if (response.ok) event.waitUntil(putShell(event.request, response.clone()));
     return response;
   }).catch(() => caches.match(event.request));
@@ -119,7 +154,8 @@ async function invalidateLazySiblings(request) {
 
 async function handleLazyRequest(event) {
   const { request } = event;
-  const cached = await caches.match(request);
+  const pdfCache = await caches.open(PDF_CACHE);
+  const cached = await pdfCache.match(request);
   const revalidate = fetch(request).then(async response => {
     const replaced = await cacheNetworkResponse(request, response);
     if (replaced) await invalidateLazySiblings(request);
@@ -131,5 +167,5 @@ async function handleLazyRequest(event) {
     return cached;
   }
   const response = await revalidate;
-  return response || caches.match(request);
+  return response || pdfCache.match(request);
 }

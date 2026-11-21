@@ -80,6 +80,7 @@ function runScenario(saved) {
   const body = makeElement("body");
   const storage = {};
   const confirmMessages = [];
+  const docListeners = {};
   let fetcher = async () => { throw new Error("Unexpected GitHub API request"); };
   if (saved) storage["wmu-timetable-v1"] = JSON.stringify(saved);
 
@@ -106,7 +107,10 @@ function runScenario(saved) {
           return [button];
         });
       },
-      addEventListener() {},
+      addEventListener(type, callback) {
+        if (!docListeners[type]) docListeners[type] = [];
+        docListeners[type].push(callback);
+      },
       body,
       documentElement,
       createElement: () => makeElement("created")
@@ -144,6 +148,11 @@ function runScenario(saved) {
       if (callback) callback({ target: $(id), currentTarget: $(id), preventDefault() {}, stopPropagation() {}, ...event });
     });
   };
+  const triggerDocument = (type, event = {}) => {
+    withMocks(mocks, () => {
+      (docListeners[type] || []).forEach((callback) => callback({ preventDefault() {}, stopPropagation() {}, ...event }));
+    });
+  };
   const triggerEventButton = (index) => {
     const button = [...eventButtons].reverse().find((item) => item.rootId === "schedule" && Number(item.dataset.event) === index);
     if (!button) throw new Error(`No rendered event button for index ${index}`);
@@ -151,7 +160,7 @@ function runScenario(saved) {
   };
 
   return {
-    elements, documentElement, body, storage, confirmMessages, error, $, trigger, triggerAsync, triggerEvent, triggerEventButton,
+    elements, documentElement, body, storage, confirmMessages, error, $, trigger, triggerAsync, triggerEvent, triggerDocument, triggerEventButton,
     withEnvironment: (callback) => withMocksAsync(mocks, callback),
     setFetch(callback) { fetcher = callback; }
   };
@@ -228,10 +237,12 @@ test("手机 APP 引导覆盖 iOS 浏览器与 Android 一键安装", () => {
 });
 
 test("PWA 页面导航优先读取网络并缓存本地 PDF.js 依赖", () => {
-  assert.ok(serviceWorker.includes("const SHELL_CACHE = `${CACHE_PREFIX}shell-v5`;"));
+  assert.ok(serviceWorker.includes("const SHELL_CACHE = `${CACHE_PREFIX}shell-v6`;"));
   assert.ok(serviceWorker.includes("const PDF_CACHE = `${CACHE_PREFIX}pdfjs-v1`;"));
   assert.match(serviceWorker, /event\.request\.mode === "navigate"/);
   assert.match(serviceWorker, /fetch\(event\.request, \{ cache: "no-cache" \}\)/);
+  assert.match(serviceWorker, /SHELL_NETWORK_TIMEOUT_MS/);
+  assert.match(serviceWorker, /SKIP_WAITING/);
   assert.match(serviceWorker, /key\.startsWith\(CACHE_PREFIX\) && key !== SHELL_CACHE && key !== PDF_CACHE/);
   // 首屏之外的 PDF.js 资源不进 install 预缓存，改为按需请求后写入 PDF 缓存。
   assert.match(serviceWorker, /const LAZY_PATH_PREFIXES = \[\s*"\.\/vendor\/pdfjs\/"\s*\];/);
@@ -882,4 +893,128 @@ test("教室图标独占一行，短教室号与说明分行，长地点自由�
   assert.match(scheduleHtml, /course-room-body course-room-free">10-B203<\/span>/);
   assert.match(scheduleHtml, /course-room-body course-room-free">4B3楼生化实验室7<\/span>/);
   assert.doesNotMatch(scheduleHtml, /course-room-code">(?:10-B203|4B3楼生化实验室7)</);
+});
+
+test("首屏性能与可访问性：预加载核心模块、预渲染主题且无阻塞滚动的 touchmove", () => {
+  assert.match(html, /<link rel="modulepreload" href="\.\/src\/timetable\.js">/);
+  assert.match(html, /localStorage\.getItem\('wmu-timetable-v1'\)/);
+  assert.match(html, /root\.querySelectorAll\('i\[data-lucide\]'\)/, "mountIcons 仅替换未挂载的 <i> 占位符，不反复重建已渲染 <svg>");
+  assert.doesNotMatch(html, /addEventListener\('touchmove'/);
+  assert.doesNotMatch(html, /gesturestart/);
+});
+
+test("按需渲染激活视图：周视图下不无谓渲染隐藏的月视图与列表", () => {
+  const s = runScenario(SAVED({ view: "schedule" }));
+  assert.equal(s.error, null, s.error?.stack);
+  assert.ok(s.$("schedule").innerHTML.length > 0);
+  assert.equal(s.$("monthView").innerHTML, "", "周视图不渲染隐藏的月视图 DOM");
+  assert.equal(s.$("agenda").innerHTML, "", "周视图不渲染隐藏的列表 DOM");
+  assert.doesNotMatch(s.$("nextWeekPreview").innerHTML, /class="agenda"/, "周视图预渲染不生成隐藏列表");
+  s.trigger("monthViewButton");
+  assert.match(s.$("monthView").innerHTML, /month-cell-jump/);
+});
+
+test("隐藏课程与删除自定义日程均支持底部 Toast 一键撤销", () => {
+  const custom = {
+    id: "custom-undo", kind: "custom", title: "实验汇报", description: "", room: "204",
+    week: 1, day: 1, startTime: "15:00", endTime: "16:00", color: "brand", type: "custom", label: "自定义",
+    campus: "", teacher: "", credit: "—", weeks: [W(1, 1)], hidden: false
+  };
+  const tt = { ...TT("t1", "2026-2027-1", "2026-2027-1", "测试同学", [TEST_EVENTS[0]]), customEvents: [custom] };
+  const s = runScenario(SAVED({ timetables: [tt], week: 1 }));
+
+  // 隐藏课程 -> 撤销
+  s.triggerEventButton(0);
+  s.trigger("drawerHideEvent");
+  assert.equal(JSON.parse(s.storage["wmu-timetable-v1"]).timetables[0].events[0].hidden, true);
+  assert.equal(s.$("toastBar").hidden, false);
+  assert.equal(s.$("toastAction").hidden, false);
+  s.trigger("toastAction");
+  assert.equal(JSON.parse(s.storage["wmu-timetable-v1"]).timetables[0].events[0].hidden, false);
+
+  // 删除自定义日程 -> 撤销
+  s.triggerEventButton(1);
+  s.trigger("drawerDeleteCustom");
+  assert.equal(JSON.parse(s.storage["wmu-timetable-v1"]).timetables[0].customEvents.length, 0);
+  assert.equal(s.$("toastBar").hidden, false);
+  s.trigger("toastAction");
+  const restored = JSON.parse(s.storage["wmu-timetable-v1"]).timetables[0].customEvents;
+  assert.equal(restored.length, 1);
+  assert.equal(restored[0].id, "custom-undo");
+});
+
+test("自定义日程表单实时检测与现有课程的时间冲突", () => {
+  const s = runScenario(SAVED({ week: 1 }));
+  s.trigger("addCustomButton");
+  s.$("customWeek").value = "1";
+  s.$("customDay").value = "1";
+  s.$("customStart").value = "08:40";
+  s.$("customEnd").value = "09:20";
+  s.trigger("customStart", "input");
+  assert.equal(s.$("customConflictHint").hidden, false);
+  assert.match(s.$("customConflictHint").textContent, /云计算基础/);
+
+  s.$("customStart").value = "19:00";
+  s.$("customEnd").value = "20:00";
+  s.trigger("customStart", "input");
+  assert.equal(s.$("customConflictHint").hidden, true);
+});
+
+test("点击周次可展开快速跳转弹层并直接跳周", () => {
+  const s = runScenario(SAVED({ week: 1 }));
+  assert.equal(s.$("weekJumpPopover").hidden, true);
+  s.trigger("weekValue");
+  assert.equal(s.$("weekJumpPopover").hidden, false);
+  assert.match(s.$("weekJumpPopover").innerHTML, /data-pick-week="8"/);
+  s.triggerEvent("weekJumpPopover", "click", {
+    target: { closest: () => ({ dataset: { pickWeek: "8" } }) }
+  });
+  assert.equal(s.$("weekValue").textContent, "第 08 周");
+  assert.equal(s.$("weekJumpPopover").hidden, true);
+});
+
+test("桌面键盘快捷键支持切周与切视图，输入框内不误触发", () => {
+  const s = runScenario(SAVED({ week: 1 }));
+  s.triggerDocument("keydown", { key: "ArrowRight", target: { tagName: "BODY" } });
+  assert.equal(s.$("weekValue").textContent, "第 02 周");
+  s.triggerDocument("keydown", { key: "ArrowLeft", target: { tagName: "BODY" } });
+  assert.equal(s.$("weekValue").textContent, "第 01 周");
+  // 输入框内按键不应触发切周
+  s.triggerDocument("keydown", { key: "ArrowRight", target: { tagName: "INPUT" } });
+  assert.equal(s.$("weekValue").textContent, "第 01 周");
+  s.triggerDocument("keydown", { key: "3", target: { tagName: "BODY" } });
+  assert.equal(s.$("viewTitle").textContent, "课程清单");
+  s.triggerDocument("keydown", { key: "1", target: { tagName: "BODY" } });
+  assert.equal(s.$("viewTitle").textContent, "周视图");
+});
+
+test("斜向竖滑不误触发周次切换，跨周搜索给出跳转提示", async () => {
+  const s = runScenario(SAVED({ week: 1 }));
+  s.triggerEvent("weekSwipeSurface", "pointerdown", { pointerId: 9, pointerType: "touch", clientX: 200, clientY: 200 });
+  s.triggerEvent("weekSwipeSurface", "pointermove", { pointerId: 9, pointerType: "touch", clientX: 180, clientY: 230 });
+  s.triggerEvent("weekSwipeSurface", "pointerup", { pointerId: 9, pointerType: "touch", clientX: 160, clientY: 260 });
+  assert.equal(s.$("weekValue").textContent, "第 01 周", "竖向偏斜滚动不得误切周");
+
+  // 搜索第 8 周独有课程「形势与政策」：在第 1 周时应提示其他周匹配并提供跳转按钮
+  await s.withEnvironment(async () => {
+    s.$("searchInput").value = "形势与政策";
+    s.triggerEvent("searchInput", "compositionend", { target: s.$("searchInput") });
+    await new Promise((resolve) => setTimeout(resolve, 210));
+  });
+  assert.match(s.$("emptyState").innerHTML, /其他周共有/);
+  assert.match(s.$("emptyState").innerHTML, /data-jump-week="8"/);
+  assert.equal(s.$("searchClear").hidden, false);
+  s.trigger("searchClear");
+  assert.equal(s.$("searchInput").value, "");
+  assert.equal(s.$("searchClear").hidden, true);
+});
+
+test("课程详情抽屉按需展示考核方式与选课备注", () => {
+  const enriched = { ...TEST_EVENTS[0], assessment: "闭卷考试", note: "请提前预习" };
+  const s = runScenario(SAVED({ timetables: [TT("t1", "2026-2027-1", "2026-2027-1", "测试同学", [enriched])] }));
+  s.triggerEventButton(0);
+  assert.equal(s.$("detailAssessmentRow").hidden, false);
+  assert.equal(s.$("detailAssessment").textContent, "闭卷考试");
+  assert.equal(s.$("detailNoteRow").hidden, false);
+  assert.equal(s.$("detailCourseNote").textContent, "请提前预习");
 });

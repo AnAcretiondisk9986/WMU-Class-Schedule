@@ -55,6 +55,8 @@ const FIELD_NAMES = Object.freeze([
   "总学时",
   "学分"
 ]);
+const FIELD_LABEL_PATTERN = FIELD_NAMES.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+const FIELD_REGEX = new RegExp(`(?:^|/)(${FIELD_LABEL_PATTERN})\\s*[:：]`, "g");
 
 function asText(value) {
   return String(value ?? "")
@@ -105,9 +107,7 @@ export function parseWeekRanges(value) {
 function parseFields(value) {
   const source = compact(value);
   const fields = {};
-  const labelPattern = FIELD_NAMES.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
-  const pattern = new RegExp(`(?:^|/)(${labelPattern})\\s*[:：]`, "g");
-  const matches = [...source.matchAll(pattern)];
+  const matches = [...source.matchAll(FIELD_REGEX)];
 
   matches.forEach((match, index) => {
     const start = match.index + match[0].length;
@@ -284,38 +284,43 @@ function weekdayForPosition(position, anchors) {
   return null;
 }
 
-function columnTextForPage(page, weekday, anchors) {
-  const rows = [];
-  const items = (page.items ?? [])
-    .map(item => ({ item, ...itemPosition(item) }))
-    .filter(entry => compact(entry.item.str ?? entry.item.text))
-    .filter(entry => weekdayForPosition(entry, anchors));
-
-  if (anchors.axis === "y") {
-    return items
-      .filter(entry => weekdayForPosition(entry, anchors) === weekday)
-      .sort((a, b) => a.x - b.x || a.y - b.y)
-      .map(entry => entry.item.str ?? entry.item.text)
-      .join("\n");
+function columnTextsForPage(page, anchors) {
+  const buckets = Array.from({ length: 7 }, () => []);
+  for (const item of page.items ?? []) {
+    const text = item.str ?? item.text;
+    if (!compact(text)) continue;
+    const pos = itemPosition(item);
+    const weekday = weekdayForPosition(pos, anchors);
+    if (weekday != null) buckets[weekday - 1].push({ item, text, x: pos.x, y: pos.y });
   }
 
-  const orderedItems = items
-    .filter(entry => weekdayForPosition(entry, anchors) === weekday)
-    .sort((a, b) => b.y - a.y || a.x - b.x);
-
-  for (const entry of orderedItems) {
-    let row = rows.find(candidate => Math.abs(candidate.y - entry.y) <= 2);
-    if (!row) {
-      row = { y: entry.y, items: [] };
-      rows.push(row);
+  return buckets.map(bucket => {
+    if (!bucket.length) return "";
+    if (anchors.axis === "y") {
+      return bucket
+        .sort((a, b) => a.x - b.x || a.y - b.y)
+        .map(entry => entry.text)
+        .join("\n");
     }
-    row.items.push(entry);
-  }
 
-  return rows
-    .sort((a, b) => b.y - a.y)
-    .map(row => row.items.sort((a, b) => a.x - b.x).map(entry => entry.item.str ?? entry.item.text).join(""))
-    .join("\n");
+    bucket.sort((a, b) => b.y - a.y || a.x - b.x);
+    const rows = [];
+    for (const entry of bucket) {
+      let row = rows.length && Math.abs(rows[rows.length - 1].y - entry.y) <= 2
+        ? rows[rows.length - 1]
+        : rows.find(candidate => Math.abs(candidate.y - entry.y) <= 2);
+      if (!row) {
+        row = { y: entry.y, items: [] };
+        rows.push(row);
+      }
+      row.items.push(entry);
+    }
+
+    return rows
+      .sort((a, b) => b.y - a.y)
+      .map(row => row.items.sort((a, b) => a.x - b.x).map(entry => entry.text).join(""))
+      .join("\n");
+  });
 }
 
 function parseDocumentIdentity(pages) {
@@ -375,11 +380,34 @@ function rangeHasWeek(range, week) {
     || (range.parity === "even" && week % 2 === 0);
 }
 
+function weekBitmask(ranges) {
+  if (!ranges?.length) return 0;
+  let mask = 0;
+  for (const range of ranges) {
+    const start = Math.max(1, range.start);
+    const end = Math.min(30, range.end);
+    for (let week = start; week <= end; week += 1) {
+      if (range.parity === "all"
+        || (range.parity === "odd" && (week & 1) === 1)
+        || (range.parity === "even" && (week & 1) === 0)) {
+        mask |= 1 << (week - 1);
+      }
+    }
+  }
+  return mask;
+}
+
 function weeksOverlap(first, second) {
   if (!first?.length || !second?.length) return false;
+  const maxWeek = Math.max(
+    ...first.map(range => range.end),
+    ...second.map(range => range.end)
+  );
+  if (maxWeek <= 30) {
+    return (weekBitmask(first) & weekBitmask(second)) !== 0;
+  }
   const start = Math.min(...first.map(range => range.start), ...second.map(range => range.start));
-  const end = Math.max(...first.map(range => range.end), ...second.map(range => range.end));
-  for (let week = start; week <= end; week += 1) {
+  for (let week = start; week <= maxWeek; week += 1) {
     if (first.some(range => rangeHasWeek(range, week)) && second.some(range => rangeHasWeek(range, week))) {
       return true;
     }
@@ -392,7 +420,7 @@ function clockToMinutes(value) {
   return hours * 60 + minutes;
 }
 
-function periodMinutes(periods, index, edge) {
+export function periodMinutes(periods, index, edge) {
   const value = periods[index]?.[edge];
   if (!value) return null;
   let minutes = clockToMinutes(value);
@@ -412,33 +440,47 @@ function eventClockRange(event) {
 
 export function detectCampusConflicts(events) {
   const conflicts = [];
+  const byWeekday = new Map();
 
-  for (let firstIndex = 0; firstIndex < events.length; firstIndex += 1) {
-    const first = events[firstIndex];
-    if (!PHYSICAL_CAMPUSES.includes(first.campus)) continue;
-    const firstClock = eventClockRange(first);
-    if (!firstClock) continue;
+  for (let index = 0; index < events.length; index += 1) {
+    const event = events[index];
+    if (!PHYSICAL_CAMPUSES.includes(event.campus)) continue;
+    const clock = eventClockRange(event);
+    if (!clock) continue;
+    const maxWeek = event.weeks?.length ? Math.max(...event.weeks.map(range => range.end)) : 0;
+    const mask = maxWeek <= 30 ? weekBitmask(event.weeks) : null;
+    const entry = { index, event, clock, mask };
+    const bucket = byWeekday.get(event.weekday);
+    if (bucket) bucket.push(entry);
+    else byWeekday.set(event.weekday, [entry]);
+  }
 
-    for (let secondIndex = firstIndex + 1; secondIndex < events.length; secondIndex += 1) {
-      const second = events[secondIndex];
-      if (!PHYSICAL_CAMPUSES.includes(second.campus) || first.campus === second.campus) continue;
-      if (first.weekday !== second.weekday || !weeksOverlap(first.weeks, second.weeks)) continue;
+  for (const bucket of byWeekday.values()) {
+    for (let i = 0; i < bucket.length; i += 1) {
+      const a = bucket[i];
+      for (let j = i + 1; j < bucket.length; j += 1) {
+        const b = bucket[j];
+        if (a.event.campus === b.event.campus) continue;
+        if (a.clock.start >= b.clock.end || b.clock.start >= a.clock.end) continue;
+        const overlap = a.mask !== null && b.mask !== null
+          ? (a.mask & b.mask) !== 0
+          : weeksOverlap(a.event.weeks, b.event.weeks);
+        if (!overlap) continue;
 
-      const secondClock = eventClockRange(second);
-      if (!secondClock || firstClock.start >= secondClock.end || secondClock.start >= firstClock.end) continue;
-
-      conflicts.push({
-        firstIndex,
-        secondIndex,
-        weekday: first.weekday,
-        campuses: [first.campus, second.campus],
-        periods: [first.periods, second.periods],
-        weeks: [first.weeks, second.weeks],
-        message: `周${DAY_CHARS[first.weekday - 1]}第 ${first.periods.start}-${first.periods.end} 节「${first.courseName}」（${first.campus}）与第 ${second.periods.start}-${second.periods.end} 节「${second.courseName}」（${second.campus}）存在跨校区时间冲突`
-      });
+        conflicts.push({
+          firstIndex: a.index,
+          secondIndex: b.index,
+          weekday: a.event.weekday,
+          campuses: [a.event.campus, b.event.campus],
+          periods: [a.event.periods, b.event.periods],
+          weeks: [a.event.weeks, b.event.weeks],
+          message: `周${DAY_CHARS[a.event.weekday - 1]}第 ${a.event.periods.start}-${a.event.periods.end} 节「${a.event.courseName}」（${a.event.campus}）与第 ${b.event.periods.start}-${b.event.periods.end} 节「${b.event.courseName}」（${b.event.campus}）存在跨校区时间冲突`
+        });
+      }
     }
   }
 
+  conflicts.sort((a, b) => a.firstIndex - b.firstIndex || a.secondIndex - b.secondIndex);
   return conflicts;
 }
 
@@ -450,9 +492,10 @@ export function parseTimetablePages(pages) {
   const warnings = [];
   const anchors = findColumnAnchors(pages);
   const events = [];
+  const pageColumns = pages.map(page => columnTextsForPage(page, anchors));
 
   for (let weekday = 1; weekday <= 7; weekday += 1) {
-    const columnText = pages.map(page => columnTextForPage(page, weekday, anchors)).join("\n");
+    const columnText = pageColumns.map(columns => columns[weekday - 1]).join("\n");
     events.push(...parseColumn(columnText, weekday, warnings));
   }
 
@@ -485,7 +528,8 @@ export async function extractPdfPages(fileOrData, pdfjsLib, pdfOptions = {}) {
     throw new TypeError("fileOrData 必须是 File、ArrayBuffer 或 Uint8Array");
   }
 
-  const loadingTask = pdfjsLib.getDocument({ ...pdfOptions, data });
+  const { onProgress, ...documentOptions } = pdfOptions || {};
+  const loadingTask = pdfjsLib.getDocument({ ...documentOptions, data });
   const pdf = await loadingTask.promise;
   const pages = [];
 
@@ -496,6 +540,9 @@ export async function extractPdfPages(fileOrData, pdfjsLib, pdfOptions = {}) {
     }
 
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+      if (typeof onProgress === "function") {
+        onProgress({ page: pageNumber, totalPages: pdf.numPages });
+      }
       const page = await pdf.getPage(pageNumber);
       try {
         const viewport = page.getViewport({ scale: 1 });
@@ -529,3 +576,4 @@ export async function parseTimetablePdf(fileOrData, pdfjsLib, pdfOptions = {}) {
 
 export const activityTypes = ACTIVITY_TYPES;
 export const physicalCampuses = PHYSICAL_CAMPUSES;
+export const campusPeriods = CAMPUS_PERIODS;
